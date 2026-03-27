@@ -1,0 +1,99 @@
+@layer theme, base, components, utilities;
+
+@layer components {
+  .admin-card {
+    background-color: var(--color-white, #fff);
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+    border-radius: 0.5rem;
+  }
+
+  .admin-thead {
+    background-color: var(--color-gray-50, #f9fafb);
+  }
+
+  .admin-th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-gray-500, #6b7280);
+  }
+
+  .admin-h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-gray-900, #111827);
+  }
+
+  .admin-td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-gray-700, #374151);
+    border-bottom: 1px solid var(--color-gray-100, #f3f4f6);
+  }
+
+  .admin-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    color: var(--color-gray-700, #374151);
+    transition-property: background-color, color;
+    transition-duration: 150ms;
+  }
+
+  .admin-sidebar-link:hover {
+    background-color: var(--color-gray-100, #f3f4f6);
+  }
+
+  .admin-sidebar-link.active {
+    background-color: var(--color-blue-50, #eff6ff);
+    color: var(--color-blue-700, #1d4ed8);
+    font-weight: 500;
+  }
+
+  .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition-property: background-color, color, border-color;
+    transition-duration: 150ms;
+    cursor: pointer;
+  }
+
+  .admin-btn-primary {
+    background-color: var(--color-blue-600, #2563eb);
+    color: white;
+  }
+
+  .admin-btn-primary:hover {
+    background-color: var(--color-blue-700, #1d4ed8);
+  }
+
+  .admin-btn-secondary {
+    background-color: white;
+    color: var(--color-gray-700, #374151);
+    border: 1px solid var(--color-gray-300, #d1d5db);
+  }
+
+  .admin-btn-secondary:hover {
+    background-color: var(--color-gray-50, #f9fafb);
+  }
+
+  .admin-btn-danger {
+    background-color: var(--color-red-600, #dc2626);
+    color: white;
+  }
+
+  .admin-btn-danger:hover {
+    background-color: var(--color-red-700, #b91c1c);
+  }
+}
