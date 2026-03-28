@@ -1,11 +1,14 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Rss } from 'lucide-react';
 
 import { CONTENT_TYPES } from '@/config/cms';
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
-import { PostType, ContentStatus } from '@/types/cms';
+import { PostType } from '@/types/cms';
+import { PostCard } from '@/components/public/PostCard';
+import { TagCloud } from '@/components/public/TagCloud';
 
 interface Props {
   params: Promise<{ slug: string[] }>;
@@ -128,6 +131,28 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         previewToken: preview,
       });
 
+      // Fetch tags for this post
+      let postTags: { id: string; name: string; slug: string }[] = [];
+      try {
+        postTags = await api.tags.getForObject({ objectId: post.id });
+      } catch {
+        // Tags are optional
+      }
+
+      // Fetch related posts (only for blog posts)
+      let relatedPosts: Awaited<ReturnType<typeof api.cms.getRelatedPosts>> = [];
+      if (resolved.contentType.id === 'blog') {
+        try {
+          relatedPosts = await api.cms.getRelatedPosts({
+            postId: post.id,
+            lang: 'en',
+            limit: 4,
+          });
+        } catch {
+          // Related posts are optional
+        }
+      }
+
       return (
         <article className="mx-auto max-w-3xl px-4 py-12">
           {preview && (
@@ -159,10 +184,51 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
             </time>
           )}
 
+          {/* Tags */}
+          {postTags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {postTags.map((tag) => (
+                <Link
+                  key={tag.slug}
+                  href={`/tag/${tag.slug}`}
+                  className="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-100"
+                >
+                  {tag.name}
+                </Link>
+              ))}
+            </div>
+          )}
+
           <div
             className="prose prose-gray mt-8 max-w-none"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+
+          {/* Related Posts */}
+          {relatedPosts.length > 0 && (
+            <section className="mt-12 border-t border-gray-100 pt-8">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Related Posts
+              </h2>
+              <div className="mt-4 space-y-4">
+                {relatedPosts.map((related) => {
+                  const isBlog = related.type === PostType.BLOG;
+                  const relHref = isBlog
+                    ? `/blog/${related.slug}`
+                    : `/${related.slug}`;
+                  return (
+                    <PostCard
+                      key={related.id}
+                      title={related.title}
+                      href={relHref}
+                      metaDescription={related.metaDescription}
+                      publishedAt={related.publishedAt}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {/* JSON-LD */}
           {post.jsonLd && (
@@ -206,9 +272,18 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
       return (
         <div className="mx-auto max-w-3xl px-4 py-12">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-            Tag: {tag.name}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+              Tag: {tag.name}
+            </h1>
+            <Link
+              href={`/api/feed/tag/${tag.slug}`}
+              className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-orange-50 hover:text-orange-500"
+              title="RSS Feed"
+            >
+              <Rss className="h-5 w-5" />
+            </Link>
+          </div>
 
           {allResults.length > 0 ? (
             <div className="mt-10 space-y-6">
@@ -216,28 +291,14 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                 const isBlog = post.type === PostType.BLOG;
                 const href = isBlog ? `/blog/${post.slug}` : `/${post.slug}`;
                 return (
-                  <article key={post.id} className="border-b border-gray-100 pb-4">
-                    <Link
-                      href={href}
-                      className="text-lg font-semibold text-gray-900 hover:text-blue-600"
-                    >
-                      {post.title}
-                    </Link>
-                    {post.metaDescription && (
-                      <p className="mt-1 text-sm text-gray-600">
-                        {post.metaDescription}
-                      </p>
-                    )}
-                    {post.publishedAt && (
-                      <time className="mt-1 block text-xs text-gray-400">
-                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    )}
-                  </article>
+                  <PostCard
+                    key={post.id}
+                    title={post.title}
+                    href={href}
+                    metaDescription={post.metaDescription}
+                    publishedAt={post.publishedAt}
+                    tags={post.tags}
+                  />
                 );
               })}
 
@@ -273,6 +334,16 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           ) : (
             <p className="mt-6 text-gray-500">No posts found with this tag.</p>
           )}
+
+          {/* Tag Cloud */}
+          <div className="mt-12 border-t border-gray-100 pt-8">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Browse More Tags
+            </h2>
+            <div className="mt-4">
+              <TagCloud />
+            </div>
+          </div>
         </div>
       );
     }
@@ -312,28 +383,14 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
               </h2>
               <div className="mt-4 space-y-6">
                 {posts.results.map((post) => (
-                  <article key={post.id} className="border-b border-gray-100 pb-4">
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="text-lg font-semibold text-gray-900 hover:text-blue-600"
-                    >
-                      {post.title}
-                    </Link>
-                    {post.metaDescription && (
-                      <p className="mt-1 text-sm text-gray-600">
-                        {post.metaDescription}
-                      </p>
-                    )}
-                    {post.publishedAt && (
-                      <time className="mt-1 block text-xs text-gray-400">
-                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    )}
-                  </article>
+                  <PostCard
+                    key={post.id}
+                    title={post.title}
+                    href={`/blog/${post.slug}`}
+                    metaDescription={post.metaDescription}
+                    publishedAt={post.publishedAt}
+                    tags={post.tags}
+                  />
                 ))}
               </div>
             </div>

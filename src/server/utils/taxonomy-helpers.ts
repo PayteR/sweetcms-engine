@@ -1,7 +1,7 @@
 import { and, eq, inArray } from 'drizzle-orm';
 
 import type { DbClient } from '@/server/db';
-import { cmsTermRelationships } from '@/server/db/schema';
+import { cmsTermRelationships, cmsTerms } from '@/server/db/schema';
 
 /**
  * Sync term relationships for a given object + taxonomy.
@@ -142,4 +142,45 @@ export async function batchGetTermRelationships(
     }
   }
   return result;
+}
+
+/**
+ * Resolve tags for an array of posts.
+ * Returns the same array with a `.tags` array appended to each post.
+ */
+export async function resolveTagsForPosts<
+  T extends { id: string },
+>(
+  db: DbClient,
+  posts: T[]
+): Promise<(T & { tags: { id: string; name: string; slug: string }[] })[]> {
+  if (posts.length === 0) return [];
+
+  const postIds = posts.map((p) => p.id);
+  const tagMap = await batchGetTermRelationships(db, postIds, 'tag');
+
+  // Collect all unique tag IDs
+  const allTagIds = new Set<string>();
+  for (const ids of tagMap.values()) {
+    for (const id of ids) allTagIds.add(id);
+  }
+
+  // Batch-fetch tag info
+  let tagInfoMap = new Map<string, { id: string; name: string; slug: string }>();
+  if (allTagIds.size > 0) {
+    const tagRows = await db
+      .select({ id: cmsTerms.id, name: cmsTerms.name, slug: cmsTerms.slug })
+      .from(cmsTerms)
+      .where(inArray(cmsTerms.id, [...allTagIds]))
+      .limit(500);
+    tagInfoMap = new Map(tagRows.map((t) => [t.id, t]));
+  }
+
+  return posts.map((post) => {
+    const tagIds = tagMap.get(post.id) ?? [];
+    const tags = tagIds
+      .map((id) => tagInfoMap.get(id))
+      .filter((t): t is { id: string; name: string; slug: string } => !!t);
+    return { ...post, tags };
+  });
 }

@@ -12,6 +12,7 @@ import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
+import { TagInput } from './TagInput';
 
 interface Props {
   categoryId?: string;
@@ -36,6 +37,7 @@ export function CategoryForm({ categoryId }: Props) {
   const [seoTitle, setSeoTitle] = useState('');
   const [noindex, setNoindex] = useState(false);
   const [publishedAt, setPublishedAt] = useState('');
+  const [tagIds, setTagIds] = useState<string[]>([]);
 
   const existingCat = trpc.categories.get.useQuery(
     { id: categoryId! },
@@ -60,6 +62,7 @@ export function CategoryForm({ categoryId }: Props) {
       setPublishedAt(
         c.publishedAt ? new Date(c.publishedAt).toISOString().slice(0, 16) : ''
       );
+      if (c.tagIds) setTagIds(c.tagIds);
     }
   }, [existingCat.data]);
 
@@ -116,6 +119,7 @@ export function CategoryForm({ categoryId }: Props) {
         publishedAt: publishedAt
           ? new Date(publishedAt).toISOString()
           : undefined,
+        tagIds,
       });
     } else {
       updateCat.mutate({
@@ -133,6 +137,7 @@ export function CategoryForm({ categoryId }: Props) {
         publishedAt: publishedAt
           ? new Date(publishedAt).toISOString()
           : null,
+        tagIds,
       });
     }
   }
@@ -296,6 +301,18 @@ export function CategoryForm({ categoryId }: Props) {
           </div>
 
           <div className="space-y-6">
+            {/* Tags */}
+            <div className="admin-card p-6">
+              <h3 className="admin-h2">{__('Tags')}</h3>
+              <div className="mt-4">
+                <TagInput
+                  selectedTagIds={tagIds}
+                  onChange={setTagIds}
+                  lang={lang}
+                />
+              </div>
+            </div>
+
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">

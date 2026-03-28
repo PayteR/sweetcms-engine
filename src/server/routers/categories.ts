@@ -14,7 +14,11 @@ import {
   permanentDelete,
 } from '@/server/utils/admin-crud';
 import { updateWithRevision } from '@/server/utils/cms-helpers';
-import { deleteTermRelationshipsByTerm } from '@/server/utils/taxonomy-helpers';
+import {
+  deleteTermRelationshipsByTerm,
+  getTermRelationships,
+  syncTermRelationships,
+} from '@/server/utils/taxonomy-helpers';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -113,7 +117,11 @@ export const categoriesRouter = createTRPCRouter({
           message: 'Category not found',
         });
       }
-      return category;
+
+      const rels = await getTermRelationships(ctx.db, category.id, 'tag');
+      const tagIds = rels.map((r) => r.termId);
+
+      return { ...category, tagIds };
     }),
 
   create: contentProcedure
@@ -134,17 +142,20 @@ export const categoriesRouter = createTRPCRouter({
         translationGroup: z.string().uuid().optional(),
         fallbackToDefault: z.boolean().optional(),
         jsonLd: z.string().optional(),
+        tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { tagIds, ...catInput } = input;
+
       await ensureSlugUnique(
         ctx.db,
         {
           table: cmsCategories,
           slugCol: cmsCategories.slug,
-          slug: input.slug,
+          slug: catInput.slug,
           langCol: cmsCategories.lang,
-          lang: input.lang,
+          lang: catInput.lang,
           deletedAtCol: cmsCategories.deletedAt,
         },
         'Category'
@@ -155,24 +166,28 @@ export const categoriesRouter = createTRPCRouter({
       const [category] = await ctx.db
         .insert(cmsCategories)
         .values({
-          name: input.name,
-          slug: input.slug,
-          lang: input.lang,
-          title: input.title,
-          text: input.text,
-          status: input.status,
-          icon: input.icon ?? null,
-          metaDescription: input.metaDescription ?? null,
-          seoTitle: input.seoTitle ?? null,
-          order: input.order,
-          noindex: input.noindex,
-          publishedAt: input.publishedAt ? new Date(input.publishedAt) : null,
+          name: catInput.name,
+          slug: catInput.slug,
+          lang: catInput.lang,
+          title: catInput.title,
+          text: catInput.text,
+          status: catInput.status,
+          icon: catInput.icon ?? null,
+          metaDescription: catInput.metaDescription ?? null,
+          seoTitle: catInput.seoTitle ?? null,
+          order: catInput.order,
+          noindex: catInput.noindex,
+          publishedAt: catInput.publishedAt ? new Date(catInput.publishedAt) : null,
           previewToken,
-          translationGroup: input.translationGroup ?? null,
-          fallbackToDefault: input.fallbackToDefault ?? null,
-          jsonLd: input.jsonLd ?? null,
+          translationGroup: catInput.translationGroup ?? null,
+          fallbackToDefault: catInput.fallbackToDefault ?? null,
+          jsonLd: catInput.jsonLd ?? null,
         })
         .returning();
+
+      if (tagIds?.length && category) {
+        await syncTermRelationships(ctx.db, category.id, 'tag', tagIds);
+      }
 
       return category!;
     }),
@@ -195,10 +210,11 @@ export const categoriesRouter = createTRPCRouter({
         translationGroup: z.string().uuid().optional().nullable(),
         fallbackToDefault: z.boolean().optional().nullable(),
         jsonLd: z.string().optional().nullable(),
+        tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updates } = input;
+      const { id, tagIds, ...updates } = input;
 
       const [existing] = await ctx.db
         .select()
@@ -256,6 +272,10 @@ export const categoriesRouter = createTRPCRouter({
             .where(eq(cmsCategories.id, id));
         },
       });
+
+      if (tagIds !== undefined) {
+        await syncTermRelationships(ctx.db, id, 'tag', tagIds);
+      }
 
       return { success: true };
     }),

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
@@ -22,8 +22,10 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
   const __ = useBlankTranslations();
   const [inputValue, setInputValue] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Track selected tags with full info
   const [selectedTags, setSelectedTags] = useState<TagOption[]>([]);
@@ -39,7 +41,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  // Search for autocomplete
+  // Search for autocomplete (now returns count)
   const searchQuery = trpc.tags.search.useQuery(
     { query: debouncedQuery, lang, limit: 10 },
     { enabled: debouncedQuery.length >= 1 }
@@ -74,30 +76,70 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
         !containerRef.current.contains(e.target as Node)
       ) {
         setShowDropdown(false);
+        setHighlightedIndex(-1);
       }
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  async function addTag(tag: TagOption) {
-    if (!selectedTagIds.includes(tag.id)) {
-      onChange([...selectedTagIds, tag.id]);
-      setSelectedTags((prev) => [...prev, tag]);
+  const suggestions = (searchQuery.data ?? []).filter(
+    (t) => !selectedTagIds.includes(t.id)
+  );
+
+  // Reset highlighted index when suggestions change
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [suggestions.length]);
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && dropdownRef.current) {
+      const items = dropdownRef.current.querySelectorAll('[data-suggestion]');
+      items[highlightedIndex]?.scrollIntoView({ block: 'nearest' });
     }
-    setInputValue('');
-    setShowDropdown(false);
-    inputRef.current?.focus();
-  }
+  }, [highlightedIndex]);
+
+  const addTag = useCallback(
+    async (tag: TagOption) => {
+      if (!selectedTagIds.includes(tag.id)) {
+        onChange([...selectedTagIds, tag.id]);
+        setSelectedTags((prev) => [...prev, tag]);
+      }
+      setInputValue('');
+      setShowDropdown(false);
+      setHighlightedIndex(-1);
+      inputRef.current?.focus();
+    },
+    [selectedTagIds, onChange]
+  );
 
   async function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && inputValue.trim()) {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      const result = await getOrCreate.mutateAsync({
-        name: inputValue.trim(),
-        lang,
-      });
-      addTag({ id: result.id, name: result.name, slug: result.slug });
+      setHighlightedIndex((prev) =>
+        prev < suggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) =>
+        prev > 0 ? prev - 1 : suggestions.length - 1
+      );
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+        const tag = suggestions[highlightedIndex]!;
+        addTag({ id: tag.id, name: tag.name, slug: tag.slug });
+      } else if (inputValue.trim()) {
+        const result = await getOrCreate.mutateAsync({
+          name: inputValue.trim(),
+          lang,
+        });
+        addTag({ id: result.id, name: result.name, slug: result.slug });
+      }
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false);
+      setHighlightedIndex(-1);
     }
   }
 
@@ -105,10 +147,6 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
     onChange(selectedTagIds.filter((id) => id !== tagId));
     setSelectedTags((prev) => prev.filter((t) => t.id !== tagId));
   }
-
-  const suggestions = (searchQuery.data ?? []).filter(
-    (t) => !selectedTagIds.includes(t.id)
-  );
 
   return (
     <div ref={containerRef} className="relative">
@@ -155,20 +193,33 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
 
       {/* Autocomplete dropdown */}
       {showDropdown && inputValue.length >= 1 && (
-        <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+        <div
+          ref={dropdownRef}
+          className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"
+        >
           {searchQuery.isLoading ? (
             <div className="flex items-center justify-center py-3">
               <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
             </div>
           ) : suggestions.length > 0 ? (
-            suggestions.map((tag) => (
+            suggestions.map((tag, index) => (
               <button
                 key={tag.id}
                 type="button"
-                onClick={() => addTag(tag)}
-                className="block w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50"
+                data-suggestion
+                onClick={() =>
+                  addTag({ id: tag.id, name: tag.name, slug: tag.slug })
+                }
+                className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm ${
+                  index === highlightedIndex
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'hover:bg-gray-50'
+                }`}
               >
-                {tag.name}
+                <span>{tag.name}</span>
+                <span className="ml-2 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+                  {Number(tag.count)}
+                </span>
               </button>
             ))
           ) : (

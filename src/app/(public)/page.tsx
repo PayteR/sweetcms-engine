@@ -5,6 +5,8 @@ import { ArrowRight } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
 import { PostType } from '@/types/cms';
+import { PostCard } from '@/components/public/PostCard';
+import { TagCloud } from '@/components/public/TagCloud';
 
 export const metadata: Metadata = {
   title: siteConfig.seo.title,
@@ -18,6 +20,7 @@ export default async function HomePage() {
     title: string;
     metaDescription: string | null;
     publishedAt: Date | null;
+    tags: { id: string; name: string; slug: string }[];
   }> = [];
 
   try {
@@ -77,34 +80,23 @@ export default async function HomePage() {
             </div>
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
               {recentPosts.map((post) => (
-                <Link
+                <PostCard
                   key={post.id}
+                  title={post.title}
                   href={`/blog/${post.slug}`}
-                  className="group rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
-                    {post.title}
-                  </h3>
-                  {post.metaDescription && (
-                    <p className="mt-2 text-sm text-gray-600 line-clamp-2">
-                      {post.metaDescription}
-                    </p>
-                  )}
-                  {post.publishedAt && (
-                    <time className="mt-3 block text-xs text-gray-400">
-                      {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </time>
-                  )}
-                </Link>
+                  metaDescription={post.metaDescription}
+                  publishedAt={post.publishedAt}
+                  tags={post.tags}
+                  variant="card"
+                />
               ))}
             </div>
           </div>
         </section>
       )}
+
+      {/* Tag cloud */}
+      <TagCloud limit={15} sectionTitle="Popular Tags" sectionClassName="border-t border-gray-100 bg-white" />
 
       {/* Features */}
       <section className="border-t border-gray-100">

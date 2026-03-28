@@ -34,6 +34,12 @@ export default async function PublicLayout({
 
   return (
     <>
+      <link
+        rel="alternate"
+        type="application/rss+xml"
+        title={`${siteConfig.name} — Blog RSS`}
+        href="/api/feed/blog"
+      />
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <Link href="/" className="text-lg font-bold text-gray-900">

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   Plus,
   Search,
@@ -13,6 +12,7 @@ import {
   ChevronRight,
   Loader2,
   X,
+  CheckSquare,
 } from 'lucide-react';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
@@ -22,6 +22,7 @@ import { ContentStatus } from '@/types/cms';
 import { cn } from '@/lib/utils';
 import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { TaxonomyOverview } from '@/components/admin/TaxonomyOverview';
 
 const STATUS_LABELS: Record<number, string> = {
   [ContentStatus.DRAFT]: 'Draft',
@@ -43,7 +44,6 @@ interface Props {
 
 export function CmsListView({ contentType }: Props) {
   const __ = useBlankTranslations();
-  const router = useRouter();
   const utils = trpc.useUtils();
 
   const [tab, setTab] = useState<StatusTab>('all');
@@ -55,6 +55,8 @@ export function CmsListView({ contentType }: Props) {
     title: string;
     permanent?: boolean;
   } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<'delete' | 'permanentDelete' | 'publish' | null>(null);
 
   const isPostType = contentType.postType != null;
   const isCategoryType = contentType.id === 'category';
@@ -190,6 +192,40 @@ export function CmsListView({ contentType }: Props) {
     onError: (err) => toast.error(err.message),
   });
 
+  // Bulk tag mutations
+  const bulkDeleteTag = trpc.tags.bulkDelete.useMutation({
+    onSuccess: (result) => {
+      toast.success(__(`${result.count} tags moved to trash`));
+      setSelectedIds(new Set());
+      utils.tags.list.invalidate();
+      utils.tags.counts.invalidate();
+      utils.tags.stats.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const bulkPermanentDeleteTag = trpc.tags.bulkPermanentDelete.useMutation({
+    onSuccess: (result) => {
+      toast.success(__(`${result.count} tags permanently deleted`));
+      setSelectedIds(new Set());
+      utils.tags.list.invalidate();
+      utils.tags.counts.invalidate();
+      utils.tags.stats.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const bulkPublishTag = trpc.tags.bulkPublish.useMutation({
+    onSuccess: (result) => {
+      toast.success(__(`${result.count} tags published`));
+      setSelectedIds(new Set());
+      utils.tags.list.invalidate();
+      utils.tags.counts.invalidate();
+      utils.tags.stats.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   // Unified data
   const data = isPostType ? postList.data : isTagType ? tagList.data : catList.data;
   const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : catCounts.data;
@@ -269,6 +305,41 @@ export function CmsListView({ contentType }: Props) {
     });
   }
 
+  // Selection helpers
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((i) => i.id)));
+    }
+  }
+
+  function confirmBulkAction() {
+    const ids = [...selectedIds];
+    if (bulkAction === 'delete') {
+      bulkDeleteTag.mutate({ ids });
+    } else if (bulkAction === 'permanentDelete') {
+      bulkPermanentDeleteTag.mutate({ ids });
+    } else if (bulkAction === 'publish') {
+      bulkPublishTag.mutate({ ids });
+    }
+    setBulkAction(null);
+  }
+
+  const isBulkPending =
+    bulkDeleteTag.isPending ||
+    bulkPermanentDeleteTag.isPending ||
+    bulkPublishTag.isPending;
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -284,6 +355,9 @@ export function CmsListView({ contentType }: Props) {
         </Link>
       </div>
 
+      {/* Taxonomy overview for tags */}
+      {isTagType && <div className="mt-4"><TaxonomyOverview /></div>}
+
       {/* Status tabs */}
       <div className="mt-4 flex gap-1 border-b border-gray-200">
         {tabs.map((t) => (
@@ -292,6 +366,7 @@ export function CmsListView({ contentType }: Props) {
             onClick={() => {
               setTab(t.key);
               setPage(1);
+              setSelectedIds(new Set());
             }}
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
@@ -338,6 +413,51 @@ export function CmsListView({ contentType }: Props) {
         </button>
       </form>
 
+      {/* Bulk action bar (tags only) */}
+      {isTagType && selectedIds.size > 0 && (
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2">
+          <CheckSquare className="h-4 w-4 text-blue-600" />
+          <span className="text-sm font-medium text-blue-700">
+            {selectedIds.size} {__('selected')}
+          </span>
+          <div className="ml-auto flex gap-2">
+            {tab !== 'trash' && (
+              <>
+                <button
+                  onClick={() => setBulkAction('publish')}
+                  disabled={isBulkPending}
+                  className="admin-btn admin-btn-secondary text-xs"
+                >
+                  {__('Publish')}
+                </button>
+                <button
+                  onClick={() => setBulkAction('delete')}
+                  disabled={isBulkPending}
+                  className="admin-btn text-xs text-red-600 hover:bg-red-50"
+                >
+                  {__('Trash')}
+                </button>
+              </>
+            )}
+            {tab === 'trash' && (
+              <button
+                onClick={() => setBulkAction('permanentDelete')}
+                disabled={isBulkPending}
+                className="admin-btn text-xs text-red-600 hover:bg-red-50"
+              >
+                {__('Delete permanently')}
+              </button>
+            )}
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="admin-btn admin-btn-secondary text-xs"
+            >
+              {__('Clear')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="admin-card mt-4 overflow-hidden">
         {isLoading ? (
@@ -348,6 +468,16 @@ export function CmsListView({ contentType }: Props) {
           <table className="w-full">
             <thead className="admin-thead">
               <tr>
+                {isTagType && (
+                  <th className="admin-th w-10">
+                    <input
+                      type="checkbox"
+                      checked={items.length > 0 && selectedIds.size === items.length}
+                      onChange={toggleSelectAll}
+                      className="rounded border-gray-300"
+                    />
+                  </th>
+                )}
                 <th className="admin-th">{__('Title')}</th>
                 <th className="admin-th w-24">{__('Status')}</th>
                 <th className="admin-th w-20">{__('Lang')}</th>
@@ -360,7 +490,7 @@ export function CmsListView({ contentType }: Props) {
                 <tr>
                   <td
                     className="admin-td py-12 text-center text-gray-400"
-                    colSpan={5}
+                    colSpan={isTagType ? 6 : 5}
                   >
                     {search
                       ? __('No results found.')
@@ -370,6 +500,16 @@ export function CmsListView({ contentType }: Props) {
               ) : (
                 items.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
+                    {isTagType && (
+                      <td className="admin-td">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id)}
+                          className="rounded border-gray-300"
+                        />
+                      </td>
+                    )}
                     <td className="admin-td">
                       <Link
                         href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
@@ -486,6 +626,35 @@ export function CmsListView({ contentType }: Props) {
         variant="danger"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* Bulk action confirmation */}
+      <ConfirmDialog
+        open={!!bulkAction}
+        title={
+          bulkAction === 'permanentDelete'
+            ? __('Delete permanently?')
+            : bulkAction === 'delete'
+              ? __('Move to trash?')
+              : __('Publish selected?')
+        }
+        message={
+          bulkAction === 'permanentDelete'
+            ? __(`${selectedIds.size} tags will be permanently deleted. This cannot be undone.`)
+            : bulkAction === 'delete'
+              ? __(`${selectedIds.size} tags will be moved to trash.`)
+              : __(`${selectedIds.size} tags will be published.`)
+        }
+        confirmLabel={
+          bulkAction === 'permanentDelete'
+            ? __('Delete')
+            : bulkAction === 'delete'
+              ? __('Trash')
+              : __('Publish')
+        }
+        variant={bulkAction === 'publish' ? 'default' : 'danger'}
+        onConfirm={confirmBulkAction}
+        onCancel={() => setBulkAction(null)}
       />
     </div>
   );

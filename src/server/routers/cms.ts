@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
@@ -19,6 +19,7 @@ import {
   syncTermRelationships,
   getTermRelationships,
   deleteAllTermRelationships,
+  resolveTagsForPosts,
 } from '@/server/utils/taxonomy-helpers';
 import {
   createTRPCRouter,
@@ -473,8 +474,9 @@ export const cmsRouter = createTRPCRouter({
         ]);
 
         const total = Number(countResult[0]?.count ?? 0);
+        const resultsWithTags = await resolveTagsForPosts(ctx.db, items);
         return {
-          results: items,
+          results: resultsWithTags,
           total,
           page: input.page,
           pageSize: input.pageSize,
@@ -497,12 +499,72 @@ export const cmsRouter = createTRPCRouter({
       ]);
 
       const total = Number(countResult[0]?.count ?? 0);
+      const resultsWithTags = await resolveTagsForPosts(ctx.db, items);
       return {
-        results: items,
+        results: resultsWithTags,
         total,
         page: input.page,
         pageSize: input.pageSize,
         totalPages: Math.ceil(total / input.pageSize),
       };
+    }),
+
+  /** Public: get related posts by shared tags */
+  getRelatedPosts: publicProcedure
+    .input(
+      z.object({
+        postId: z.string().uuid(),
+        lang: z.string().max(2).default('en'),
+        limit: z.number().int().min(1).max(10).default(4),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Get this post's tag IDs
+      const tagRels = await getTermRelationships(ctx.db, input.postId, 'tag');
+      const tagIds = tagRels.map((r) => r.termId);
+
+      if (tagIds.length === 0) return [];
+
+      // Find posts sharing these tags, ordered by shared tag count
+      const related = await ctx.db
+        .select({
+          id: cmsPosts.id,
+          title: cmsPosts.title,
+          slug: cmsPosts.slug,
+          type: cmsPosts.type,
+          metaDescription: cmsPosts.metaDescription,
+          publishedAt: cmsPosts.publishedAt,
+          sharedTagCount:
+            sql<number>`count(${cmsTermRelationships.termId})`.as('shared_tag_count'),
+        })
+        .from(cmsPosts)
+        .innerJoin(
+          cmsTermRelationships,
+          and(
+            eq(cmsPosts.id, cmsTermRelationships.objectId),
+            eq(cmsTermRelationships.taxonomyId, 'tag'),
+            inArray(cmsTermRelationships.termId, tagIds)
+          )
+        )
+        .where(
+          and(
+            ne(cmsPosts.id, input.postId),
+            eq(cmsPosts.lang, input.lang),
+            eq(cmsPosts.status, ContentStatus.PUBLISHED),
+            isNull(cmsPosts.deletedAt)
+          )
+        )
+        .groupBy(
+          cmsPosts.id,
+          cmsPosts.title,
+          cmsPosts.slug,
+          cmsPosts.type,
+          cmsPosts.metaDescription,
+          cmsPosts.publishedAt
+        )
+        .orderBy(desc(sql`count(${cmsTermRelationships.termId})`))
+        .limit(input.limit);
+
+      return related;
     }),
 });

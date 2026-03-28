@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
 import { PostType } from '@/types/cms';
+import { PostCard } from '@/components/public/PostCard';
+import { TagCloud } from '@/components/public/TagCloud';
 
 export const metadata: Metadata = {
   title: `Blog | ${siteConfig.name}`,
@@ -35,29 +37,21 @@ export default async function BlogListPage({ searchParams }: Props) {
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="text-3xl font-bold text-gray-900">Blog</h1>
 
+      <div className="mt-6">
+        <TagCloud />
+      </div>
+
       {data && data.results.length > 0 ? (
         <div className="mt-8 space-y-8">
           {data.results.map((post) => (
-            <article key={post.id} className="border-b border-gray-100 pb-6">
-              <Link
-                href={`/blog/${post.slug}`}
-                className="text-xl font-semibold text-gray-900 hover:text-blue-600"
-              >
-                {post.title}
-              </Link>
-              {post.metaDescription && (
-                <p className="mt-2 text-gray-600">{post.metaDescription}</p>
-              )}
-              {post.publishedAt && (
-                <time className="mt-1 block text-sm text-gray-400">
-                  {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </time>
-              )}
-            </article>
+            <PostCard
+              key={post.id}
+              title={post.title}
+              href={`/blog/${post.slug}`}
+              metaDescription={post.metaDescription}
+              publishedAt={post.publishedAt}
+              tags={post.tags}
+            />
           ))}
 
           {/* Pagination */}

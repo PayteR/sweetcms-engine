@@ -1,8 +1,8 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { cmsTerms } from '@/server/db/schema';
+import { cmsTerms, cmsTermRelationships } from '@/server/db/schema';
 import { ContentStatus } from '@/types/cms';
 import {
   buildAdminList,
@@ -14,7 +14,10 @@ import {
   parsePagination,
   paginatedResult,
 } from '@/server/utils/admin-crud';
-import { deleteTermRelationshipsByTerm } from '@/server/utils/taxonomy-helpers';
+import {
+  deleteTermRelationshipsByTerm,
+  resolveTagsForPosts,
+} from '@/server/utils/taxonomy-helpers';
 import { slugify } from '@/lib/slug';
 import {
   createTRPCRouter,
@@ -397,7 +400,7 @@ export const tagsRouter = createTRPCRouter({
       return paginatedResult(items, total, page, pageSize);
     }),
 
-  /** Public: search tags for autocomplete */
+  /** Public: search tags for autocomplete (with post count) */
   search: publicProcedure
     .input(
       z.object({
@@ -409,8 +412,20 @@ export const tagsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const pattern = `%${input.query}%`;
       return ctx.db
-        .select({ id: cmsTerms.id, name: cmsTerms.name, slug: cmsTerms.slug })
+        .select({
+          id: cmsTerms.id,
+          name: cmsTerms.name,
+          slug: cmsTerms.slug,
+          count: sql<number>`count(${cmsTermRelationships.objectId})`.as('count'),
+        })
         .from(cmsTerms)
+        .leftJoin(
+          cmsTermRelationships,
+          and(
+            eq(cmsTerms.id, cmsTermRelationships.termId),
+            eq(cmsTermRelationships.taxonomyId, TAXONOMY_ID)
+          )
+        )
         .where(
           and(
             eq(cmsTerms.taxonomyId, TAXONOMY_ID),
@@ -420,6 +435,177 @@ export const tagsRouter = createTRPCRouter({
             or(ilike(cmsTerms.name, pattern), ilike(cmsTerms.slug, pattern))
           )
         )
+        .groupBy(cmsTerms.id, cmsTerms.name, cmsTerms.slug)
         .limit(input.limit);
     }),
+
+  /** Public: get tags for a specific object (post/category) */
+  getForObject: publicProcedure
+    .input(z.object({ objectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const result = await resolveTagsForPosts(ctx.db, [
+        { id: input.objectId },
+      ]);
+      return result[0]?.tags ?? [];
+    }),
+
+  /** Public: list popular tags by relationship count */
+  listPopular: publicProcedure
+    .input(
+      z.object({
+        lang: z.string().max(2).default('en'),
+        limit: z.number().int().min(1).max(50).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select({
+          id: cmsTerms.id,
+          name: cmsTerms.name,
+          slug: cmsTerms.slug,
+          count: sql<number>`count(${cmsTermRelationships.objectId})`.as('count'),
+        })
+        .from(cmsTerms)
+        .innerJoin(
+          cmsTermRelationships,
+          and(
+            eq(cmsTerms.id, cmsTermRelationships.termId),
+            eq(cmsTermRelationships.taxonomyId, TAXONOMY_ID)
+          )
+        )
+        .where(
+          and(
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+            eq(cmsTerms.lang, input.lang),
+            eq(cmsTerms.status, ContentStatus.PUBLISHED),
+            isNull(cmsTerms.deletedAt)
+          )
+        )
+        .groupBy(cmsTerms.id, cmsTerms.name, cmsTerms.slug)
+        .orderBy(desc(sql`count(${cmsTermRelationships.objectId})`))
+        .limit(input.limit);
+    }),
+
+  /** Admin: bulk soft-delete tags */
+  bulkDelete: contentProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()).max(50) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) return { count: 0 };
+      await ctx.db
+        .update(cmsTerms)
+        .set({ deletedAt: new Date() })
+        .where(
+          and(
+            inArray(cmsTerms.id, input.ids),
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+            isNull(cmsTerms.deletedAt)
+          )
+        );
+      return { count: input.ids.length };
+    }),
+
+  /** Admin: bulk permanent delete tags + cleanup relationships */
+  bulkPermanentDelete: contentProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()).max(50) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) return { count: 0 };
+      for (const id of input.ids) {
+        await permanentDelete(ctx.db, crudCols, id, 'tag', async (tx) => {
+          await deleteTermRelationshipsByTerm(tx, id, TAXONOMY_ID);
+        });
+      }
+      return { count: input.ids.length };
+    }),
+
+  /** Admin: bulk publish tags */
+  bulkPublish: contentProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()).max(50) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) return { count: 0 };
+      await ctx.db
+        .update(cmsTerms)
+        .set({ status: ContentStatus.PUBLISHED, updatedAt: new Date() })
+        .where(
+          and(
+            inArray(cmsTerms.id, input.ids),
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID)
+          )
+        );
+      return { count: input.ids.length };
+    }),
+
+  /** Admin: taxonomy stats overview */
+  stats: contentProcedure.query(async ({ ctx }) => {
+    const baseCondition = eq(cmsTerms.taxonomyId, TAXONOMY_ID);
+
+    const [totalResult, publishedResult, relCountResult, orphanedResult, topTags] =
+      await Promise.all([
+        // Total tags (non-deleted)
+        ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(cmsTerms)
+          .where(and(baseCondition, isNull(cmsTerms.deletedAt))),
+        // Published tags
+        ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(cmsTerms)
+          .where(
+            and(
+              baseCondition,
+              eq(cmsTerms.status, ContentStatus.PUBLISHED),
+              isNull(cmsTerms.deletedAt)
+            )
+          ),
+        // Total relationships
+        ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(cmsTermRelationships)
+          .where(eq(cmsTermRelationships.taxonomyId, TAXONOMY_ID)),
+        // Orphaned tags (0 relationships)
+        ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(cmsTerms)
+          .leftJoin(
+            cmsTermRelationships,
+            and(
+              eq(cmsTerms.id, cmsTermRelationships.termId),
+              eq(cmsTermRelationships.taxonomyId, TAXONOMY_ID)
+            )
+          )
+          .where(
+            and(
+              baseCondition,
+              isNull(cmsTerms.deletedAt),
+              sql`${cmsTermRelationships.objectId} is null`
+            )
+          ),
+        // Top 10 tags
+        ctx.db
+          .select({
+            name: cmsTerms.name,
+            slug: cmsTerms.slug,
+            count: sql<number>`count(${cmsTermRelationships.objectId})`.as('count'),
+          })
+          .from(cmsTerms)
+          .innerJoin(
+            cmsTermRelationships,
+            and(
+              eq(cmsTerms.id, cmsTermRelationships.termId),
+              eq(cmsTermRelationships.taxonomyId, TAXONOMY_ID)
+            )
+          )
+          .where(and(baseCondition, isNull(cmsTerms.deletedAt)))
+          .groupBy(cmsTerms.name, cmsTerms.slug)
+          .orderBy(desc(sql`count(${cmsTermRelationships.objectId})`))
+          .limit(10),
+      ]);
+
+    return {
+      totalTags: Number(totalResult[0]?.count ?? 0),
+      publishedTags: Number(publishedResult[0]?.count ?? 0),
+      totalRelationships: Number(relCountResult[0]?.count ?? 0),
+      orphanedTags: Number(orphanedResult[0]?.count ?? 0),
+      topTags,
+    };
+  }),
 });
