@@ -5,8 +5,8 @@
  *   bun run promote <email>
  */
 
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -22,8 +22,8 @@ if (!email) {
 }
 
 async function main() {
-  const pool = new Pool({ connectionString: DATABASE_URL });
-  const db = drizzle(pool);
+  const sql = postgres(DATABASE_URL!);
+  const db = drizzle(sql);
 
   try {
     const { user } = await import('../server/db/schema/auth');
@@ -51,7 +51,7 @@ async function main() {
 
     console.log(`Promoted "${found.name}" <${found.email}> from "${found.role}" to superadmin.`);
   } finally {
-    await pool.end();
+    await sql.end();
   }
 }
 

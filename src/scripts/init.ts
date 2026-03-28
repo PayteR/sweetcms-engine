@@ -12,12 +12,13 @@
  * 5. Creates a sample "Welcome" page
  */
 
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq, count } from 'drizzle-orm';
 import { execSync } from 'child_process';
 import * as readline from 'readline';
 import crypto from 'crypto';
+import { hashPassword } from '@/lib/password';
 
 // Parse DATABASE_URL to extract DB name and base connection
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -68,18 +69,14 @@ function log(emoji: string, msg: string) {
 async function ensureDatabase() {
   log('🗄️', `Checking database "${dbName}"...`);
 
-  const pool = new Pool({ connectionString: maintenanceUrl });
+  const sql = postgres(maintenanceUrl, { max: 1 });
 
   try {
-    const result = await pool.query(
-      `SELECT 1 FROM pg_database WHERE datname = $1`,
-      [dbName]
-    );
+    const result = await sql`SELECT 1 FROM pg_database WHERE datname = ${dbName}`;
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       log('📦', `Creating database "${dbName}"...`);
-      // Can't use parameterized query for CREATE DATABASE
-      await pool.query(`CREATE DATABASE "${dbName}"`);
+      await sql.unsafe(`CREATE DATABASE "${dbName}"`);
       log('✅', `Database "${dbName}" created.`);
     } else {
       log('✅', `Database "${dbName}" already exists.`);
@@ -90,7 +87,7 @@ async function ensureDatabase() {
     console.error('Make sure PostgreSQL is running and DATABASE_URL is correct.');
     process.exit(1);
   } finally {
-    await pool.end();
+    await sql.end();
   }
 }
 
@@ -110,8 +107,8 @@ function runMigrations() {
 // ─── Step 3: Create superadmin ──────────────────────────────────────────────
 
 async function createSuperadmin() {
-  const pool = new Pool({ connectionString: DATABASE_URL });
-  const db = drizzle(pool);
+  const sql = postgres(DATABASE_URL!, { max: 1 });
+  const db = drizzle(sql);
 
   try {
     // Dynamically import schema (avoid triggering env validation at top level)
@@ -144,15 +141,7 @@ async function createSuperadmin() {
       process.exit(1);
     }
 
-    // Hash password using scrypt (same as Better Auth default)
-    const salt = crypto.randomBytes(16).toString('hex');
-    const hash = await new Promise<string>((resolve, reject) => {
-      crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-        if (err) reject(err);
-        else resolve(derivedKey.toString('hex'));
-      });
-    });
-    const hashedPassword = `${salt}:${hash}`;
+    const hashedPassword = await hashPassword(password);
 
     // Create user
     const userId = crypto.randomUUID();
@@ -177,15 +166,15 @@ async function createSuperadmin() {
     console.log('');
     log('✅', `Superadmin "${name}" <${email}> created.`);
   } finally {
-    await pool.end();
+    await sql.end();
   }
 }
 
 // ─── Step 4: Seed default options ───────────────────────────────────────────
 
 async function seedOptions() {
-  const pool = new Pool({ connectionString: DATABASE_URL });
-  const db = drizzle(pool);
+  const sql = postgres(DATABASE_URL!, { max: 1 });
+  const db = drizzle(sql);
 
   try {
     const { cmsOptions } = await import('../server/db/schema/cms');
@@ -229,15 +218,15 @@ async function seedOptions() {
 
     log('✅', `${Object.keys(defaults).length} default options created.`);
   } finally {
-    await pool.end();
+    await sql.end();
   }
 }
 
 // ─── Step 5: Seed sample content ────────────────────────────────────────────
 
 async function seedContent() {
-  const pool = new Pool({ connectionString: DATABASE_URL });
-  const db = drizzle(pool);
+  const sql = postgres(DATABASE_URL!, { max: 1 });
+  const db = drizzle(sql);
 
   try {
     const { cmsPosts } = await import('../server/db/schema/cms');
@@ -521,7 +510,7 @@ async function seedContent() {
 
     log('✅', '3 pages, 4 blog posts (1 draft), 3 categories, and 4 tags created.');
   } finally {
-    await pool.end();
+    await sql.end();
   }
 }
 

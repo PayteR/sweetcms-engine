@@ -21,7 +21,12 @@ export default function LoginPage() {
     try {
       const result = await signIn.email({ email, password });
       if (result.error) {
-        setError(result.error.message ?? 'Invalid credentials');
+        const status = result.error.status;
+        if (status && status >= 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError(result.error.message ?? 'Invalid credentials');
+        }
       } else {
         router.push('/dashboard');
       }

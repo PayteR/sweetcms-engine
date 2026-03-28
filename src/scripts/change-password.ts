@@ -5,11 +5,12 @@
  *   bun run change-password <email>
  */
 
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import { and, eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import * as readline from 'readline';
+import { hashPassword } from '@/lib/password';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -37,8 +38,8 @@ function promptPassword(question: string): Promise<string> {
 }
 
 async function main() {
-  const pool = new Pool({ connectionString: DATABASE_URL });
-  const db = drizzle(pool);
+  const sql = postgres(DATABASE_URL!);
+  const db = drizzle(sql);
 
   try {
     const { user, account } = await import('../server/db/schema/auth');
@@ -69,15 +70,7 @@ async function main() {
       process.exit(1);
     }
 
-    // Hash password using scrypt (same as Better Auth default)
-    const salt = crypto.randomBytes(16).toString('hex');
-    const hash = await new Promise<string>((resolve, reject) => {
-      crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-        if (err) reject(err);
-        else resolve(derivedKey.toString('hex'));
-      });
-    });
-    const hashedPassword = `${salt}:${hash}`;
+    const hashedPassword = await hashPassword(password);
 
     // Update or create credential account
     const [existingAccount] = await db
@@ -108,7 +101,7 @@ async function main() {
 
     console.log(`Password updated for "${found.name}" <${found.email}>.`);
   } finally {
-    await pool.end();
+    await sql.end();
   }
 }
 
