@@ -163,7 +163,7 @@ export default function MediaPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{__('Media Library')}</h1>
+        <h1 className="text-2xl font-bold text-(--text-primary)">{__('Media Library')}</h1>
         <div>
           <input
             ref={fileInputRef}
@@ -189,7 +189,7 @@ export default function MediaPage() {
       </div>
 
       {/* Type filter tabs */}
-      <div className="mt-4 flex gap-1 border-b border-gray-200">
+      <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
         {filterTabs.map((t) => (
           <button
             key={String(t.key)}
@@ -201,7 +201,7 @@ export default function MediaPage() {
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               filterType === t.key
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
             {__(t.label)}
@@ -213,12 +213,12 @@ export default function MediaPage() {
       <div className="mt-4">
         {mediaList.isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
           </div>
         ) : (data?.results ?? []).length === 0 ? (
           <div className="admin-card flex flex-col items-center justify-center py-16">
-            <ImageIcon className="h-12 w-12 text-gray-300" />
-            <p className="mt-4 text-sm text-gray-400">{__('No media files yet.')}</p>
+            <ImageIcon className="h-12 w-12 text-(--text-muted)" />
+            <p className="mt-4 text-sm text-(--text-muted)">{__('No media files yet.')}</p>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="admin-btn admin-btn-secondary mt-4"
@@ -239,7 +239,7 @@ export default function MediaPage() {
                   className="admin-card group relative overflow-hidden"
                 >
                   {/* Preview */}
-                  <div className="aspect-square bg-gray-50">
+                  <div className="aspect-square bg-(--surface-secondary)">
                     {isImage ? (
                       <img
                         src={item.url ?? ''}
@@ -248,7 +248,7 @@ export default function MediaPage() {
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">
-                        <FileIcon className="h-12 w-12 text-gray-300" />
+                        <FileIcon className="h-12 w-12 text-(--text-muted)" />
                       </div>
                     )}
                   </div>
@@ -256,12 +256,12 @@ export default function MediaPage() {
                   {/* Info */}
                   <div className="p-2">
                     <p
-                      className="truncate text-xs font-medium text-gray-700"
+                      className="truncate text-xs font-medium text-(--text-secondary)"
                       title={item.filename}
                     >
                       {item.filename}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-(--text-muted)">
                       {formatSize(item.fileSize)} · {formatDate(item.createdAt)}
                     </p>
                   </div>
@@ -275,13 +275,13 @@ export default function MediaPage() {
                           item.id
                         )
                       }
-                      className="rounded bg-white/90 p-1.5 shadow-sm hover:bg-white"
+                      className="rounded bg-(--surface-primary) p-1.5 shadow-sm hover:bg-(--surface-primary)"
                       title={__('Copy URL')}
                     >
                       {copiedId === item.id ? (
                         <Check className="h-3.5 w-3.5 text-green-600" />
                       ) : (
-                        <Copy className="h-3.5 w-3.5 text-gray-600" />
+                        <Copy className="h-3.5 w-3.5 text-(--text-secondary)" />
                       )}
                     </button>
                     <button
@@ -291,7 +291,7 @@ export default function MediaPage() {
                           filename: item.filename,
                         })
                       }
-                      className="rounded bg-white/90 p-1.5 shadow-sm hover:bg-white"
+                      className="rounded bg-(--surface-primary) p-1.5 shadow-sm hover:bg-(--surface-primary)"
                       title={__('Delete')}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-red-600" />
@@ -307,7 +307,7 @@ export default function MediaPage() {
       {/* Pagination */}
       {data && data.totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>

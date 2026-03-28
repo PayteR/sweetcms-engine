@@ -40,27 +40,27 @@ export default async function PublicLayout({
         title={`${siteConfig.name} — Blog RSS`}
         href="/api/feed/blog"
       />
-      <header className="border-b border-gray-200 bg-white">
+      <header className="border-b border-(--border-primary) bg-(--surface-primary)">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold text-gray-900">
+          <Link href="/" className="text-lg font-bold text-(--text-primary)">
             {siteConfig.name}
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            <Link href="/blog" className="text-gray-600 hover:text-gray-900">
+            <Link href="/blog" className="text-(--text-secondary) hover:text-(--text-primary)">
               Blog
             </Link>
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/category/${cat.slug}`}
-                className="hidden text-gray-600 hover:text-gray-900 sm:block"
+                className="hidden text-(--text-secondary) hover:text-(--text-primary) sm:block"
               >
                 {cat.name}
               </Link>
             ))}
             <Link
               href="/dashboard"
-              className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
+              className="rounded-md bg-(--text-primary) px-3 py-1.5 text-xs font-medium text-(--surface-primary) hover:opacity-80"
             >
               Admin
             </Link>
@@ -68,20 +68,20 @@ export default async function PublicLayout({
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="border-t border-gray-200 bg-gray-50">
+      <footer className="border-t border-(--border-primary) bg-(--surface-secondary)">
         <div className="mx-auto max-w-5xl px-4 py-8">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-900">{siteConfig.name}</p>
-              <p className="mt-0.5 text-xs text-gray-500">{siteConfig.description}</p>
+              <p className="text-sm font-medium text-(--text-primary)">{siteConfig.name}</p>
+              <p className="mt-0.5 text-xs text-(--text-muted)">{siteConfig.description}</p>
             </div>
-            <nav className="flex gap-4 text-xs text-gray-400">
-              <Link href="/blog" className="hover:text-gray-600">Blog</Link>
-              <Link href="/about" className="hover:text-gray-600">About</Link>
-              <Link href="/privacy-policy" className="hover:text-gray-600">Privacy</Link>
+            <nav className="flex gap-4 text-xs text-(--text-muted)">
+              <Link href="/blog" className="hover:text-(--text-secondary)">Blog</Link>
+              <Link href="/about" className="hover:text-(--text-secondary)">About</Link>
+              <Link href="/privacy-policy" className="hover:text-(--text-secondary)">Privacy</Link>
             </nav>
           </div>
-          <p className="mt-6 text-center text-xs text-gray-400">
+          <p className="mt-6 text-center text-xs text-(--text-muted)">
             Powered by SweetCMS &middot; MIT License
           </p>
         </div>

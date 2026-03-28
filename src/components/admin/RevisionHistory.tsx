@@ -67,9 +67,9 @@ export function RevisionHistory({ contentType, contentId, onRestored }: Props) {
           {__('Revision History')}
         </h3>
         {expanded ? (
-          <ChevronUp className="h-4 w-4 text-gray-400" />
+          <ChevronUp className="h-4 w-4 text-(--text-muted)" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-gray-400" />
+          <ChevronDown className="h-4 w-4 text-(--text-muted)" />
         )}
       </button>
 
@@ -77,10 +77,10 @@ export function RevisionHistory({ contentType, contentId, onRestored }: Props) {
         <div className="mt-4">
           {revisions.isLoading ? (
             <div className="flex items-center justify-center py-4">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              <Loader2 className="h-5 w-5 animate-spin text-(--text-muted)" />
             </div>
           ) : (revisions.data ?? []).length === 0 ? (
-            <p className="text-sm text-gray-400">{__('No revisions yet.')}</p>
+            <p className="text-sm text-(--text-muted)">{__('No revisions yet.')}</p>
           ) : (
             <div className="space-y-2">
               {(revisions.data ?? []).map((rev) => {
@@ -93,12 +93,12 @@ export function RevisionHistory({ contentType, contentId, onRestored }: Props) {
 
                 return (
                   <div key={rev.id}>
-                    <div className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2">
+                    <div className="flex items-center justify-between rounded-md border border-(--border-primary) px-3 py-2">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-gray-700">
+                        <p className="truncate text-sm font-medium text-(--text-secondary)">
                           {title}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-(--text-muted)">
                           {formatDate(rev.createdAt)}
                         </p>
                       </div>
@@ -108,14 +108,14 @@ export function RevisionHistory({ contentType, contentId, onRestored }: Props) {
                           onClick={() =>
                             setPreviewId(isPreview ? null : rev.id)
                           }
-                          className="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                          className="rounded px-2 py-1 text-xs text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
                         >
                           {isPreview ? __('Hide') : __('Preview')}
                         </button>
                         <button
                           type="button"
                           onClick={() => setRestoreTarget(rev.id)}
-                          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
+                          className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
                           title={__('Restore this revision')}
                         >
                           <RotateCcw className="h-3.5 w-3.5" />
@@ -126,7 +126,7 @@ export function RevisionHistory({ contentType, contentId, onRestored }: Props) {
                     {/* Preview panel */}
                     {isPreview && revisionDetail.data && (
                       <div className="mt-1 rounded-md border border-blue-200 bg-blue-50/50 p-3">
-                        <pre className="max-h-60 overflow-auto text-xs text-gray-700">
+                        <pre className="max-h-60 overflow-auto text-xs text-(--text-secondary)">
                           {JSON.stringify(
                             revisionDetail.data.snapshot,
                             null,

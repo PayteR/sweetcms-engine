@@ -31,7 +31,7 @@ const STATUS_LABELS: Record<number, string> = {
 };
 
 const STATUS_COLORS: Record<number, string> = {
-  [ContentStatus.DRAFT]: 'bg-gray-100 text-gray-700',
+  [ContentStatus.DRAFT]: 'bg-(--surface-secondary) text-(--text-secondary)',
   [ContentStatus.PUBLISHED]: 'bg-green-100 text-green-700',
   [ContentStatus.SCHEDULED]: 'bg-blue-100 text-blue-700',
 };
@@ -343,7 +343,7 @@ export function CmsListView({ contentType }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
         <Link
@@ -359,7 +359,7 @@ export function CmsListView({ contentType }: Props) {
       {isTagType && <div className="mt-4"><TaxonomyOverview /></div>}
 
       {/* Status tabs */}
-      <div className="mt-4 flex gap-1 border-b border-gray-200">
+      <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -372,12 +372,12 @@ export function CmsListView({ contentType }: Props) {
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               tab === t.key
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
             {__(t.label)}
             {t.count != null && (
-              <span className="ml-1.5 text-xs text-gray-400">({t.count})</span>
+              <span className="ml-1.5 text-xs text-(--text-muted)">({t.count})</span>
             )}
           </button>
         ))}
@@ -386,13 +386,13 @@ export function CmsListView({ contentType }: Props) {
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__(`Search ${contentType.labelPlural.toLowerCase()}...`)}
-            className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-(--border-primary) py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           {search && (
             <button
@@ -402,7 +402,7 @@ export function CmsListView({ contentType }: Props) {
                 setSearchInput('');
                 setPage(1);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text-secondary)"
             >
               <X className="h-4 w-4" />
             </button>
@@ -462,7 +462,7 @@ export function CmsListView({ contentType }: Props) {
       <div className="admin-card mt-4 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
           </div>
         ) : (
           <table className="w-full">
@@ -474,7 +474,7 @@ export function CmsListView({ contentType }: Props) {
                       type="checkbox"
                       checked={items.length > 0 && selectedIds.size === items.length}
                       onChange={toggleSelectAll}
-                      className="rounded border-gray-300"
+                      className="rounded border-(--border-primary)"
                     />
                   </th>
                 )}
@@ -489,7 +489,7 @@ export function CmsListView({ contentType }: Props) {
               {items.length === 0 ? (
                 <tr>
                   <td
-                    className="admin-td py-12 text-center text-gray-400"
+                    className="admin-td py-12 text-center text-(--text-muted)"
                     colSpan={isTagType ? 6 : 5}
                   >
                     {search
@@ -499,25 +499,25 @@ export function CmsListView({ contentType }: Props) {
                 </tr>
               ) : (
                 items.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
+                  <tr key={item.id} className="hover:bg-(--surface-secondary)">
                     {isTagType && (
                       <td className="admin-td">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(item.id)}
                           onChange={() => toggleSelect(item.id)}
-                          className="rounded border-gray-300"
+                          className="rounded border-(--border-primary)"
                         />
                       </td>
                     )}
                     <td className="admin-td">
                       <Link
                         href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
-                        className="font-medium text-gray-900 hover:text-blue-600"
+                        className="font-medium text-(--text-primary) hover:text-blue-600"
                       >
                         {item.title || __('(untitled)')}
                       </Link>
-                      <p className="mt-0.5 text-xs text-gray-400">
+                      <p className="mt-0.5 text-xs text-(--text-muted)">
                         /{contentType.urlPrefix === '/' ? '' : contentType.urlPrefix}
                         {item.slug}
                       </p>
@@ -526,14 +526,14 @@ export function CmsListView({ contentType }: Props) {
                       <span
                         className={cn(
                           'inline-block rounded-full px-2 py-0.5 text-xs font-medium',
-                          STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600'
+                          STATUS_COLORS[item.status] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
                         )}
                       >
                         {STATUS_LABELS[item.status] ?? 'Unknown'}
                       </span>
                     </td>
                     <td className="admin-td text-xs uppercase">{item.lang}</td>
-                    <td className="admin-td text-xs text-gray-500">
+                    <td className="admin-td text-xs text-(--text-muted)">
                       {formatDate(item.publishedAt ?? item.updatedAt)}
                     </td>
                     <td className="admin-td">
@@ -542,14 +542,14 @@ export function CmsListView({ contentType }: Props) {
                           <>
                             <button
                               onClick={() => handleRestore(item.id)}
-                              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-green-600"
+                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-green-600"
                               title={__('Restore')}
                             >
                               <RotateCcw className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(item.id, item.title)}
-                              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600"
+                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-red-600"
                               title={__('Delete permanently')}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -559,14 +559,14 @@ export function CmsListView({ contentType }: Props) {
                           <>
                             <Link
                               href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
-                              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
+                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
                               title={__('Edit')}
                             >
                               <Pencil className="h-4 w-4" />
                             </Link>
                             <button
                               onClick={() => handleDelete(item.id, item.title)}
-                              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600"
+                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-red-600"
                               title={__('Trash')}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -586,7 +586,7 @@ export function CmsListView({ contentType }: Props) {
       {/* Pagination */}
       {data && data.totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>

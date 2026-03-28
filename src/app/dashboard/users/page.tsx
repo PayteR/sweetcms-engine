@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const ROLE_COLORS: Record<string, string> = {
-  [Role.USER]: 'bg-gray-100 text-gray-700',
+  [Role.USER]: 'bg-(--surface-secondary) text-(--text-secondary)',
   [Role.EDITOR]: 'bg-blue-100 text-blue-700',
   [Role.ADMIN]: 'bg-purple-100 text-purple-700',
   [Role.SUPERADMIN]: 'bg-red-100 text-red-700',
@@ -136,10 +136,10 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">{__('Users')}</h1>
+      <h1 className="text-2xl font-bold text-(--text-primary)">{__('Users')}</h1>
 
       {/* Role tabs */}
-      <div className="mt-4 flex gap-1 border-b border-gray-200">
+      <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
         {roleTabs.map((t) => (
           <button
             key={t.key}
@@ -151,12 +151,12 @@ export default function UsersPage() {
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               roleFilter === t.key
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
             {__(t.label)}
             {t.count != null && (
-              <span className="ml-1.5 text-xs text-gray-400">({t.count})</span>
+              <span className="ml-1.5 text-xs text-(--text-muted)">({t.count})</span>
             )}
           </button>
         ))}
@@ -165,13 +165,13 @@ export default function UsersPage() {
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__('Search by name or email...')}
-            className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-(--border-primary) py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           {search && (
             <button
@@ -181,7 +181,7 @@ export default function UsersPage() {
                 setSearchInput('');
                 setPage(1);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text-secondary)"
             >
               <X className="h-4 w-4" />
             </button>
@@ -196,7 +196,7 @@ export default function UsersPage() {
       <div className="admin-card mt-4 overflow-hidden">
         {userList.isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
           </div>
         ) : (
           <table className="w-full">
@@ -212,7 +212,7 @@ export default function UsersPage() {
             <tbody>
               {(data?.results ?? []).length === 0 ? (
                 <tr>
-                  <td className="admin-td py-12 text-center text-gray-400" colSpan={5}>
+                  <td className="admin-td py-12 text-center text-(--text-muted)" colSpan={5}>
                     {search ? __('No users found.') : __('No users yet.')}
                   </td>
                 </tr>
@@ -220,7 +220,7 @@ export default function UsersPage() {
                 (data?.results ?? []).map((u) => {
                   const RoleIcon = ROLE_ICONS[u.role] ?? Shield;
                   return (
-                    <tr key={u.id} className="hover:bg-gray-50">
+                    <tr key={u.id} className="hover:bg-(--surface-secondary)">
                       <td className="admin-td">
                         <div className="flex items-center gap-3">
                           {u.image ? (
@@ -230,13 +230,13 @@ export default function UsersPage() {
                               className="h-8 w-8 rounded-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs font-medium text-gray-600">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-(--border-primary) text-xs font-medium text-(--text-secondary)">
                               {(u.name ?? '?').charAt(0).toUpperCase()}
                             </div>
                           )}
                           <div>
-                            <p className="font-medium text-gray-900">{u.name}</p>
-                            <p className="text-xs text-gray-400">{u.email}</p>
+                            <p className="font-medium text-(--text-primary)">{u.name}</p>
+                            <p className="text-xs text-(--text-muted)">{u.email}</p>
                           </div>
                         </div>
                       </td>
@@ -244,7 +244,7 @@ export default function UsersPage() {
                         <span
                           className={cn(
                             'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-                            ROLE_COLORS[u.role] ?? 'bg-gray-100 text-gray-600'
+                            ROLE_COLORS[u.role] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
                           )}
                         >
                           <RoleIcon className="h-3 w-3" />
@@ -262,7 +262,7 @@ export default function UsersPage() {
                           </span>
                         )}
                       </td>
-                      <td className="admin-td text-xs text-gray-500">
+                      <td className="admin-td text-xs text-(--text-muted)">
                         {formatDate(u.createdAt)}
                       </td>
                       <td className="admin-td">
@@ -276,7 +276,7 @@ export default function UsersPage() {
                               });
                               setSelectedRole(u.role);
                             }}
-                            className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
+                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
                             title={__('Change role')}
                           >
                             <ShieldCheck className="h-4 w-4" />
@@ -290,7 +290,7 @@ export default function UsersPage() {
                               })
                             }
                             className={cn(
-                              'rounded p-1.5 text-gray-400 hover:bg-gray-100',
+                              'rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)',
                               u.banned
                                 ? 'hover:text-green-600'
                                 : 'hover:text-red-600'
@@ -317,7 +317,7 @@ export default function UsersPage() {
       {/* Pagination */}
       {data && data.totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
@@ -344,19 +344,19 @@ export default function UsersPage() {
       {editingRole && (
         <dialog
           open
-          className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-gray-200 bg-white p-0 shadow-xl backdrop:bg-black/30"
+          className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
         >
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-(--text-primary)">
               {__('Change Role')}
             </h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-(--text-secondary)">
               {__(`Change role for ${editingRole.name}`)}
             </p>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="mt-4 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-4 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>

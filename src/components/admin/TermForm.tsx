@@ -97,7 +97,7 @@ export function TermForm({ tagId }: Props) {
   if (!isNew && existingTag.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
       </div>
     );
   }
@@ -108,11 +108,11 @@ export function TermForm({ tagId }: Props) {
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/cms/tags"
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
             {isNew ? __('New Tag') : __('Edit Tag')}
           </h1>
         </div>
@@ -137,7 +137,7 @@ export function TermForm({ tagId }: Props) {
             <div className="admin-card p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
                   </label>
                   <input
@@ -145,12 +145,12 @@ export function TermForm({ tagId }: Props) {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Tag name')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Slug')}
                   </label>
                   <input
@@ -161,7 +161,7 @@ export function TermForm({ tagId }: Props) {
                       setSlug(e.target.value);
                       setSlugManual(true);
                     }}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="url-slug"
                   />
                 </div>
@@ -177,7 +177,7 @@ export function TermForm({ tagId }: Props) {
                   <select
                     value={status}
                     onChange={(e) => setStatus(Number(e.target.value))}
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -186,25 +186,25 @@ export function TermForm({ tagId }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Order')}
                   </label>
                   <input
                     type="number"
                     value={order}
                     onChange={(e) => setOrder(Number(e.target.value))}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Language')}
                   </label>
                   <select
                     value={lang}
                     disabled={!isNew}
                     onChange={(e) => setLang(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm disabled:bg-(--surface-secondary)"
                   >
                     <option value="en">English</option>
                   </select>

@@ -35,9 +35,9 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 shrink-0 border-r border-gray-200 bg-white">
-      <div className="flex h-14 items-center border-b border-gray-200 px-4">
-        <Link href="/dashboard" className="text-lg font-bold text-gray-900">
+    <aside className="w-60 shrink-0 border-r border-(--border-primary) bg-(--surface-primary)">
+      <div className="flex h-14 items-center border-b border-(--border-primary) px-4">
+        <Link href="/dashboard" className="text-lg font-bold text-(--text-primary)">
           SweetCMS
         </Link>
       </div>
@@ -46,7 +46,7 @@ export function AdminSidebar() {
           if ('children' in item && item.children) {
             return (
               <div key={item.name} className="mt-3">
-                <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-(--text-muted)">
                   {item.name}
                 </p>
                 {item.children.map((child) => {

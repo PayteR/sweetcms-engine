@@ -170,12 +170,12 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
             />
           )}
 
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">
             {post.title}
           </h1>
 
           {post.publishedAt && (
-            <time className="mt-3 block text-sm text-gray-500">
+            <time className="mt-3 block text-sm text-(--text-muted)">
               {new Date(post.publishedAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -206,8 +206,8 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
           {/* Related Posts */}
           {relatedPosts.length > 0 && (
-            <section className="mt-12 border-t border-gray-100 pt-8">
-              <h2 className="text-xl font-semibold text-gray-900">
+            <section className="mt-12 border-t border-(--border-secondary) pt-8">
+              <h2 className="text-xl font-semibold text-(--text-primary)">
                 Related Posts
               </h2>
               <div className="mt-4 space-y-4">
@@ -273,12 +273,12 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       return (
         <div className="mx-auto max-w-3xl px-4 py-12">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+            <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">
               Tag: {tag.name}
             </h1>
             <Link
               href={`/api/feed/tag/${tag.slug}`}
-              className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-orange-50 hover:text-orange-500"
+              className="rounded-full p-1.5 text-(--text-muted) transition-colors hover:bg-orange-50 hover:text-orange-500"
               title="RSS Feed"
             >
               <Rss className="h-5 w-5" />
@@ -315,7 +315,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                   ) : (
                     <span />
                   )}
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-(--text-muted)">
                     Page {currentPage} of {totalPages}
                   </span>
                   {currentPage < totalPages ? (
@@ -332,13 +332,13 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
               )}
             </div>
           ) : (
-            <p className="mt-6 text-gray-500">No posts found with this tag.</p>
+            <p className="mt-6 text-(--text-muted)">No posts found with this tag.</p>
           )}
 
           {/* Tag Cloud */}
           <TagCloud
             sectionTitle="Browse More Tags"
-            sectionClassName="mt-12 border-t border-gray-100 pt-8"
+            sectionClassName="mt-12 border-t border-(--border-secondary) pt-8"
           />
         </div>
       );
@@ -361,7 +361,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
       return (
         <div className="mx-auto max-w-3xl px-4 py-12">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">
             {cat.title}
           </h1>
 
@@ -374,7 +374,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
           {posts.results.length > 0 && (
             <div className="mt-10">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-(--text-primary)">
                 Posts in this category
               </h2>
               <div className="mt-4 space-y-6">

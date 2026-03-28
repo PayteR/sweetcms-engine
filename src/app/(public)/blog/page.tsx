@@ -35,7 +35,7 @@ export default async function BlogListPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold text-gray-900">Blog</h1>
+      <h1 className="text-3xl font-bold text-(--text-primary)">Blog</h1>
 
       <div className="mt-6">
         <TagCloud />
@@ -60,18 +60,18 @@ export default async function BlogListPage({ searchParams }: Props) {
               {page > 1 && (
                 <Link
                   href={`/blog?page=${page - 1}`}
-                  className="rounded bg-gray-100 px-3 py-1 text-sm"
+                  className="rounded bg-(--surface-secondary) px-3 py-1 text-sm"
                 >
                   Previous
                 </Link>
               )}
-              <span className="px-3 py-1 text-sm text-gray-500">
+              <span className="px-3 py-1 text-sm text-(--text-muted)">
                 Page {page} of {data.totalPages}
               </span>
               {page < data.totalPages && (
                 <Link
                   href={`/blog?page=${page + 1}`}
-                  className="rounded bg-gray-100 px-3 py-1 text-sm"
+                  className="rounded bg-(--surface-secondary) px-3 py-1 text-sm"
                 >
                   Next
                 </Link>
@@ -80,7 +80,7 @@ export default async function BlogListPage({ searchParams }: Props) {
           )}
         </div>
       ) : (
-        <p className="mt-8 text-gray-500">No blog posts yet.</p>
+        <p className="mt-8 text-(--text-muted)">No blog posts yet.</p>
       )}
     </div>
   );

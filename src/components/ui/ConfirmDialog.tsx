@@ -39,11 +39,11 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       onClose={onCancel}
-      className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-gray-200 bg-white p-0 shadow-xl backdrop:bg-black/30"
+      className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
     >
       <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <p className="mt-2 text-sm text-gray-600">{message}</p>
+        <h3 className="text-lg font-semibold text-(--text-primary)">{title}</h3>
+        <p className="mt-2 text-sm text-(--text-secondary)">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onCancel}

@@ -51,8 +51,8 @@ export function TaxonomyOverview() {
                 <stat.icon className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.label}</p>
+                <p className="text-2xl font-bold text-(--text-primary)">{stat.value}</p>
+                <p className="text-xs text-(--text-muted)">{stat.label}</p>
               </div>
             </div>
           </div>
@@ -63,7 +63,7 @@ export function TaxonomyOverview() {
       {data.topTags.length > 0 && (
         <div className="admin-card overflow-hidden">
           <div className="px-4 py-3">
-            <h3 className="text-sm font-semibold text-gray-700">
+            <h3 className="text-sm font-semibold text-(--text-secondary)">
               {__('Top Tags')}
             </h3>
           </div>
@@ -76,11 +76,11 @@ export function TaxonomyOverview() {
             </thead>
             <tbody>
               {data.topTags.map((tag) => (
-                <tr key={tag.slug} className="hover:bg-gray-50">
-                  <td className="admin-td text-sm font-medium text-gray-900">
+                <tr key={tag.slug} className="hover:bg-(--surface-secondary)">
+                  <td className="admin-td text-sm font-medium text-(--text-primary)">
                     {tag.name}
                   </td>
-                  <td className="admin-td text-right text-sm text-gray-500">
+                  <td className="admin-td text-right text-sm text-(--text-muted)">
                     {Number(tag.count)}
                   </td>
                 </tr>

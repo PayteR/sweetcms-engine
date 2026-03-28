@@ -79,7 +79,7 @@ export default function SettingsPage() {
   if (allOptions.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
       </div>
     );
   }
@@ -87,7 +87,7 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{__('Settings')}</h1>
+        <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
         <button
           type="submit"
           form="settings-form"
@@ -109,49 +109,49 @@ export default function SettingsPage() {
           <h2 className="admin-h2">{__('General')}</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Site Name')}
               </label>
               <input
                 type="text"
                 value={settings['site.name']}
                 onChange={(e) => updateField('site.name', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="My Website"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Tagline')}
               </label>
               <input
                 type="text"
                 value={settings['site.tagline']}
                 onChange={(e) => updateField('site.tagline', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder={__('A brief description of your site')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Description')}
               </label>
               <textarea
                 value={settings['site.description']}
                 onChange={(e) => updateField('site.description', e.target.value)}
                 rows={3}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Site URL')}
               </label>
               <input
                 type="url"
                 value={settings['site.url']}
                 onChange={(e) => updateField('site.url', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="https://example.com"
               />
             </div>
@@ -163,14 +163,14 @@ export default function SettingsPage() {
           <h2 className="admin-h2">{__('Branding')}</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Logo URL')}
               </label>
               <input
                 type="text"
                 value={settings['site.logo']}
                 onChange={(e) => updateField('site.logo', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="https://..."
               />
               {settings['site.logo'] && (
@@ -182,14 +182,14 @@ export default function SettingsPage() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Favicon URL')}
               </label>
               <input
                 type="text"
                 value={settings['site.favicon']}
                 onChange={(e) => updateField('site.favicon', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="https://..."
               />
             </div>
@@ -201,38 +201,38 @@ export default function SettingsPage() {
           <h2 className="admin-h2">{__('Social & Analytics')}</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Twitter / X Handle')}
               </label>
               <input
                 type="text"
                 value={settings['site.social.twitter']}
                 onChange={(e) => updateField('site.social.twitter', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="@yourhandle"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('GitHub URL')}
               </label>
               <input
                 type="text"
                 value={settings['site.social.github']}
                 onChange={(e) => updateField('site.social.github', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="https://github.com/..."
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Google Analytics ID')}
               </label>
               <input
                 type="text"
                 value={settings['site.analytics.ga_id']}
                 onChange={(e) => updateField('site.analytics.ga_id', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="G-XXXXXXXXXX"
               />
             </div>
@@ -244,7 +244,7 @@ export default function SettingsPage() {
           <h2 className="admin-h2">{__('Reading')}</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Posts per page')}
               </label>
               <input
@@ -255,7 +255,7 @@ export default function SettingsPage() {
                 onChange={(e) =>
                   updateField('site.posts_per_page', Number(e.target.value))
                 }
-                className="mt-1 block w-32 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-32 rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <label className="flex items-center gap-2 text-sm">
@@ -265,7 +265,7 @@ export default function SettingsPage() {
                 onChange={(e) =>
                   updateField('site.allow_registration', e.target.checked)
                 }
-                className="rounded border-gray-300"
+                className="rounded border-(--border-primary)"
               />
               {__('Allow user registration')}
             </label>

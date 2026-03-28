@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@custom-variant dark (html.dark &);
 @import "./assets/tokens.css";
 @import "./assets/content.css";
 

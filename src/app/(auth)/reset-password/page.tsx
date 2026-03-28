@@ -48,9 +48,9 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900">Invalid Link</h1>
-        <p className="mt-3 text-sm text-gray-600">
+      <div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-(--text-primary)">Invalid Link</h1>
+        <p className="mt-3 text-sm text-(--text-secondary)">
           This password reset link is invalid or has expired.
         </p>
         <Link
@@ -65,9 +65,9 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900">Password Reset</h1>
-        <p className="mt-3 text-sm text-gray-600">
+      <div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-(--text-primary)">Password Reset</h1>
+        <p className="mt-3 text-sm text-(--text-secondary)">
           Your password has been reset successfully. You can now sign in with your new password.
         </p>
         <Link
@@ -81,9 +81,9 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-bold text-gray-900">Set New Password</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+      <h1 className="text-2xl font-bold text-(--text-primary)">Set New Password</h1>
+      <p className="mt-1 text-sm text-(--text-muted)">
         Choose a new password for your account.
       </p>
 
@@ -97,7 +97,7 @@ function ResetPasswordForm() {
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-(--text-secondary)"
           >
             New Password
           </label>
@@ -108,7 +108,7 @@ function ResetPasswordForm() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="••••••••"
           />
         </div>
@@ -116,7 +116,7 @@ function ResetPasswordForm() {
         <div>
           <label
             htmlFor="confirm"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-(--text-secondary)"
           >
             Confirm Password
           </label>
@@ -127,7 +127,7 @@ function ResetPasswordForm() {
             minLength={6}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="••••••••"
           />
         </div>
@@ -146,7 +146,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm text-center text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm text-center text-(--text-muted)">Loading...</div>}>
       <ResetPasswordForm />
     </Suspense>
   );

@@ -35,13 +35,13 @@ export function PostCard({
     return (
       <Link
         href={href}
-        className="group rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+        className="group rounded-lg border border-(--border-primary) bg-(--surface-primary) p-6 shadow-sm transition-shadow hover:shadow-md"
       >
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
+        <h3 className="text-lg font-semibold text-(--text-primary) group-hover:text-blue-600">
           {title}
         </h3>
         {metaDescription && (
-          <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+          <p className="mt-2 text-sm text-(--text-secondary) line-clamp-2">
             {metaDescription}
           </p>
         )}
@@ -58,22 +58,22 @@ export function PostCard({
           </div>
         )}
         {dateStr && (
-          <time className="mt-3 block text-xs text-gray-400">{dateStr}</time>
+          <time className="mt-3 block text-xs text-(--text-muted)">{dateStr}</time>
         )}
       </Link>
     );
   }
 
   return (
-    <article className="border-b border-gray-100 pb-6">
+    <article className="border-b border-(--border-secondary) pb-6">
       <Link
         href={href}
-        className="text-xl font-semibold text-gray-900 hover:text-blue-600"
+        className="text-xl font-semibold text-(--text-primary) hover:text-blue-600"
       >
         {title}
       </Link>
       {metaDescription && (
-        <p className="mt-2 text-gray-600">{metaDescription}</p>
+        <p className="mt-2 text-(--text-secondary)">{metaDescription}</p>
       )}
       {tags && tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -89,7 +89,7 @@ export function PostCard({
         </div>
       )}
       {dateStr && (
-        <time className="mt-1 block text-sm text-gray-400">{dateStr}</time>
+        <time className="mt-1 block text-sm text-(--text-muted)">{dateStr}</time>
       )}
     </article>
   );

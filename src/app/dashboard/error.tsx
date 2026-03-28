@@ -14,15 +14,15 @@ export default function AdminError({ error, reset }: Props) {
 
   return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">
+      <div className="w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 text-center shadow-sm">
+        <h2 className="text-lg font-semibold text-(--text-primary)">
           Something went wrong
         </h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-(--text-secondary)">
           {error.message || 'An unexpected error occurred in the admin panel.'}
         </p>
         {error.digest && (
-          <p className="mt-2 text-xs text-gray-400">Error ID: {error.digest}</p>
+          <p className="mt-2 text-xs text-(--text-muted)">Error ID: {error.digest}</p>
         )}
         <button
           onClick={reset}

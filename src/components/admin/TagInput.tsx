@@ -184,10 +184,10 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
           onFocus={() => inputValue.length >= 1 && setShowDropdown(true)}
           onKeyDown={handleKeyDown}
           placeholder={__('Type to add tags...')}
-          className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="block w-full rounded-md border border-(--border-primary) px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         {getOrCreate.isPending && (
-          <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" />
+          <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-(--text-muted)" />
         )}
       </div>
 
@@ -195,11 +195,11 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
       {showDropdown && inputValue.length >= 1 && (
         <div
           ref={dropdownRef}
-          className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"
+          className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-(--border-primary) bg-(--surface-primary) shadow-lg"
         >
           {searchQuery.isLoading ? (
             <div className="flex items-center justify-center py-3">
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              <Loader2 className="h-4 w-4 animate-spin text-(--text-muted)" />
             </div>
           ) : suggestions.length > 0 ? (
             suggestions.map((tag, index) => (
@@ -213,17 +213,17 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
                 className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm ${
                   index === highlightedIndex
                     ? 'bg-blue-50 text-blue-700'
-                    : 'hover:bg-gray-50'
+                    : 'hover:bg-(--surface-secondary)'
                 }`}
               >
                 <span>{tag.name}</span>
-                <span className="ml-2 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+                <span className="ml-2 rounded-full bg-(--surface-secondary) px-1.5 py-0.5 text-xs text-(--text-muted)">
                   {Number(tag.count)}
                 </span>
               </button>
             ))
           ) : (
-            <div className="px-3 py-2 text-xs text-gray-400">
+            <div className="px-3 py-2 text-xs text-(--text-muted)">
               {__('Press Enter to create "')}
               {inputValue}
               {__('"')}

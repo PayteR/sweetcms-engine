@@ -39,8 +39,8 @@ function StatCard({
           <Icon className={`h-5 w-5 ${textMap[color]}`} />
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-500">{label}</p>
-          <p className="mt-0.5 text-2xl font-semibold text-gray-900">
+          <p className="text-sm font-medium text-(--text-muted)">{label}</p>
+          <p className="mt-0.5 text-2xl font-semibold text-(--text-primary)">
             {count ?? '—'}
           </p>
         </div>
@@ -58,8 +58,8 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p className="mt-2 text-gray-600">Welcome to SweetCMS admin panel.</p>
+      <h1 className="text-2xl font-bold text-(--text-primary)">Dashboard</h1>
+      <p className="mt-2 text-(--text-secondary)">Welcome to SweetCMS admin panel.</p>
 
       {/* Content stats */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -115,8 +115,8 @@ export default function DashboardPage() {
                 key={row.label}
                 className="flex items-center justify-between text-sm"
               >
-                <span className="text-gray-600">{row.label}</span>
-                <span className="font-medium text-gray-900">
+                <span className="text-(--text-secondary)">{row.label}</span>
+                <span className="font-medium text-(--text-primary)">
                   {row.count ?? '—'}
                 </span>
               </div>
@@ -155,10 +155,10 @@ export default function DashboardPage() {
       {/* Recent activity placeholder */}
       <div className="mt-6 admin-card p-6">
         <h2 className="admin-h2 flex items-center gap-2">
-          <Clock className="h-4 w-4 text-gray-400" />
+          <Clock className="h-4 w-4 text-(--text-muted)" />
           Recent Activity
         </h2>
-        <p className="mt-3 text-sm text-gray-500">
+        <p className="mt-3 text-sm text-(--text-muted)">
           Activity log coming soon. For now, check the revision history on individual content items.
         </p>
       </div>

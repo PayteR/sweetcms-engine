@@ -28,8 +28,8 @@ export default function GlobalError({ error, reset }: Props) {
   const isConnection = isConnectionError(error);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-(--surface-secondary) p-4">
+      <div className="w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 text-center shadow-sm">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
           <svg
             className="h-6 w-6 text-red-600"
@@ -46,18 +46,18 @@ export default function GlobalError({ error, reset }: Props) {
           </svg>
         </div>
 
-        <h2 className="mt-4 text-lg font-semibold text-gray-900">
+        <h2 className="mt-4 text-lg font-semibold text-(--text-primary)">
           {isConnection ? 'Connection Error' : 'Something went wrong'}
         </h2>
 
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-(--text-secondary)">
           {isConnection
             ? 'There was a problem connecting to the server. Please check your connection and try again.'
             : 'An unexpected error occurred. Please try again or contact support if the problem persists.'}
         </p>
 
         {error.digest && (
-          <p className="mt-2 text-xs text-gray-400">Error ID: {error.digest}</p>
+          <p className="mt-2 text-xs text-(--text-muted)">Error ID: {error.digest}</p>
         )}
 
         <div className="mt-6 flex justify-center gap-3">
@@ -69,7 +69,7 @@ export default function GlobalError({ error, reset }: Props) {
           </button>
           <a
             href="/"
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-(--border-primary) bg-(--surface-primary) px-4 py-2 text-sm font-medium text-(--text-secondary) hover:bg-(--surface-secondary)"
           >
             Go Home
           </a>

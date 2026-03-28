@@ -10,14 +10,14 @@
 @layer components {
   /* Card containers */
   .admin-card {
-    background-color: var(--color-white);
+    background-color: var(--surface-primary);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg);
   }
 
   /* Table header row */
   .admin-thead {
-    background-color: var(--color-gray-50);
+    background-color: var(--surface-secondary);
   }
 
   /* Table header cells */
@@ -28,7 +28,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-gray-500);
+    color: var(--text-secondary);
   }
 
   /* Section headings */
@@ -42,7 +42,7 @@
   .admin-td {
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
-    color: var(--color-gray-700);
+    color: var(--text-secondary);
     border-bottom: 1px solid var(--border-secondary);
   }
 
@@ -54,13 +54,13 @@
     padding: 0.5rem 0.75rem;
     border-radius: var(--radius-md);
     font-size: 0.875rem;
-    color: var(--color-gray-700);
+    color: var(--text-secondary);
     transition-property: background-color, color;
     transition-duration: var(--duration-fast);
   }
 
   .admin-sidebar-link:hover {
-    background-color: var(--color-gray-100);
+    background-color: var(--surface-secondary);
   }
 
   .admin-sidebar-link.active {
@@ -98,13 +98,13 @@
   }
 
   .admin-btn-secondary {
-    background-color: var(--color-white);
-    color: var(--color-gray-700);
+    background-color: var(--surface-primary);
+    color: var(--text-secondary);
     border: 1px solid var(--border-primary);
   }
 
   .admin-btn-secondary:hover:not(:disabled) {
-    background-color: var(--color-gray-50);
+    background-color: var(--surface-secondary);
   }
 
   .admin-btn-danger {
@@ -129,5 +129,13 @@
     padding: 0.25rem 0.625rem;
     font-size: 0.8125rem;
     gap: 0.25rem;
+  }
+}
+
+/* Dark overrides for elements using light-50 backgrounds */
+html.dark {
+  .admin-sidebar-link.active {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: var(--color-brand-400);
   }
 }

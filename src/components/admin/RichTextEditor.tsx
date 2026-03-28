@@ -62,7 +62,7 @@ function ToolbarButton({
         'rounded p-1.5 transition-colors',
         active
           ? 'bg-blue-100 text-blue-700'
-          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+          : 'text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary)',
         disabled && 'cursor-not-allowed opacity-30'
       )}
     >
@@ -72,13 +72,14 @@ function ToolbarButton({
 }
 
 function ToolbarDivider() {
-  return <div className="mx-1 h-6 w-px bg-gray-200" />;
+  return <div className="mx-1 h-6 w-px bg-(--border-primary)" />;
 }
 
 export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const __ = useBlankTranslations();
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
@@ -134,9 +135,9 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const iconSize = 'h-4 w-4';
 
   return (
-    <div className="overflow-hidden rounded-md border border-gray-300 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+    <div className="overflow-hidden rounded-md border border-(--border-primary) focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50 px-2 py-1.5">
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-secondary) px-2 py-1.5">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}

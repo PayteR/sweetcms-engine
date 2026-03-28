@@ -174,7 +174,7 @@ export function PostForm({ contentType, postId }: Props) {
   if (!isNew && existingPost.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
       </div>
     );
   }
@@ -186,11 +186,11 @@ export function PostForm({ contentType, postId }: Props) {
         <div className="flex items-center gap-3">
           <Link
             href={`/dashboard/cms/${contentType.adminSlug}`}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
             {isNew
               ? __(`New ${contentType.label}`)
               : __(`Edit ${contentType.label}`)}
@@ -240,7 +240,7 @@ export function PostForm({ contentType, postId }: Props) {
           <div className="space-y-6 lg:col-span-2">
             {/* Title */}
             <div className="admin-card p-6">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Title')}
               </label>
               <input
@@ -248,11 +248,11 @@ export function PostForm({ contentType, postId }: Props) {
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder={__(`${contentType.label} title`)}
               />
 
-              <label className="mt-3 block text-sm font-medium text-gray-700">
+              <label className="mt-3 block text-sm font-medium text-(--text-secondary)">
                 {__('Slug')}
               </label>
               <input
@@ -263,14 +263,14 @@ export function PostForm({ contentType, postId }: Props) {
                   setSlug(e.target.value);
                   setSlugManual(true);
                 }}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="url-slug"
               />
             </div>
 
             {/* Content — Rich Text Editor */}
             <div className="admin-card p-6">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
                 {__('Content')}
               </label>
               <RichTextEditor
@@ -285,7 +285,7 @@ export function PostForm({ contentType, postId }: Props) {
               <h3 className="admin-h2">{__('SEO')}</h3>
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('SEO Title')}
                   </label>
                   <input
@@ -293,15 +293,15 @@ export function PostForm({ contentType, postId }: Props) {
                     value={seoTitle}
                     onChange={(e) => setSeoTitle(e.target.value)}
                     maxLength={100}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Custom title for search engines')}
                   />
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="mt-1 text-xs text-(--text-muted)">
                     {seoTitle.length}/100
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Meta Description')}
                   </label>
                   <textarea
@@ -309,7 +309,7 @@ export function PostForm({ contentType, postId }: Props) {
                     onChange={(e) => setMetaDescription(e.target.value)}
                     maxLength={500}
                     rows={3}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Description for search engines')}
                   />
                 </div>
@@ -318,7 +318,7 @@ export function PostForm({ contentType, postId }: Props) {
                     type="checkbox"
                     checked={noindex}
                     onChange={(e) => setNoindex(e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="rounded border-(--border-primary)"
                   />
                   {__('No-index (hide from search engines)')}
                 </label>
@@ -342,7 +342,7 @@ export function PostForm({ contentType, postId }: Props) {
                   value={jsonLd}
                   onChange={(e) => setJsonLd(e.target.value)}
                   rows={6}
-                  className="mt-3 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-3 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder='{"@context": "https://schema.org", ...}'
                 />
               </div>
@@ -356,13 +356,13 @@ export function PostForm({ contentType, postId }: Props) {
               <h3 className="admin-h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Status')}
                   </label>
                   <select
                     value={status}
                     onChange={(e) => setStatus(Number(e.target.value))}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -375,26 +375,26 @@ export function PostForm({ contentType, postId }: Props) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>
                   <input
                     type="datetime-local"
                     value={publishedAt}
                     onChange={(e) => setPublishedAt(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Language')}
                   </label>
                   <select
                     value={lang}
                     onChange={(e) => setLang(e.target.value)}
                     disabled={!isNew}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-(--surface-secondary)"
                   >
                     <option value="en">English</option>
                   </select>
@@ -407,9 +407,9 @@ export function PostForm({ contentType, postId }: Props) {
               <h3 className="admin-h2">{__('Categories')}</h3>
               <div className="mt-3 max-h-48 space-y-1.5 overflow-y-auto">
                 {categoriesList.isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  <Loader2 className="h-4 w-4 animate-spin text-(--text-muted)" />
                 ) : (categoriesList.data?.results ?? []).length === 0 ? (
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-(--text-muted)">
                     {__('No categories yet.')}
                   </p>
                 ) : (
@@ -422,7 +422,7 @@ export function PostForm({ contentType, postId }: Props) {
                         type="checkbox"
                         checked={categoryIds.includes(cat.id)}
                         onChange={() => toggleCategory(cat.id)}
-                        className="rounded border-gray-300"
+                        className="rounded border-(--border-primary)"
                       />
                       {cat.name}
                     </label>
@@ -453,7 +453,7 @@ export function PostForm({ contentType, postId }: Props) {
                       <img
                         src={featuredImage}
                         alt={featuredImageAlt || 'Preview'}
-                        className="h-32 w-full rounded-md border border-gray-200 object-cover"
+                        className="h-32 w-full rounded-md border border-(--border-primary) object-cover"
                       />
                       <button
                         type="button"
@@ -461,16 +461,16 @@ export function PostForm({ contentType, postId }: Props) {
                           setFeaturedImage('');
                           setFeaturedImageAlt('');
                         }}
-                        className="absolute right-1 top-1 rounded bg-white/90 p-1 shadow-sm hover:bg-white"
+                        className="absolute right-1 top-1 rounded bg-(--surface-primary)/90 p-1 shadow-sm hover:bg-(--surface-primary)"
                       >
-                        <X className="h-3.5 w-3.5 text-gray-600" />
+                        <X className="h-3.5 w-3.5 text-(--text-secondary)" />
                       </button>
                     </div>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setShowMediaPicker(true)}
-                      className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-600"
+                      className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-(--border-primary) px-4 py-6 text-sm text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-secondary)"
                     >
                       <ImageIcon className="h-5 w-5" />
                       {__('Select Image')}
@@ -489,14 +489,14 @@ export function PostForm({ contentType, postId }: Props) {
                   )}
                   {featuredImage && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-(--text-secondary)">
                         {__('Alt Text')}
                       </label>
                       <input
                         type="text"
                         value={featuredImageAlt}
                         onChange={(e) => setFeaturedImageAlt(e.target.value)}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder={__('Describe the image')}
                       />
                     </div>

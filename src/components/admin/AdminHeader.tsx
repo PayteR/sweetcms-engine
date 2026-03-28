@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, Monitor, Moon, Sun, User } from 'lucide-react';
 
 import { signOut, useSession } from '@/lib/auth-client';
+import { useThemeStore } from '@/store/theme-store';
 
 function RoleBadge({ role }: { role: string }) {
   const classMap: Record<string, string> = {
@@ -20,9 +22,24 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
+const themeOrder = ['light', 'dark', 'system'] as const;
+const themeIcons = { light: Sun, dark: Moon, system: Monitor } as const;
+const themeLabels = { light: 'Light', dark: 'Dark', system: 'System' } as const;
+
 export function AdminHeader() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { theme, setTheme, initTheme } = useThemeStore();
+
+  useEffect(() => {
+    return initTheme();
+  }, [initTheme]);
+
+  function cycleTheme() {
+    const idx = themeOrder.indexOf(theme);
+    const next = themeOrder[(idx + 1) % themeOrder.length];
+    setTheme(next);
+  }
 
   async function handleSignOut() {
     await signOut();
@@ -30,13 +47,21 @@ export function AdminHeader() {
   }
 
   const userRole = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
+  const ThemeIcon = themeIcons[theme];
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-6">
+    <header className="flex h-14 items-center justify-between border-b border-(--border-primary) bg-(--surface-primary) px-6">
       <div />
       <div className="flex items-center gap-3">
+        <button
+          onClick={cycleTheme}
+          className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
+          title={`Theme: ${themeLabels[theme]}`}
+        >
+          <ThemeIcon className="h-4 w-4" />
+        </button>
         {session?.user && (
-          <span className="flex items-center gap-2 text-sm text-gray-600">
+          <span className="flex items-center gap-2 text-sm text-(--text-secondary)">
             <User className="h-4 w-4" />
             {session.user.name ?? session.user.email}
             {userRole && <RoleBadge role={userRole} />}
@@ -44,7 +69,7 @@ export function AdminHeader() {
         )}
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
         >
           <LogOut className="h-4 w-4" />
           Sign Out

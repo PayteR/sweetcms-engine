@@ -38,9 +38,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+      <h1 className="text-2xl font-bold text-(--text-primary)">Sign In</h1>
+      <p className="mt-1 text-sm text-(--text-muted)">
         Sign in to your SweetCMS account
       </p>
 
@@ -54,7 +54,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-(--text-secondary)"
           >
             Email
           </label>
@@ -64,7 +64,7 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="you@example.com"
           />
         </div>
@@ -72,7 +72,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-(--text-secondary)"
           >
             Password
           </label>
@@ -83,7 +83,7 @@ export default function LoginPage() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="••••••••"
           />
         </div>
@@ -98,12 +98,12 @@ export default function LoginPage() {
       </form>
 
       <div className="mt-4 text-center">
-        <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-blue-600">
+        <Link href="/forgot-password" className="text-sm text-(--text-muted) hover:text-blue-600">
           Forgot your password?
         </Link>
       </div>
 
-      <p className="mt-4 text-center text-sm text-gray-500">
+      <p className="mt-4 text-center text-sm text-(--text-muted)">
         Don&apos;t have an account?{' '}
         <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
           Sign up

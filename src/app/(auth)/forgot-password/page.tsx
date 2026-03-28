@@ -32,9 +32,9 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900">Check your email</h1>
-        <p className="mt-3 text-sm text-gray-600">
+      <div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-(--text-primary)">Check your email</h1>
+        <p className="mt-3 text-sm text-(--text-secondary)">
           If an account exists for <strong>{email}</strong>, we&apos;ve sent a password reset link.
           Check your inbox and follow the instructions.
         </p>
@@ -49,9 +49,9 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-bold text-gray-900">Forgot Password</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+      <h1 className="text-2xl font-bold text-(--text-primary)">Forgot Password</h1>
+      <p className="mt-1 text-sm text-(--text-muted)">
         Enter your email and we&apos;ll send you a reset link.
       </p>
 
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-(--text-secondary)"
           >
             Email
           </label>
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="you@example.com"
           />
         </div>
@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-500">
+      <p className="mt-6 text-center text-sm text-(--text-muted)">
         Remember your password?{' '}
         <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
           Sign in

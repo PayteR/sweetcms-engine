@@ -53,10 +53,10 @@ export async function TagCloud({
         <Link
           key={tag.id}
           href={`/tag/${tag.slug}`}
-          className={`inline-block rounded-full border border-gray-200 bg-white px-3 py-1 text-gray-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 ${getSizeClass(Number(tag.count))}`}
+          className={`inline-block rounded-full border border-(--border-primary) bg-(--surface-primary) px-3 py-1 text-(--text-secondary) transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 ${getSizeClass(Number(tag.count))}`}
         >
           {tag.name}
-          <span className="ml-1 text-gray-400">({Number(tag.count)})</span>
+          <span className="ml-1 text-(--text-muted)">({Number(tag.count)})</span>
         </Link>
       ))}
     </div>
@@ -65,7 +65,7 @@ export async function TagCloud({
   if (sectionTitle) {
     const content = (
       <>
-        <h2 className="text-lg font-semibold text-gray-900">{sectionTitle}</h2>
+        <h2 className="text-lg font-semibold text-(--text-primary)">{sectionTitle}</h2>
         <div className="mt-4">{cloud}</div>
       </>
     );

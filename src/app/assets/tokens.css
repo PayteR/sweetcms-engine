@@ -88,3 +88,28 @@
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
 }
+
+html.dark {
+  color-scheme: dark;
+
+  /* Surface colors */
+  --surface-primary: var(--color-gray-900);
+  --surface-secondary: var(--color-gray-950);
+  --surface-elevated: var(--color-gray-800);
+  --surface-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Text colors */
+  --text-primary: var(--color-gray-100);
+  --text-secondary: var(--color-gray-400);
+  --text-muted: var(--color-gray-500);
+  --text-inverse: var(--color-gray-900);
+
+  /* Border colors */
+  --border-primary: var(--color-gray-700);
+  --border-secondary: var(--color-gray-800);
+
+  /* Shadows — higher opacity for dark backgrounds */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+}

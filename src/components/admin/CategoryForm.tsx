@@ -145,7 +145,7 @@ export function CategoryForm({ categoryId }: Props) {
   if (!isNew && existingCat.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
       </div>
     );
   }
@@ -156,11 +156,11 @@ export function CategoryForm({ categoryId }: Props) {
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/cms/categories"
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
             {isNew ? __('New Category') : __('Edit Category')}
           </h1>
         </div>
@@ -185,7 +185,7 @@ export function CategoryForm({ categoryId }: Props) {
             <div className="admin-card p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
                   </label>
                   <input
@@ -193,12 +193,12 @@ export function CategoryForm({ categoryId }: Props) {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Category name')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Slug')}
                   </label>
                   <input
@@ -209,11 +209,11 @@ export function CategoryForm({ categoryId }: Props) {
                       setSlug(e.target.value);
                       setSlugManual(true);
                     }}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Title')}
                   </label>
                   <input
@@ -221,19 +221,19 @@ export function CategoryForm({ categoryId }: Props) {
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Display title (can differ from name)')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Icon')}
                   </label>
                   <input
                     type="text"
                     value={icon}
                     onChange={(e) => setIcon(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Icon name or URL')}
                   />
                 </div>
@@ -241,7 +241,7 @@ export function CategoryForm({ categoryId }: Props) {
             </div>
 
             <div className="admin-card p-6">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
                 {__('Description')}
               </label>
               <RichTextEditor
@@ -255,7 +255,7 @@ export function CategoryForm({ categoryId }: Props) {
               <h3 className="admin-h2">{__('SEO')}</h3>
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('SEO Title')}
                   </label>
                   <input
@@ -263,11 +263,11 @@ export function CategoryForm({ categoryId }: Props) {
                     value={seoTitle}
                     onChange={(e) => setSeoTitle(e.target.value)}
                     maxLength={255}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Meta Description')}
                   </label>
                   <textarea
@@ -275,7 +275,7 @@ export function CategoryForm({ categoryId }: Props) {
                     onChange={(e) => setMetaDescription(e.target.value)}
                     maxLength={500}
                     rows={3}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <label className="flex items-center gap-2 text-sm">
@@ -283,7 +283,7 @@ export function CategoryForm({ categoryId }: Props) {
                     type="checkbox"
                     checked={noindex}
                     onChange={(e) => setNoindex(e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="rounded border-(--border-primary)"
                   />
                   {__('No-index')}
                 </label>
@@ -320,7 +320,7 @@ export function CategoryForm({ categoryId }: Props) {
                   <select
                     value={status}
                     onChange={(e) => setStatus(Number(e.target.value))}
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -329,38 +329,38 @@ export function CategoryForm({ categoryId }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Order')}
                   </label>
                   <input
                     type="number"
                     value={order}
                     onChange={(e) => setOrder(Number(e.target.value))}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Language')}
                   </label>
                   <select
                     value={lang}
                     disabled={!isNew}
                     onChange={(e) => setLang(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm disabled:bg-(--surface-secondary)"
                   >
                     <option value="en">English</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>
                   <input
                     type="datetime-local"
                     value={publishedAt}
                     onChange={(e) => setPublishedAt(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
