@@ -3,6 +3,7 @@ import { and, eq, ilike, isNull, or } from 'drizzle-orm';
 
 import { cmsPosts } from '@/server/db/schema/cms';
 import { cmsCategories } from '@/server/db/schema/categories';
+import { cmsTerms } from '@/server/db/schema/terms';
 import { ContentStatus } from '@/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
@@ -98,6 +99,36 @@ export const contentSearchRouter = createTRPCRouter({
           id: cat.id,
           title: cat.name,
           url: `/category/${cat.slug}`,
+        });
+      }
+
+      // Search tags
+      const tags = await ctx.db
+        .select({
+          id: cmsTerms.id,
+          slug: cmsTerms.slug,
+          name: cmsTerms.name,
+        })
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.taxonomyId, 'tag'),
+            eq(cmsTerms.status, ContentStatus.PUBLISHED),
+            isNull(cmsTerms.deletedAt),
+            or(
+              ilike(cmsTerms.name, pattern),
+              ilike(cmsTerms.slug, pattern)
+            )
+          )
+        )
+        .limit(limit);
+
+      for (const tag of tags) {
+        results.push({
+          type: 'tag',
+          id: tag.id,
+          title: tag.name,
+          url: `/tag/${tag.slug}`,
         });
       }
 

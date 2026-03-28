@@ -242,7 +242,8 @@ async function seedContent() {
   try {
     const { cmsPosts } = await import('../server/db/schema/cms');
     const { cmsCategories } = await import('../server/db/schema/categories');
-    const { cmsPostCategories } = await import('../server/db/schema/post-categories');
+    const { cmsTermRelationships } = await import('../server/db/schema/term-relationships');
+    const { cmsTerms } = await import('../server/db/schema/terms');
 
     // Check if any posts exist
     const [existing] = await db
@@ -464,17 +465,61 @@ async function seedContent() {
       previewToken: crypto.randomBytes(32).toString('hex'),
     });
 
-    // ── Post-Category associations ────────────────────────────────
+    // ── Tags ──────────────────────────────────────────────────────
+
+    const [tagNextjs] = await db.insert(cmsTerms).values({
+      taxonomyId: 'tag',
+      name: 'Next.js',
+      slug: 'nextjs',
+      lang: 'en',
+      status: 1,
+    }).returning();
+
+    const [tagTypescript] = await db.insert(cmsTerms).values({
+      taxonomyId: 'tag',
+      name: 'TypeScript',
+      slug: 'typescript',
+      lang: 'en',
+      status: 1,
+    }).returning();
+
+    const [tagTutorial] = await db.insert(cmsTerms).values({
+      taxonomyId: 'tag',
+      name: 'Tutorial',
+      slug: 'tutorial',
+      lang: 'en',
+      status: 1,
+    }).returning();
+
+    const [tagAnnouncement] = await db.insert(cmsTerms).values({
+      taxonomyId: 'tag',
+      name: 'Announcement',
+      slug: 'announcement',
+      lang: 'en',
+      status: 1,
+    }).returning();
+
+    // ── Post-Category & Post-Tag associations ────────────────────
 
     if (catTutorials && catNews && post1 && post2 && post3) {
-      await db.insert(cmsPostCategories).values([
-        { postId: post1.id, categoryId: catNews!.id },
-        { postId: post2.id, categoryId: catTutorials!.id },
-        { postId: post3.id, categoryId: catNews!.id },
+      await db.insert(cmsTermRelationships).values([
+        { objectId: post1.id, termId: catNews!.id, taxonomyId: 'category' },
+        { objectId: post2.id, termId: catTutorials!.id, taxonomyId: 'category' },
+        { objectId: post3.id, termId: catNews!.id, taxonomyId: 'category' },
       ]);
     }
 
-    log('✅', '3 pages, 4 blog posts (1 draft), and 3 categories created.');
+    if (tagNextjs && tagTypescript && tagTutorial && tagAnnouncement && post1 && post2 && post3) {
+      await db.insert(cmsTermRelationships).values([
+        { objectId: post1.id, termId: tagAnnouncement!.id, taxonomyId: 'tag' },
+        { objectId: post2.id, termId: tagTutorial!.id, taxonomyId: 'tag' },
+        { objectId: post2.id, termId: tagNextjs!.id, taxonomyId: 'tag' },
+        { objectId: post3.id, termId: tagTypescript!.id, taxonomyId: 'tag' },
+        { objectId: post3.id, termId: tagNextjs!.id, taxonomyId: 'tag' },
+      ]);
+    }
+
+    log('✅', '3 pages, 4 blog posts (1 draft), 3 categories, and 4 tags created.');
   } finally {
     await pool.end();
   }

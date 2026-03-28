@@ -99,6 +99,21 @@ const contentTypesDef = [
     titleTemplate: '{title}[ - {page}] | {sitename}',
     sitemapSlug: 'category-pages',
   },
+  {
+    id: 'tag',
+    urlPrefix: '/tag/',
+    listSegment: 'tag',
+    listTitle: 'Tags',
+    canOverrideCodedRouteSEO: false,
+    fallbackToDefault: false,
+    label: 'Tag',
+    labelPlural: 'Tags',
+    adminSlug: 'tags',
+    adminCapability: 'section.content',
+    titleTemplate: '{title}[ - {page}] | {sitename}',
+    sitemapSlug: 'tag-pages',
+    listDescription: 'Browse content by tag.',
+  },
 ] as const satisfies readonly ContentTypeDeclaration[];
 
 export const CONTENT_TYPES: readonly ContentTypeDeclaration[] = contentTypesDef;

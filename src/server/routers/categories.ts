@@ -14,6 +14,7 @@ import {
   permanentDelete,
 } from '@/server/utils/admin-crud';
 import { updateWithRevision } from '@/server/utils/cms-helpers';
+import { deleteTermRelationshipsByTerm } from '@/server/utils/taxonomy-helpers';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -276,7 +277,9 @@ export const categoriesRouter = createTRPCRouter({
   permanentDelete: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await permanentDelete(ctx.db, crudCols, input.id, 'category');
+      await permanentDelete(ctx.db, crudCols, input.id, 'category', async (tx) => {
+        await deleteTermRelationshipsByTerm(tx, input.id, 'category');
+      });
       return { success: true };
     }),
 

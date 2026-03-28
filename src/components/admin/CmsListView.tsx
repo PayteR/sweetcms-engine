@@ -58,6 +58,7 @@ export function CmsListView({ contentType }: Props) {
 
   const isPostType = contentType.postType != null;
   const isCategoryType = contentType.id === 'category';
+  const isTagType = contentType.id === 'tag';
 
   // Post queries
   const postList = trpc.cms.list.useQuery(
@@ -89,6 +90,21 @@ export function CmsListView({ contentType }: Props) {
 
   const catCounts = trpc.categories.counts.useQuery(undefined, {
     enabled: isCategoryType,
+  });
+
+  // Tag queries
+  const tagList = trpc.tags.list.useQuery(
+    {
+      search: search || undefined,
+      trashed: tab === 'trash',
+      page,
+      pageSize: 20,
+    },
+    { enabled: isTagType }
+  );
+
+  const tagCounts = trpc.tags.counts.useQuery(undefined, {
+    enabled: isTagType,
   });
 
   // Mutations
@@ -146,10 +162,38 @@ export function CmsListView({ contentType }: Props) {
     onError: (err) => toast.error(err.message),
   });
 
+  // Tag mutations
+  const deleteTag = trpc.tags.delete.useMutation({
+    onSuccess: () => {
+      toast.success(__('Moved to trash'));
+      utils.tags.list.invalidate();
+      utils.tags.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const restoreTag = trpc.tags.restore.useMutation({
+    onSuccess: () => {
+      toast.success(__('Restored'));
+      utils.tags.list.invalidate();
+      utils.tags.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const permanentDeleteTag = trpc.tags.permanentDelete.useMutation({
+    onSuccess: () => {
+      toast.success(__('Permanently deleted'));
+      utils.tags.list.invalidate();
+      utils.tags.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   // Unified data
-  const data = isPostType ? postList.data : catList.data;
-  const counts = isPostType ? postCounts.data : catCounts.data;
-  const isLoading = isPostType ? postList.isLoading : catList.isLoading;
+  const data = isPostType ? postList.data : isTagType ? tagList.data : catList.data;
+  const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : catCounts.data;
+  const isLoading = isPostType ? postList.isLoading : isTagType ? tagList.isLoading : catList.isLoading;
 
   const items: Array<{
     id: string;
@@ -195,9 +239,11 @@ export function CmsListView({ contentType }: Props) {
     if (!deleteTarget) return;
     if (deleteTarget.permanent) {
       if (isPostType) permanentDeletePost.mutate({ id: deleteTarget.id });
+      else if (isTagType) permanentDeleteTag.mutate({ id: deleteTarget.id });
       else permanentDeleteCat.mutate({ id: deleteTarget.id });
     } else {
       if (isPostType) deletePost.mutate({ id: deleteTarget.id });
+      else if (isTagType) deleteTag.mutate({ id: deleteTarget.id });
       else deleteCat.mutate({ id: deleteTarget.id });
     }
     setDeleteTarget(null);
@@ -205,6 +251,7 @@ export function CmsListView({ contentType }: Props) {
 
   function handleRestore(id: string) {
     if (isPostType) restorePost.mutate({ id });
+    else if (isTagType) restoreTag.mutate({ id });
     else restoreCat.mutate({ id });
   }
 

@@ -6,6 +6,7 @@ import { contentSearchRouter } from './content-search';
 import { mediaRouter } from './media';
 import { optionsRouter } from './options';
 import { revisionsRouter } from './revisions';
+import { tagsRouter } from './tags';
 import { usersRouter } from './users';
 
 /**
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   media: mediaRouter,
   options: optionsRouter,
   revisions: revisionsRouter,
+  tags: tagsRouter,
   users: usersRouter,
 });
 

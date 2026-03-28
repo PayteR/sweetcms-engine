@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPickerDialog } from './MediaPickerDialog';
+import { TagInput } from './TagInput';
 
 interface Props {
   contentType: ContentTypeDeclaration;
@@ -42,6 +43,7 @@ export function PostForm({ contentType, postId }: Props) {
   const [noindex, setNoindex] = useState(false);
   const [publishedAt, setPublishedAt] = useState('');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   // Fetch existing post
@@ -77,6 +79,7 @@ export function PostForm({ contentType, postId }: Props) {
         p.publishedAt ? new Date(p.publishedAt).toISOString().slice(0, 16) : ''
       );
       setCategoryIds(p.categoryIds ?? []);
+      setTagIds(p.tagIds ?? []);
     }
   }, [existingPost.data]);
 
@@ -127,6 +130,7 @@ export function PostForm({ contentType, postId }: Props) {
         noindex,
         publishedAt: publishedAt ? new Date(publishedAt).toISOString() : undefined,
         categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
+        tagIds: tagIds.length > 0 ? tagIds : undefined,
       });
     } else {
       updatePost.mutate({
@@ -143,6 +147,7 @@ export function PostForm({ contentType, postId }: Props) {
         noindex,
         publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
         categoryIds,
+        tagIds,
       });
     }
   }
@@ -423,6 +428,18 @@ export function PostForm({ contentType, postId }: Props) {
                     </label>
                   ))
                 )}
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="admin-card p-6">
+              <h3 className="admin-h2">{__('Tags')}</h3>
+              <div className="mt-3">
+                <TagInput
+                  selectedTagIds={tagIds}
+                  onChange={setTagIds}
+                  lang={lang}
+                />
               </div>
             </div>
 

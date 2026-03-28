@@ -3,7 +3,7 @@ import { and, eq, isNull, desc } from 'drizzle-orm';
 
 import { siteConfig } from '@/config/site';
 import { db } from '@/server/db';
-import { cmsPosts, cmsCategories } from '@/server/db/schema';
+import { cmsPosts, cmsCategories, cmsTerms } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/types/cms';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -99,6 +99,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: cat.updatedAt,
       changeFrequency: 'monthly',
       priority: 0.5,
+    });
+  }
+
+  // Published tags
+  const tags = await db
+    .select({
+      slug: cmsTerms.slug,
+      updatedAt: cmsTerms.updatedAt,
+    })
+    .from(cmsTerms)
+    .where(
+      and(
+        eq(cmsTerms.taxonomyId, 'tag'),
+        eq(cmsTerms.status, ContentStatus.PUBLISHED),
+        isNull(cmsTerms.deletedAt)
+      )
+    )
+    .orderBy(desc(cmsTerms.createdAt))
+    .limit(500);
+
+  for (const tag of tags) {
+    entries.push({
+      url: `${baseUrl}/tag/${tag.slug}`,
+      lastModified: tag.updatedAt ?? undefined,
+      changeFrequency: 'monthly',
+      priority: 0.4,
     });
   }
 

@@ -1,0 +1,374 @@
+import { TRPCError } from '@trpc/server';
+import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
+import { z } from 'zod';
+
+import { cmsTerms } from '@/server/db/schema';
+import { ContentStatus } from '@/types/cms';
+import {
+  buildAdminList,
+  buildStatusCounts,
+  ensureSlugUnique,
+  softDelete,
+  softRestore,
+  permanentDelete,
+  parsePagination,
+  paginatedResult,
+} from '@/server/utils/admin-crud';
+import { deleteTermRelationshipsByTerm } from '@/server/utils/taxonomy-helpers';
+import { slugify } from '@/lib/slug';
+import {
+  createTRPCRouter,
+  publicProcedure,
+  sectionProcedure,
+} from '../trpc';
+
+const TAXONOMY_ID = 'tag';
+
+const contentProcedure = sectionProcedure('content');
+
+const crudCols = {
+  table: cmsTerms,
+  id: cmsTerms.id,
+  deleted_at: cmsTerms.deletedAt,
+};
+
+export const tagsRouter = createTRPCRouter({
+  /** Admin: list tags with search, pagination, status tabs */
+  list: contentProcedure
+    .input(
+      z.object({
+        search: z.string().max(200).optional(),
+        trashed: z.boolean().optional(),
+        lang: z.string().max(2).optional(),
+        sortBy: z.string().optional(),
+        sortDir: z.enum(['asc', 'desc']).optional(),
+        page: z.number().int().min(1).optional(),
+        pageSize: z.number().int().min(1).max(100).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return buildAdminList(
+        {
+          db: ctx.db,
+          cols: {
+            table: cmsTerms,
+            id: cmsTerms.id,
+            deleted_at: cmsTerms.deletedAt,
+            lang: cmsTerms.lang,
+            // Tags don't use translation_group; pass a dummy col for the interface
+            translation_group: cmsTerms.id,
+          },
+          input,
+          searchColumns: [cmsTerms.name, cmsTerms.slug],
+          sortColumns: {
+            name: cmsTerms.name,
+            order: cmsTerms.order,
+            created_at: cmsTerms.createdAt,
+          },
+          defaultSort: 'created_at',
+          extraConditions: [eq(cmsTerms.taxonomyId, TAXONOMY_ID)],
+        },
+        async ({ where, orderBy, offset, limit }) => {
+          return ctx.db
+            .select()
+            .from(cmsTerms)
+            .where(where)
+            .orderBy(orderBy)
+            .offset(offset)
+            .limit(limit);
+        }
+      );
+    }),
+
+  /** Admin: status tab counts */
+  counts: contentProcedure.query(async ({ ctx }) => {
+    return buildStatusCounts(
+      ctx.db,
+      {
+        table: cmsTerms,
+        status: cmsTerms.status,
+        deleted_at: cmsTerms.deletedAt,
+      },
+      eq(cmsTerms.taxonomyId, TAXONOMY_ID)
+    );
+  }),
+
+  /** Admin: get a single tag by ID */
+  get: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [tag] = await ctx.db
+        .select()
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.id, input.id),
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID)
+          )
+        )
+        .limit(1);
+
+      if (!tag) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
+      }
+      return tag;
+    }),
+
+  /** Admin: create a new tag */
+  create: contentProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(255),
+        slug: z.string().max(255).optional(),
+        lang: z.string().min(2).max(2).default('en'),
+        status: z.number().int().default(ContentStatus.PUBLISHED),
+        order: z.number().int().default(0),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const slug = input.slug || slugify(input.name);
+
+      await ensureSlugUnique(
+        ctx.db,
+        {
+          table: cmsTerms,
+          slugCol: cmsTerms.slug,
+          slug,
+          langCol: cmsTerms.lang,
+          lang: input.lang,
+          deletedAtCol: cmsTerms.deletedAt,
+          extraConditions: [eq(cmsTerms.taxonomyId, TAXONOMY_ID)],
+        },
+        'Tag'
+      );
+
+      const [tag] = await ctx.db
+        .insert(cmsTerms)
+        .values({
+          taxonomyId: TAXONOMY_ID,
+          name: input.name,
+          slug,
+          lang: input.lang,
+          status: input.status,
+          order: input.order,
+        })
+        .returning();
+
+      return tag!;
+    }),
+
+  /** Admin: update a tag */
+  update: contentProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string().min(1).max(255).optional(),
+        slug: z.string().min(1).max(255).optional(),
+        status: z.number().int().optional(),
+        order: z.number().int().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updates } = input;
+
+      const [existing] = await ctx.db
+        .select()
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.id, id),
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID)
+          )
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
+      }
+
+      if (updates.slug && updates.slug !== existing.slug) {
+        await ensureSlugUnique(
+          ctx.db,
+          {
+            table: cmsTerms,
+            slugCol: cmsTerms.slug,
+            slug: updates.slug,
+            idCol: cmsTerms.id,
+            excludeId: id,
+            langCol: cmsTerms.lang,
+            lang: existing.lang,
+            deletedAtCol: cmsTerms.deletedAt,
+            extraConditions: [eq(cmsTerms.taxonomyId, TAXONOMY_ID)],
+          },
+          'Tag'
+        );
+      }
+
+      await ctx.db
+        .update(cmsTerms)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(cmsTerms.id, id));
+
+      return { success: true };
+    }),
+
+  /** Soft-delete (trash) a tag */
+  delete: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await softDelete(ctx.db, crudCols, input.id);
+      return { success: true };
+    }),
+
+  /** Restore from trash */
+  restore: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await softRestore(ctx.db, crudCols, input.id);
+      return { success: true };
+    }),
+
+  /** Permanently delete a trashed tag */
+  permanentDelete: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await permanentDelete(ctx.db, crudCols, input.id, 'tag', async (tx) => {
+        await deleteTermRelationshipsByTerm(tx, input.id, TAXONOMY_ID);
+      });
+      return { success: true };
+    }),
+
+  /** Tag-input: get or create tag by name */
+  getOrCreate: contentProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(255),
+        lang: z.string().min(2).max(2).default('en'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const slug = slugify(input.name);
+
+      // Try to find existing
+      const [existing] = await ctx.db
+        .select()
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+            eq(cmsTerms.slug, slug),
+            eq(cmsTerms.lang, input.lang),
+            isNull(cmsTerms.deletedAt)
+          )
+        )
+        .limit(1);
+
+      if (existing) return existing;
+
+      // Create
+      const [tag] = await ctx.db
+        .insert(cmsTerms)
+        .values({
+          taxonomyId: TAXONOMY_ID,
+          name: input.name,
+          slug,
+          lang: input.lang,
+          status: ContentStatus.PUBLISHED,
+        })
+        .returning();
+
+      return tag!;
+    }),
+
+  /** Public: get a published tag by slug */
+  getBySlug: publicProcedure
+    .input(
+      z.object({
+        slug: z.string().max(255),
+        lang: z.string().max(2).default('en'),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const [tag] = await ctx.db
+        .select()
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+            eq(cmsTerms.slug, input.slug),
+            eq(cmsTerms.lang, input.lang),
+            eq(cmsTerms.status, ContentStatus.PUBLISHED),
+            isNull(cmsTerms.deletedAt)
+          )
+        )
+        .limit(1);
+
+      if (!tag) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
+      }
+      return tag;
+    }),
+
+  /** Public: list published tags */
+  listPublished: publicProcedure
+    .input(
+      z.object({
+        lang: z.string().max(2).default('en'),
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(100).default(100),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, offset } = parsePagination(input);
+
+      const conditions = and(
+        eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+        eq(cmsTerms.lang, input.lang),
+        eq(cmsTerms.status, ContentStatus.PUBLISHED),
+        isNull(cmsTerms.deletedAt)
+      );
+
+      const [items, countResult] = await Promise.all([
+        ctx.db
+          .select()
+          .from(cmsTerms)
+          .where(conditions)
+          .orderBy(cmsTerms.order)
+          .offset(offset)
+          .limit(pageSize),
+        ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(cmsTerms)
+          .where(conditions),
+      ]);
+
+      const total = Number(countResult[0]?.count ?? 0);
+      return paginatedResult(items, total, page, pageSize);
+    }),
+
+  /** Public: search tags for autocomplete */
+  search: publicProcedure
+    .input(
+      z.object({
+        query: z.string().min(1).max(200),
+        lang: z.string().max(2).default('en'),
+        limit: z.number().int().min(1).max(50).default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const pattern = `%${input.query}%`;
+      return ctx.db
+        .select({ id: cmsTerms.id, name: cmsTerms.name, slug: cmsTerms.slug })
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+            eq(cmsTerms.lang, input.lang),
+            eq(cmsTerms.status, ContentStatus.PUBLISHED),
+            isNull(cmsTerms.deletedAt),
+            or(ilike(cmsTerms.name, pattern), ilike(cmsTerms.slug, pattern))
+          )
+        )
+        .limit(input.limit);
+    }),
+});

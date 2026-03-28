@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   FileText,
   FolderOpen,
+  Hash,
   Home,
   Image,
   Layers,
@@ -22,6 +23,7 @@ const navigation = [
       { name: 'Pages', href: '/dashboard/cms/pages', icon: FileText },
       { name: 'Blog', href: '/dashboard/cms/blog', icon: Layers },
       { name: 'Categories', href: '/dashboard/cms/categories', icon: FolderOpen },
+      { name: 'Tags', href: '/dashboard/cms/tags', icon: Hash },
     ],
   },
   { name: 'Media', href: '/dashboard/media', icon: Image },

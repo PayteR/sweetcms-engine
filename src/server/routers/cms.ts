@@ -4,7 +4,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 
 import { getContentTypeByPostType } from '@/config/cms';
-import { cmsPosts, cmsPostCategories, cmsCategories } from '@/server/db/schema';
+import { cmsPosts, cmsTermRelationships } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/types/cms';
 import {
   buildAdminList,
@@ -15,6 +15,11 @@ import {
   permanentDelete,
 } from '@/server/utils/admin-crud';
 import { updateWithRevision } from '@/server/utils/cms-helpers';
+import {
+  syncTermRelationships,
+  getTermRelationships,
+  deleteAllTermRelationships,
+} from '@/server/utils/taxonomy-helpers';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -108,7 +113,7 @@ export const cmsRouter = createTRPCRouter({
       );
     }),
 
-  /** Get single post by ID (with category IDs) */
+  /** Get single post by ID (with category + tag IDs) */
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
@@ -122,12 +127,15 @@ export const cmsRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
       }
 
-      const cats = await ctx.db
-        .select({ categoryId: cmsPostCategories.categoryId })
-        .from(cmsPostCategories)
-        .where(eq(cmsPostCategories.postId, post.id));
+      const rels = await getTermRelationships(ctx.db, post.id);
+      const categoryIds = rels
+        .filter((r) => r.taxonomyId === 'category')
+        .map((r) => r.termId);
+      const tagIds = rels
+        .filter((r) => r.taxonomyId === 'tag')
+        .map((r) => r.termId);
 
-      return { ...post, categoryIds: cats.map((c) => c.categoryId) };
+      return { ...post, categoryIds, tagIds };
     }),
 
   /** Create a new post */
@@ -150,10 +158,11 @@ export const cmsRouter = createTRPCRouter({
         translationGroup: z.string().uuid().optional(),
         fallbackToDefault: z.boolean().optional(),
         categoryIds: z.array(z.string().uuid()).max(20).optional(),
+        tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { categoryIds, ...postInput } = input;
+      const { categoryIds, tagIds, ...postInput } = input;
       const contentType = getContentTypeByPostType(postInput.type);
 
       await ensureSlugUnique(
@@ -195,14 +204,12 @@ export const cmsRouter = createTRPCRouter({
         })
         .returning();
 
-      // Sync categories
+      // Sync taxonomy relationships
       if (categoryIds?.length && post) {
-        await ctx.db.insert(cmsPostCategories).values(
-          categoryIds.map((catId) => ({
-            postId: post.id,
-            categoryId: catId,
-          }))
-        );
+        await syncTermRelationships(ctx.db, post.id, 'category', categoryIds);
+      }
+      if (tagIds?.length && post) {
+        await syncTermRelationships(ctx.db, post.id, 'tag', tagIds);
       }
 
       return post!;
@@ -227,10 +234,11 @@ export const cmsRouter = createTRPCRouter({
         translationGroup: z.string().uuid().optional().nullable(),
         fallbackToDefault: z.boolean().optional().nullable(),
         categoryIds: z.array(z.string().uuid()).max(20).optional(),
+        tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, categoryIds, ...updates } = input;
+      const { id, categoryIds, tagIds, ...updates } = input;
 
       const [existing] = await ctx.db
         .select()
@@ -288,20 +296,12 @@ export const cmsRouter = createTRPCRouter({
         },
       });
 
-      // Sync categories if provided
+      // Sync taxonomy relationships if provided
       if (categoryIds !== undefined) {
-        await ctx.db
-          .delete(cmsPostCategories)
-          .where(eq(cmsPostCategories.postId, id));
-
-        if (categoryIds.length > 0) {
-          await ctx.db.insert(cmsPostCategories).values(
-            categoryIds.map((catId) => ({
-              postId: id,
-              categoryId: catId,
-            }))
-          );
-        }
+        await syncTermRelationships(ctx.db, id, 'category', categoryIds);
+      }
+      if (tagIds !== undefined) {
+        await syncTermRelationships(ctx.db, id, 'tag', tagIds);
       }
 
       return { success: true };
@@ -327,7 +327,6 @@ export const cmsRouter = createTRPCRouter({
   permanentDelete: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      // Find the content type from the post
       const [post] = await ctx.db
         .select({ type: cmsPosts.type })
         .from(cmsPosts)
@@ -339,7 +338,9 @@ export const cmsRouter = createTRPCRouter({
       }
 
       const contentType = getContentTypeByPostType(post.type);
-      await permanentDelete(ctx.db, crudCols, input.id, contentType.id);
+      await permanentDelete(ctx.db, crudCols, input.id, contentType.id, async (tx) => {
+        await deleteAllTermRelationships(tx, input.id);
+      });
       return { success: true };
     }),
 
@@ -354,7 +355,6 @@ export const cmsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      // If preview token provided, allow any status
       if (input.previewToken) {
         const [post] = await ctx.db
           .select()
@@ -396,13 +396,14 @@ export const cmsRouter = createTRPCRouter({
       return post;
     }),
 
-  /** Public: list published posts */
+  /** Public: list published posts (optional category or tag filter) */
   listPublished: publicProcedure
     .input(
       z.object({
         type: z.number().int().min(1),
         lang: z.string().max(2).default('en'),
         categoryId: z.string().uuid().optional(),
+        tagId: z.string().uuid().optional(),
         page: z.number().int().min(1).default(1),
         pageSize: z.number().int().min(1).max(50).default(10),
       })
@@ -417,54 +418,58 @@ export const cmsRouter = createTRPCRouter({
         isNull(cmsPosts.deletedAt)
       );
 
-      // If filtering by category, join through post_categories
-      if (input.categoryId) {
+      // Filter by taxonomy term (category or tag)
+      const termFilter = input.categoryId
+        ? { taxonomyId: 'category', termId: input.categoryId }
+        : input.tagId
+          ? { taxonomyId: 'tag', termId: input.tagId }
+          : null;
+
+      if (termFilter) {
+        const allColumns = {
+          id: cmsPosts.id,
+          type: cmsPosts.type,
+          status: cmsPosts.status,
+          lang: cmsPosts.lang,
+          slug: cmsPosts.slug,
+          title: cmsPosts.title,
+          content: cmsPosts.content,
+          metaDescription: cmsPosts.metaDescription,
+          seoTitle: cmsPosts.seoTitle,
+          featuredImage: cmsPosts.featuredImage,
+          featuredImageAlt: cmsPosts.featuredImageAlt,
+          jsonLd: cmsPosts.jsonLd,
+          noindex: cmsPosts.noindex,
+          publishedAt: cmsPosts.publishedAt,
+          previewToken: cmsPosts.previewToken,
+          translationGroup: cmsPosts.translationGroup,
+          fallbackToDefault: cmsPosts.fallbackToDefault,
+          authorId: cmsPosts.authorId,
+          createdAt: cmsPosts.createdAt,
+          updatedAt: cmsPosts.updatedAt,
+          deletedAt: cmsPosts.deletedAt,
+        };
+
+        const joinCondition = and(
+          eq(cmsPosts.id, cmsTermRelationships.objectId),
+          eq(cmsTermRelationships.taxonomyId, termFilter.taxonomyId),
+          eq(cmsTermRelationships.termId, termFilter.termId)
+        );
+
         const [items, countResult] = await Promise.all([
           ctx.db
-            .select({
-              id: cmsPosts.id,
-              type: cmsPosts.type,
-              status: cmsPosts.status,
-              lang: cmsPosts.lang,
-              slug: cmsPosts.slug,
-              title: cmsPosts.title,
-              content: cmsPosts.content,
-              metaDescription: cmsPosts.metaDescription,
-              seoTitle: cmsPosts.seoTitle,
-              featuredImage: cmsPosts.featuredImage,
-              featuredImageAlt: cmsPosts.featuredImageAlt,
-              jsonLd: cmsPosts.jsonLd,
-              noindex: cmsPosts.noindex,
-              publishedAt: cmsPosts.publishedAt,
-              previewToken: cmsPosts.previewToken,
-              translationGroup: cmsPosts.translationGroup,
-              fallbackToDefault: cmsPosts.fallbackToDefault,
-              authorId: cmsPosts.authorId,
-              createdAt: cmsPosts.createdAt,
-              updatedAt: cmsPosts.updatedAt,
-              deletedAt: cmsPosts.deletedAt,
-            })
+            .select(allColumns)
             .from(cmsPosts)
-            .innerJoin(
-              cmsPostCategories,
-              eq(cmsPosts.id, cmsPostCategories.postId)
-            )
-            .where(
-              and(baseConditions, eq(cmsPostCategories.categoryId, input.categoryId))
-            )
+            .innerJoin(cmsTermRelationships, joinCondition)
+            .where(baseConditions)
             .orderBy(desc(cmsPosts.publishedAt))
             .offset(offset)
             .limit(input.pageSize),
           ctx.db
             .select({ count: sql<number>`count(*)` })
             .from(cmsPosts)
-            .innerJoin(
-              cmsPostCategories,
-              eq(cmsPosts.id, cmsPostCategories.postId)
-            )
-            .where(
-              and(baseConditions, eq(cmsPostCategories.categoryId, input.categoryId))
-            ),
+            .innerJoin(cmsTermRelationships, joinCondition)
+            .where(baseConditions),
         ]);
 
         const total = Number(countResult[0]?.count ?? 0);
