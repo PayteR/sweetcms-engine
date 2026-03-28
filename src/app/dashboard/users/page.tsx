@@ -23,9 +23,9 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const ROLE_COLORS: Record<string, string> = {
   [Role.USER]: 'bg-(--surface-secondary) text-(--text-secondary)',
-  [Role.EDITOR]: 'bg-blue-100 text-blue-700',
-  [Role.ADMIN]: 'bg-purple-100 text-purple-700',
-  [Role.SUPERADMIN]: 'bg-red-100 text-red-700',
+  [Role.EDITOR]: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  [Role.ADMIN]: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
+  [Role.SUPERADMIN]: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
 };
 
 const ROLE_ICONS: Record<string, React.ElementType> = {
@@ -253,11 +253,11 @@ export default function UsersPage() {
                       </td>
                       <td className="admin-td">
                         {u.banned ? (
-                          <span className="inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          <span className="inline-block rounded-full bg-red-100 dark:bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
                             {__('Banned')}
                           </span>
                         ) : (
-                          <span className="inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                          <span className="inline-block rounded-full bg-green-100 dark:bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
                             {__('Active')}
                           </span>
                         )}

@@ -50,7 +50,7 @@ export function PostCard({
             {tags.map((tag) => (
               <span
                 key={tag.slug}
-                className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600"
+                className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400"
               >
                 {tag.name}
               </span>
@@ -81,7 +81,7 @@ export function PostCard({
             <Link
               key={tag.slug}
               href={`/tag/${tag.slug}`}
-              className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-100"
+              className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20"
             >
               {tag.name}
             </Link>

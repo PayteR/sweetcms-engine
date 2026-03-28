@@ -147,7 +147,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
                     className={cn(
                       'group relative aspect-square overflow-hidden rounded-lg border-2 transition-colors',
                       selectedId === item.id
-                        ? 'border-blue-500 ring-2 ring-blue-200'
+                        ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-500/30'
                         : 'border-transparent hover:border-(--border-primary)'
                     )}
                   >

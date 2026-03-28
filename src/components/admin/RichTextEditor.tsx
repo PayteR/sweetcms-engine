@@ -61,7 +61,7 @@ function ToolbarButton({
       className={cn(
         'rounded p-1.5 transition-colors',
         active
-          ? 'bg-blue-100 text-blue-700'
+          ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
           : 'text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary)',
         disabled && 'cursor-not-allowed opacity-30'
       )}
@@ -106,7 +106,7 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
     editorProps: {
       attributes: {
         class:
-          'prose prose-sm max-w-none focus:outline-none min-h-[300px] px-4 py-3',
+          'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[300px] px-4 py-3',
       },
     },
   });

@@ -30,7 +30,7 @@ export default function GlobalError({ error, reset }: Props) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-(--surface-secondary) p-4">
       <div className="w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/20">
           <svg
             className="h-6 w-6 text-red-600"
             fill="none"

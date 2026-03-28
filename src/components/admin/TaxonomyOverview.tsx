@@ -16,25 +16,25 @@ export function TaxonomyOverview() {
       label: __('Total Tags'),
       value: data.totalTags,
       icon: Hash,
-      color: 'text-blue-600 bg-blue-50',
+      color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15',
     },
     {
       label: __('Published'),
       value: data.publishedTags,
       icon: BarChart3,
-      color: 'text-green-600 bg-green-50',
+      color: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/15',
     },
     {
       label: __('Relationships'),
       value: data.totalRelationships,
       icon: Link2,
-      color: 'text-purple-600 bg-purple-50',
+      color: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/15',
     },
     {
       label: __('Orphaned'),
       value: data.orphanedTags,
       icon: AlertTriangle,
-      color: 'text-amber-600 bg-amber-50',
+      color: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/15',
     },
   ];
 

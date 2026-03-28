@@ -125,7 +125,7 @@ export function RevisionHistory({ contentType, contentId, onRestored }: Props) {
 
                     {/* Preview panel */}
                     {isPreview && revisionDetail.data && (
-                      <div className="mt-1 rounded-md border border-blue-200 bg-blue-50/50 p-3">
+                      <div className="mt-1 rounded-md border border-blue-200 dark:border-blue-500/30 bg-blue-50/50 dark:bg-blue-500/10 p-3">
                         <pre className="max-h-60 overflow-auto text-xs text-(--text-secondary)">
                           {JSON.stringify(
                             revisionDetail.data.snapshot,

@@ -156,13 +156,13 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
           {selectedTags.map((tag) => (
             <span
               key={tag.id}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700"
+              className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400"
             >
               {tag.name}
               <button
                 type="button"
                 onClick={() => removeTag(tag.id)}
-                className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200"
+                className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-500/30"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -212,7 +212,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
                 }
                 className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm ${
                   index === highlightedIndex
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400'
                     : 'hover:bg-(--surface-secondary)'
                 }`}
               >

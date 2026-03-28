@@ -106,7 +106,7 @@ export default async function HomePage() {
           </h2>
           <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
             <div className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -117,7 +117,7 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-green-50 text-green-600">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-green-50 dark:bg-green-500/15 text-green-600 dark:text-green-400">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -128,7 +128,7 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-500/15 text-purple-600 dark:text-purple-400">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>

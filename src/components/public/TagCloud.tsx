@@ -53,7 +53,7 @@ export async function TagCloud({
         <Link
           key={tag.id}
           href={`/tag/${tag.slug}`}
-          className={`inline-block rounded-full border border-(--border-primary) bg-(--surface-primary) px-3 py-1 text-(--text-secondary) transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 ${getSizeClass(Number(tag.count))}`}
+          className={`inline-block rounded-full border border-(--border-primary) bg-(--surface-primary) px-3 py-1 text-(--text-secondary) transition-colors hover:border-blue-300 dark:hover:border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/15 hover:text-blue-700 dark:hover:text-blue-400 ${getSizeClass(Number(tag.count))}`}
         >
           {tag.name}
           <span className="ml-1 text-(--text-muted)">({Number(tag.count)})</span>

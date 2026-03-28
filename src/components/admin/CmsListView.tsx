@@ -32,8 +32,8 @@ const STATUS_LABELS: Record<number, string> = {
 
 const STATUS_COLORS: Record<number, string> = {
   [ContentStatus.DRAFT]: 'bg-(--surface-secondary) text-(--text-secondary)',
-  [ContentStatus.PUBLISHED]: 'bg-green-100 text-green-700',
-  [ContentStatus.SCHEDULED]: 'bg-blue-100 text-blue-700',
+  [ContentStatus.PUBLISHED]: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400',
+  [ContentStatus.SCHEDULED]: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
 };
 
 type StatusTab = 'all' | 'draft' | 'published' | 'scheduled' | 'trash';
@@ -415,9 +415,9 @@ export function CmsListView({ contentType }: Props) {
 
       {/* Bulk action bar (tags only) */}
       {isTagType && selectedIds.size > 0 && (
-        <div className="mt-3 flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2">
-          <CheckSquare className="h-4 w-4 text-blue-600" />
-          <span className="text-sm font-medium text-blue-700">
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-blue-50 dark:bg-blue-500/15 px-4 py-2">
+          <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
             {selectedIds.size} {__('selected')}
           </span>
           <div className="ml-auto flex gap-2">
@@ -433,7 +433,7 @@ export function CmsListView({ contentType }: Props) {
                 <button
                   onClick={() => setBulkAction('delete')}
                   disabled={isBulkPending}
-                  className="admin-btn text-xs text-red-600 hover:bg-red-50"
+                  className="admin-btn text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/15"
                 >
                   {__('Trash')}
                 </button>
@@ -443,7 +443,7 @@ export function CmsListView({ contentType }: Props) {
               <button
                 onClick={() => setBulkAction('permanentDelete')}
                 disabled={isBulkPending}
-                className="admin-btn text-xs text-red-600 hover:bg-red-50"
+                className="admin-btn text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/15"
               >
                 {__('Delete permanently')}
               </button>

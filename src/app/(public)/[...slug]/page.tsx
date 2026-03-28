@@ -156,7 +156,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       return (
         <article className="mx-auto max-w-3xl px-4 py-12">
           {preview && (
-            <div className="mb-6 rounded-md bg-yellow-50 border border-yellow-200 px-4 py-2 text-sm text-yellow-800">
+            <div className="mb-6 rounded-md bg-yellow-50 dark:bg-yellow-500/15 border border-yellow-200 dark:border-yellow-500/30 px-4 py-2 text-sm text-yellow-800 dark:text-yellow-300">
               Preview mode — this content is not yet published.
             </div>
           )}
@@ -191,7 +191,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                 <Link
                   key={tag.slug}
                   href={`/tag/${tag.slug}`}
-                  className="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-100"
+                  className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20"
                 >
                   {tag.name}
                 </Link>
@@ -200,7 +200,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           )}
 
           <div
-            className="prose prose-gray mt-8 max-w-none"
+            className="prose prose-gray dark:prose-invert mt-8 max-w-none"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
@@ -278,7 +278,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
             </h1>
             <Link
               href={`/api/feed/tag/${tag.slug}`}
-              className="rounded-full p-1.5 text-(--text-muted) transition-colors hover:bg-orange-50 hover:text-orange-500"
+              className="rounded-full p-1.5 text-(--text-muted) transition-colors hover:bg-orange-50 dark:hover:bg-orange-500/15 hover:text-orange-500"
               title="RSS Feed"
             >
               <Rss className="h-5 w-5" />
@@ -367,7 +367,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
           {cat.text && (
             <div
-              className="prose prose-gray mt-6 max-w-none"
+              className="prose prose-gray dark:prose-invert mt-6 max-w-none"
               dangerouslySetInnerHTML={{ __html: cat.text }}
             />
           )}

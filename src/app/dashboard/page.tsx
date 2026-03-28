@@ -20,16 +20,16 @@ function StatCard({
   color?: 'blue' | 'green' | 'purple' | 'orange';
 }) {
   const bgMap = {
-    blue: 'bg-blue-50',
-    green: 'bg-green-50',
-    purple: 'bg-purple-50',
-    orange: 'bg-orange-50',
+    blue: 'bg-blue-50 dark:bg-blue-500/15',
+    green: 'bg-green-50 dark:bg-green-500/15',
+    purple: 'bg-purple-50 dark:bg-purple-500/15',
+    orange: 'bg-orange-50 dark:bg-orange-500/15',
   };
   const textMap = {
-    blue: 'text-blue-600',
-    green: 'text-green-600',
-    purple: 'text-purple-600',
-    orange: 'text-orange-600',
+    blue: 'text-blue-600 dark:text-blue-400',
+    green: 'text-green-600 dark:text-green-400',
+    purple: 'text-purple-600 dark:text-purple-400',
+    orange: 'text-orange-600 dark:text-orange-400',
   };
 
   return (

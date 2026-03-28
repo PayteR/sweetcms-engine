@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
       </p>
 
       {error && (
-        <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div className="mt-4 rounded-md bg-red-50 dark:bg-red-500/15 p-3 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
