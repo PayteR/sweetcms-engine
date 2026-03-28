@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsPosts, cmsCategories, cmsContentRevisions } from '@/server/db/schema';
@@ -7,6 +7,50 @@ import { getRevisions } from '@/server/utils/content-revisions';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const contentProcedure = sectionProcedure('content');
+
+/** Only these fields are allowed when restoring a revision */
+const SAFE_POST_FIELDS = new Set([
+  'title',
+  'slug',
+  'content',
+  'status',
+  'metaDescription',
+  'seoTitle',
+  'featuredImage',
+  'featuredImageAlt',
+  'jsonLd',
+  'noindex',
+  'publishedAt',
+  'lang',
+]);
+
+const SAFE_CATEGORY_FIELDS = new Set([
+  'name',
+  'slug',
+  'title',
+  'text',
+  'status',
+  'metaDescription',
+  'seoTitle',
+  'icon',
+  'order',
+  'noindex',
+  'publishedAt',
+  'lang',
+]);
+
+function filterSnapshot(
+  snapshot: Record<string, unknown>,
+  allowedKeys: Set<string>
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (allowedKeys.has(key)) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
 
 export const revisionsRouter = createTRPCRouter({
   /** List revisions for a content item */
@@ -39,7 +83,7 @@ export const revisionsRouter = createTRPCRouter({
       return revision;
     }),
 
-  /** Restore a revision — overwrites the content item with the snapshot data */
+  /** Restore a revision — overwrites the content item with safe snapshot fields only */
   restore: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
@@ -53,23 +97,31 @@ export const revisionsRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Revision not found' });
       }
 
-      const snapshot = revision.snapshot as Record<string, unknown>;
+      const rawSnapshot = revision.snapshot as Record<string, unknown>;
 
-      if (revision.contentType === 'post') {
+      if (revision.contentType === 'post' || revision.contentType === 'page' || revision.contentType === 'blog') {
+        const safeData = filterSnapshot(rawSnapshot, SAFE_POST_FIELDS);
+        if (Object.keys(safeData).length === 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Revision snapshot contains no restorable fields',
+          });
+        }
         await ctx.db
           .update(cmsPosts)
-          .set({
-            ...snapshot,
-            updatedAt: new Date(),
-          })
+          .set({ ...safeData, updatedAt: new Date() })
           .where(eq(cmsPosts.id, revision.contentId));
       } else if (revision.contentType === 'category') {
+        const safeData = filterSnapshot(rawSnapshot, SAFE_CATEGORY_FIELDS);
+        if (Object.keys(safeData).length === 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Revision snapshot contains no restorable fields',
+          });
+        }
         await ctx.db
           .update(cmsCategories)
-          .set({
-            ...snapshot,
-            updatedAt: new Date(),
-          })
+          .set({ ...safeData, updatedAt: new Date() })
           .where(eq(cmsCategories.id, revision.contentId));
       } else {
         throw new TRPCError({

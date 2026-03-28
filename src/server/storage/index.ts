@@ -33,7 +33,7 @@ class FilesystemStorage implements StorageProvider {
   }
 
   url(filepath: string): string {
-    return `${this.baseUrl}/uploads/${filepath}`;
+    return `${this.baseUrl}/api/uploads/${filepath}`;
   }
 }
 

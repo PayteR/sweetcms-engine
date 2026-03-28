@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, like } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsOptions } from '@/server/db/schema';
@@ -27,15 +27,11 @@ export const optionsRouter = createTRPCRouter({
       const rows = await ctx.db
         .select()
         .from(cmsOptions)
-        .where(
-          // Use LIKE for prefix matching
-          eq(cmsOptions.key, cmsOptions.key) // placeholder — replaced below
-        );
+        .where(like(cmsOptions.key, `${input.prefix}%`))
+        .limit(500);
 
-      // Manual filter since drizzle LIKE on PK needs raw
-      const filtered = rows.filter((r) => r.key.startsWith(input.prefix));
       const result: Record<string, unknown> = {};
-      for (const row of filtered) {
+      for (const row of rows) {
         result[row.key] = row.value;
       }
       return result;

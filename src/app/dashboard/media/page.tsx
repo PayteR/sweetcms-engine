@@ -242,7 +242,7 @@ export default function MediaPage() {
                   <div className="aspect-square bg-gray-50">
                     {isImage ? (
                       <img
-                        src={(item as { url?: string }).url ?? ''}
+                        src={item.url ?? ''}
                         alt={item.altText ?? item.filename}
                         className="h-full w-full object-cover"
                       />
@@ -271,7 +271,7 @@ export default function MediaPage() {
                     <button
                       onClick={() =>
                         handleCopyUrl(
-                          (item as { url?: string }).url ?? '',
+                          item.url ?? '',
                           item.id
                         )
                       }
