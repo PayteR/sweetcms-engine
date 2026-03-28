@@ -19,6 +19,8 @@ import type { ContentTypeDeclaration } from '@/config/cms';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/types/cms';
+import { LOCALES } from '@/lib/constants';
+import { isSeoOverrideSlug } from '@/lib/coded-routes';
 import { cn } from '@/lib/utils';
 import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -57,6 +59,7 @@ export function CmsListView({ contentType }: Props) {
   } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<'delete' | 'permanentDelete' | 'publish' | null>(null);
+  const [langFilter, setLangFilter] = useState<string>('');
 
   const isPostType = contentType.postType != null;
   const isCategoryType = contentType.id === 'category';
@@ -68,6 +71,7 @@ export function CmsListView({ contentType }: Props) {
       type: contentType.postType!,
       search: search || undefined,
       trashed: tab === 'trash',
+      lang: langFilter || undefined,
       page,
       pageSize: 20,
     },
@@ -84,6 +88,7 @@ export function CmsListView({ contentType }: Props) {
     {
       search: search || undefined,
       trashed: tab === 'trash',
+      lang: langFilter || undefined,
       page,
       pageSize: 20,
     },
@@ -99,6 +104,7 @@ export function CmsListView({ contentType }: Props) {
     {
       search: search || undefined,
       trashed: tab === 'trash',
+      lang: langFilter || undefined,
       page,
       pageSize: 20,
     },
@@ -226,6 +232,20 @@ export function CmsListView({ contentType }: Props) {
     onError: (err) => toast.error(err.message),
   });
 
+  // SEO overrides mutation (Pages only)
+  const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation({
+    onSuccess: (result) => {
+      if (result.created > 0) {
+        toast.success(__(`Created ${result.created} SEO override(s)`));
+        utils.cms.list.invalidate();
+        utils.cms.counts.invalidate();
+      } else {
+        toast.success(__('All SEO overrides already exist'));
+      }
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   // Unified data
   const data = isPostType ? postList.data : isTagType ? tagList.data : catList.data;
   const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : catCounts.data;
@@ -346,13 +366,29 @@ export function CmsListView({ contentType }: Props) {
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
-        <Link
-          href={`/dashboard/cms/${contentType.adminSlug}/new`}
-          className="admin-btn admin-btn-primary"
-        >
-          <Plus className="h-4 w-4" />
-          {__(`New ${contentType.label}`)}
-        </Link>
+        <div className="flex items-center gap-2">
+          {contentType.canOverrideCodedRouteSEO && (
+            <button
+              onClick={() => createSeoOverrides.mutate()}
+              disabled={createSeoOverrides.isPending}
+              className="admin-btn admin-btn-secondary"
+            >
+              {createSeoOverrides.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              {__('Create Missing SEO Overrides')}
+            </button>
+          )}
+          <Link
+            href={`/dashboard/cms/${contentType.adminSlug}/new`}
+            className="admin-btn admin-btn-primary"
+          >
+            <Plus className="h-4 w-4" />
+            {__(`New ${contentType.label}`)}
+          </Link>
+        </div>
       </div>
 
       {/* Taxonomy overview for tags */}
@@ -383,7 +419,7 @@ export function CmsListView({ contentType }: Props) {
         ))}
       </div>
 
-      {/* Search */}
+      {/* Search + language filter */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
@@ -408,6 +444,21 @@ export function CmsListView({ contentType }: Props) {
             </button>
           )}
         </div>
+        <select
+          value={langFilter}
+          onChange={(e) => {
+            setLangFilter(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          <option value="">{__('All langs')}</option>
+          {LOCALES.map((loc) => (
+            <option key={loc} value={loc}>
+              {loc.toUpperCase()}
+            </option>
+          ))}
+        </select>
         <button type="submit" className="admin-btn admin-btn-secondary">
           {__('Search')}
         </button>
@@ -517,9 +568,16 @@ export function CmsListView({ contentType }: Props) {
                       >
                         {item.title || __('(untitled)')}
                       </Link>
-                      <p className="mt-0.5 text-xs text-(--text-muted)">
-                        /{contentType.urlPrefix === '/' ? '' : contentType.urlPrefix}
-                        {item.slug}
+                      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-(--text-muted)">
+                        <span>
+                          /{contentType.urlPrefix === '/' ? '' : contentType.urlPrefix}
+                          {item.slug || __('(homepage)')}
+                        </span>
+                        {contentType.canOverrideCodedRouteSEO && isSeoOverrideSlug(item.slug) && (
+                          <span className="inline-block rounded bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-blue-700 dark:text-blue-400">
+                            {__('SEO')}
+                          </span>
+                        )}
                       </p>
                     </td>
                     <td className="admin-td">

@@ -5,5 +5,5 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 export const DEFAULT_LOCALE = 'en';
 
 /** Supported locales */
-export const LOCALES = ['en'] as const;
+export const LOCALES = ['en', 'es', 'de'] as const;
 export type Locale = (typeof LOCALES)[number];

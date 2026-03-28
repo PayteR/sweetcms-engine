@@ -3,7 +3,8 @@ import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
-import { getContentTypeByPostType } from '@/config/cms';
+import { getContentTypeByPostType, SEO_OVERRIDE_ROUTES } from '@/config/cms';
+import { LOCALES } from '@/lib/constants';
 import { cmsPosts, cmsTermRelationships } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/types/cms';
 import {
@@ -508,6 +509,46 @@ export const cmsRouter = createTRPCRouter({
         totalPages: Math.ceil(total / input.pageSize),
       };
     }),
+
+  /** Create missing SEO override pages for coded routes × all locales */
+  createMissingSeoOverrides: contentProcedure.mutation(async ({ ctx }) => {
+    let created = 0;
+
+    for (const route of SEO_OVERRIDE_ROUTES) {
+      for (const lang of LOCALES) {
+        // Check if row exists (include soft-deleted to avoid re-creating trashed overrides)
+        const [existing] = await ctx.db
+          .select({ id: cmsPosts.id })
+          .from(cmsPosts)
+          .where(
+            and(
+              eq(cmsPosts.type, PostType.PAGE),
+              eq(cmsPosts.slug, route.slug),
+              eq(cmsPosts.lang, lang)
+            )
+          )
+          .limit(1);
+
+        if (existing) continue;
+
+        const previewToken = crypto.randomBytes(32).toString('hex');
+        await ctx.db.insert(cmsPosts).values({
+          type: PostType.PAGE,
+          status: ContentStatus.DRAFT,
+          title: route.label,
+          slug: route.slug,
+          lang,
+          content: '',
+          noindex: false,
+          previewToken,
+          authorId: ctx.session.user.id as string,
+        });
+        created++;
+      }
+    }
+
+    return { created };
+  }),
 
   /** Public: get related posts by shared tags */
   getRelatedPosts: publicProcedure

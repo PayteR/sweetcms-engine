@@ -7,11 +7,18 @@ import { serverTRPC } from '@/lib/trpc/server';
 import { PostType } from '@/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
+import { db } from '@/server/db';
+import { getCodedRouteSEO } from '@/server/utils/page-seo';
 
-export const metadata: Metadata = {
-  title: siteConfig.seo.title,
-  description: siteConfig.seo.description,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getCodedRouteSEO(db, '', 'en').catch(() => null);
+
+  return {
+    title: seo?.seoTitle || siteConfig.seo.title,
+    description: seo?.metaDescription || siteConfig.seo.description,
+    ...(seo?.noindex && { robots: { index: false, follow: false } }),
+  };
+}
 
 export default async function HomePage() {
   let recentPosts: Array<{

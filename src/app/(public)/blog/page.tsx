@@ -6,11 +6,18 @@ import { serverTRPC } from '@/lib/trpc/server';
 import { PostType } from '@/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
+import { db } from '@/server/db';
+import { getCodedRouteSEO } from '@/server/utils/page-seo';
 
-export const metadata: Metadata = {
-  title: `Blog | ${siteConfig.name}`,
-  description: 'Latest blog posts',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getCodedRouteSEO(db, 'blog', 'en').catch(() => null);
+
+  return {
+    title: seo?.seoTitle || `Blog | ${siteConfig.name}`,
+    description: seo?.metaDescription || 'Latest blog posts',
+    ...(seo?.noindex && { robots: { index: false, follow: false } }),
+  };
+}
 
 interface Props {
   searchParams: Promise<{ page?: string }>;
