@@ -308,16 +308,39 @@ export const cmsRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  /** Public: get a published post by slug */
+  /** Public: get a published post by slug (supports preview token) */
   getBySlug: publicProcedure
     .input(
       z.object({
         slug: z.string().max(255),
         type: z.number().int().min(1),
         lang: z.string().max(2).default('en'),
+        previewToken: z.string().max(64).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
+      // If preview token provided, allow any status
+      if (input.previewToken) {
+        const [post] = await ctx.db
+          .select()
+          .from(cmsPosts)
+          .where(
+            and(
+              eq(cmsPosts.slug, input.slug),
+              eq(cmsPosts.type, input.type),
+              eq(cmsPosts.lang, input.lang),
+              eq(cmsPosts.previewToken, input.previewToken),
+              isNull(cmsPosts.deletedAt)
+            )
+          )
+          .limit(1);
+
+        if (!post) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+        }
+        return post;
+      }
+
       const [post] = await ctx.db
         .select()
         .from(cmsPosts)

@@ -280,6 +280,37 @@ export const categoriesRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  /** Public: get a published category by slug */
+  getBySlug: publicProcedure
+    .input(
+      z.object({
+        slug: z.string().max(255),
+        lang: z.string().max(2).default('en'),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const [category] = await ctx.db
+        .select()
+        .from(cmsCategories)
+        .where(
+          and(
+            eq(cmsCategories.slug, input.slug),
+            eq(cmsCategories.lang, input.lang),
+            eq(cmsCategories.status, ContentStatus.PUBLISHED),
+            isNull(cmsCategories.deletedAt)
+          )
+        )
+        .limit(1);
+
+      if (!category) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Category not found',
+        });
+      }
+      return category;
+    }),
+
   /** Public: list published categories */
   listPublished: publicProcedure
     .input(

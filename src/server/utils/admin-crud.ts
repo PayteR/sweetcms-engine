@@ -147,7 +147,7 @@ export async function buildAdminList<T>(
     limit: number;
   }) => Promise<T[]>
 ): Promise<{
-  items: T[];
+  results: T[];
   total: number;
   page: number;
   pageSize: number;
@@ -185,7 +185,7 @@ export async function buildAdminList<T>(
 
   const total = countResult[0]?.count ?? 0;
   const totalPages = Math.ceil(total / pageSize);
-  return { items, total, page, pageSize, totalPages };
+  return { results: items, total, page, pageSize, totalPages };
 }
 
 // ---------------------------------------------------------------------------

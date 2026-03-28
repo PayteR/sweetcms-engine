@@ -1,0 +1,402 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  Search,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Ban,
+  CheckCircle,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from 'lucide-react';
+
+import { trpc } from '@/lib/trpc/client';
+import { useBlankTranslations } from '@/lib/translations';
+import { Role, ROLES } from '@/lib/policy';
+import { toast } from '@/store/toast-store';
+import { cn } from '@/lib/utils';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+
+const ROLE_COLORS: Record<string, string> = {
+  [Role.USER]: 'bg-gray-100 text-gray-700',
+  [Role.EDITOR]: 'bg-blue-100 text-blue-700',
+  [Role.ADMIN]: 'bg-purple-100 text-purple-700',
+  [Role.SUPERADMIN]: 'bg-red-100 text-red-700',
+};
+
+const ROLE_ICONS: Record<string, React.ElementType> = {
+  [Role.USER]: Shield,
+  [Role.EDITOR]: Shield,
+  [Role.ADMIN]: ShieldCheck,
+  [Role.SUPERADMIN]: ShieldAlert,
+};
+
+type RoleFilter = 'all' | string;
+
+export default function UsersPage() {
+  const __ = useBlankTranslations();
+  const utils = trpc.useUtils();
+
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+  const [page, setPage] = useState(1);
+  const [editingRole, setEditingRole] = useState<{
+    id: string;
+    name: string;
+    currentRole: string;
+  } | null>(null);
+  const [selectedRole, setSelectedRole] = useState('');
+  const [banTarget, setBanTarget] = useState<{
+    id: string;
+    name: string;
+    banned: boolean;
+  } | null>(null);
+
+  const userList = trpc.users.list.useQuery({
+    search: search || undefined,
+    role: roleFilter === 'all' ? undefined : roleFilter,
+    page,
+    pageSize: 20,
+  });
+
+  const userCounts = trpc.users.counts.useQuery();
+
+  const updateRole = trpc.users.updateRole.useMutation({
+    onSuccess: () => {
+      toast.success(__('Role updated'));
+      utils.users.list.invalidate();
+      utils.users.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const banUser = trpc.users.ban.useMutation({
+    onSuccess: () => {
+      toast.success(__('User banned'));
+      utils.users.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const unbanUser = trpc.users.unban.useMutation({
+    onSuccess: () => {
+      toast.success(__('User unbanned'));
+      utils.users.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const data = userList.data;
+  const counts = userCounts.data;
+
+  const roleTabs: { key: RoleFilter; label: string; count?: number }[] = [
+    { key: 'all', label: 'All', count: counts?.all },
+    ...ROLES.map((r) => ({
+      key: r,
+      label: r.charAt(0).toUpperCase() + r.slice(1),
+      count: counts?.[r],
+    })),
+  ];
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setSearch(searchInput);
+    setPage(1);
+  }
+
+  function handleRoleChange() {
+    if (!editingRole || !selectedRole) return;
+    updateRole.mutate({ id: editingRole.id, role: selectedRole as typeof ROLES[number] });
+    setEditingRole(null);
+  }
+
+  function handleBanToggle() {
+    if (!banTarget) return;
+    if (banTarget.banned) {
+      unbanUser.mutate({ id: banTarget.id });
+    } else {
+      banUser.mutate({ id: banTarget.id });
+    }
+    setBanTarget(null);
+  }
+
+  function formatDate(date: Date | string | null) {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900">{__('Users')}</h1>
+
+      {/* Role tabs */}
+      <div className="mt-4 flex gap-1 border-b border-gray-200">
+        {roleTabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => {
+              setRoleFilter(t.key);
+              setPage(1);
+            }}
+            className={cn(
+              'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
+              roleFilter === t.key
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            )}
+          >
+            {__(t.label)}
+            {t.count != null && (
+              <span className="ml-1.5 text-xs text-gray-400">({t.count})</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Search */}
+      <form onSubmit={handleSearch} className="mt-4 flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder={__('Search by name or email...')}
+            className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setSearchInput('');
+                setPage(1);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <button type="submit" className="admin-btn admin-btn-secondary">
+          {__('Search')}
+        </button>
+      </form>
+
+      {/* Table */}
+      <div className="admin-card mt-4 overflow-hidden">
+        {userList.isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead className="admin-thead">
+              <tr>
+                <th className="admin-th">{__('User')}</th>
+                <th className="admin-th w-28">{__('Role')}</th>
+                <th className="admin-th w-24">{__('Status')}</th>
+                <th className="admin-th w-32">{__('Joined')}</th>
+                <th className="admin-th w-32" />
+              </tr>
+            </thead>
+            <tbody>
+              {(data?.results ?? []).length === 0 ? (
+                <tr>
+                  <td className="admin-td py-12 text-center text-gray-400" colSpan={5}>
+                    {search ? __('No users found.') : __('No users yet.')}
+                  </td>
+                </tr>
+              ) : (
+                (data?.results ?? []).map((u) => {
+                  const RoleIcon = ROLE_ICONS[u.role] ?? Shield;
+                  return (
+                    <tr key={u.id} className="hover:bg-gray-50">
+                      <td className="admin-td">
+                        <div className="flex items-center gap-3">
+                          {u.image ? (
+                            <img
+                              src={u.image}
+                              alt=""
+                              className="h-8 w-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs font-medium text-gray-600">
+                              {(u.name ?? '?').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium text-gray-900">{u.name}</p>
+                            <p className="text-xs text-gray-400">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="admin-td">
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                            ROLE_COLORS[u.role] ?? 'bg-gray-100 text-gray-600'
+                          )}
+                        >
+                          <RoleIcon className="h-3 w-3" />
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="admin-td">
+                        {u.banned ? (
+                          <span className="inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                            {__('Banned')}
+                          </span>
+                        ) : (
+                          <span className="inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                            {__('Active')}
+                          </span>
+                        )}
+                      </td>
+                      <td className="admin-td text-xs text-gray-500">
+                        {formatDate(u.createdAt)}
+                      </td>
+                      <td className="admin-td">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => {
+                              setEditingRole({
+                                id: u.id,
+                                name: u.name ?? u.email,
+                                currentRole: u.role,
+                              });
+                              setSelectedRole(u.role);
+                            }}
+                            className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-blue-600"
+                            title={__('Change role')}
+                          >
+                            <ShieldCheck className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              setBanTarget({
+                                id: u.id,
+                                name: u.name ?? u.email,
+                                banned: u.banned,
+                              })
+                            }
+                            className={cn(
+                              'rounded p-1.5 text-gray-400 hover:bg-gray-100',
+                              u.banned
+                                ? 'hover:text-green-600'
+                                : 'hover:text-red-600'
+                            )}
+                            title={u.banned ? __('Unban') : __('Ban')}
+                          >
+                            {u.banned ? (
+                              <CheckCircle className="h-4 w-4" />
+                            ) : (
+                              <Ban className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {data && data.totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
+            {__('total')})
+          </p>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="admin-btn admin-btn-secondary disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+              disabled={page >= data.totalPages}
+              className="admin-btn admin-btn-secondary disabled:opacity-40"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Role change dialog */}
+      {editingRole && (
+        <dialog
+          open
+          className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-gray-200 bg-white p-0 shadow-xl backdrop:bg-black/30"
+        >
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {__('Change Role')}
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              {__(`Change role for ${editingRole.name}`)}
+            </p>
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="mt-4 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              {ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {r.charAt(0).toUpperCase() + r.slice(1)}
+                </option>
+              ))}
+            </select>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setEditingRole(null)}
+                className="admin-btn admin-btn-secondary"
+              >
+                {__('Cancel')}
+              </button>
+              <button
+                onClick={handleRoleChange}
+                disabled={selectedRole === editingRole.currentRole}
+                className="admin-btn admin-btn-primary disabled:opacity-50"
+              >
+                {__('Update')}
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
+
+      {/* Ban confirmation */}
+      <ConfirmDialog
+        open={!!banTarget}
+        title={banTarget?.banned ? __('Unban user?') : __('Ban user?')}
+        message={
+          banTarget?.banned
+            ? __(`Unban ${banTarget?.name}? They will regain access.`)
+            : __(`Ban ${banTarget?.name}? They will lose access.`)
+        }
+        confirmLabel={banTarget?.banned ? __('Unban') : __('Ban')}
+        variant={banTarget?.banned ? 'default' : 'danger'}
+        onConfirm={handleBanToggle}
+        onCancel={() => setBanTarget(null)}
+      />
+    </div>
+  );
+}

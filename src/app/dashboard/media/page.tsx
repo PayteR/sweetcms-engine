@@ -1,0 +1,345 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import {
+  Upload,
+  Image as ImageIcon,
+  File,
+  Film,
+  FileText,
+  Trash2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Check,
+} from 'lucide-react';
+
+import { trpc } from '@/lib/trpc/client';
+import { useBlankTranslations } from '@/lib/translations';
+import { FileType } from '@/types/cms';
+import { toast } from '@/store/toast-store';
+import { cn } from '@/lib/utils';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+
+const FILE_TYPE_LABELS: Record<number, string> = {
+  [FileType.IMAGE]: 'Images',
+  [FileType.VIDEO]: 'Videos',
+  [FileType.DOCUMENT]: 'Documents',
+  [FileType.OTHER]: 'Other',
+};
+
+const FILE_TYPE_ICONS: Record<number, React.ElementType> = {
+  [FileType.IMAGE]: ImageIcon,
+  [FileType.VIDEO]: Film,
+  [FileType.DOCUMENT]: FileText,
+  [FileType.OTHER]: File,
+};
+
+type FilterTab = 'all' | number;
+
+export default function MediaPage() {
+  const __ = useBlankTranslations();
+  const utils = trpc.useUtils();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [filterType, setFilterType] = useState<FilterTab>('all');
+  const [page, setPage] = useState(1);
+  const [uploading, setUploading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    filename: string;
+  } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const mediaList = trpc.media.list.useQuery({
+    page,
+    pageSize: 20,
+    fileType: filterType === 'all' ? undefined : filterType,
+  });
+
+  const registerMedia = trpc.media.register.useMutation({
+    onSuccess: () => {
+      utils.media.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteMedia = trpc.media.delete.useMutation({
+    onSuccess: () => {
+      toast.success(__('File deleted'));
+      utils.media.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const data = mediaList.data;
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    setUploading(true);
+    let uploaded = 0;
+
+    for (const file of Array.from(files)) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          toast.error(err.error ?? 'Upload failed');
+          continue;
+        }
+
+        const result = await res.json();
+
+        // Register in media library
+        await registerMedia.mutateAsync({
+          filename: result.filename,
+          filepath: result.filepath,
+          mimeType: result.mimeType,
+          fileSize: result.fileSize,
+        });
+
+        uploaded++;
+      } catch {
+        toast.error(__(`Failed to upload ${file.name}`));
+      }
+    }
+
+    if (uploaded > 0) {
+      toast.success(__(`${uploaded} file(s) uploaded`));
+    }
+
+    setUploading(false);
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
+
+  function handleCopyUrl(url: string, id: string) {
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    deleteMedia.mutate({ id: deleteTarget.id });
+    setDeleteTarget(null);
+  }
+
+  function formatSize(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function formatDate(date: Date | string | null) {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  const filterTabs: { key: FilterTab; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: FileType.IMAGE, label: 'Images' },
+    { key: FileType.VIDEO, label: 'Videos' },
+    { key: FileType.DOCUMENT, label: 'Documents' },
+    { key: FileType.OTHER, label: 'Other' },
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">{__('Media Library')}</h1>
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleUpload}
+            className="hidden"
+            accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="admin-btn admin-btn-primary disabled:opacity-50"
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+            {uploading ? __('Uploading...') : __('Upload')}
+          </button>
+        </div>
+      </div>
+
+      {/* Type filter tabs */}
+      <div className="mt-4 flex gap-1 border-b border-gray-200">
+        {filterTabs.map((t) => (
+          <button
+            key={String(t.key)}
+            onClick={() => {
+              setFilterType(t.key);
+              setPage(1);
+            }}
+            className={cn(
+              'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
+              filterType === t.key
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            )}
+          >
+            {__(t.label)}
+          </button>
+        ))}
+      </div>
+
+      {/* Media grid */}
+      <div className="mt-4">
+        {mediaList.isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : (data?.results ?? []).length === 0 ? (
+          <div className="admin-card flex flex-col items-center justify-center py-16">
+            <ImageIcon className="h-12 w-12 text-gray-300" />
+            <p className="mt-4 text-sm text-gray-400">{__('No media files yet.')}</p>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="admin-btn admin-btn-secondary mt-4"
+            >
+              <Upload className="h-4 w-4" />
+              {__('Upload your first file')}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {(data?.results ?? []).map((item) => {
+              const FileIcon = FILE_TYPE_ICONS[item.fileType] ?? File;
+              const isImage = item.fileType === FileType.IMAGE;
+
+              return (
+                <div
+                  key={item.id}
+                  className="admin-card group relative overflow-hidden"
+                >
+                  {/* Preview */}
+                  <div className="aspect-square bg-gray-50">
+                    {isImage ? (
+                      <img
+                        src={(item as { url?: string }).url ?? ''}
+                        alt={item.altText ?? item.filename}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <FileIcon className="h-12 w-12 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-2">
+                    <p
+                      className="truncate text-xs font-medium text-gray-700"
+                      title={item.filename}
+                    >
+                      {item.filename}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {formatSize(item.fileSize)} · {formatDate(item.createdAt)}
+                    </p>
+                  </div>
+
+                  {/* Actions overlay */}
+                  <div className="absolute inset-x-0 top-0 flex justify-end gap-1 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={() =>
+                        handleCopyUrl(
+                          (item as { url?: string }).url ?? '',
+                          item.id
+                        )
+                      }
+                      className="rounded bg-white/90 p-1.5 shadow-sm hover:bg-white"
+                      title={__('Copy URL')}
+                    >
+                      {copiedId === item.id ? (
+                        <Check className="h-3.5 w-3.5 text-green-600" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5 text-gray-600" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() =>
+                        setDeleteTarget({
+                          id: item.id,
+                          filename: item.filename,
+                        })
+                      }
+                      className="rounded bg-white/90 p-1.5 shadow-sm hover:bg-white"
+                      title={__('Delete')}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {data && data.totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
+            {__('total')})
+          </p>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="admin-btn admin-btn-secondary disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+              disabled={page >= data.totalPages}
+              className="admin-btn admin-btn-secondary disabled:opacity-40"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={__('Delete file?')}
+        message={__(`"${deleteTarget?.filename}" will be deleted.`)}
+        confirmLabel={__('Delete')}
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+    </div>
+  );
+}

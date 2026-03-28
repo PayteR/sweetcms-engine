@@ -1,0 +1,196 @@
+import { TRPCError } from '@trpc/server';
+import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { z } from 'zod';
+
+import { user } from '@/server/db/schema';
+import { ROLES, Role, isSuperAdmin } from '@/lib/policy';
+import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { createTRPCRouter, sectionProcedure, superadminProcedure } from '../trpc';
+
+const usersProcedure = sectionProcedure('users');
+
+export const usersRouter = createTRPCRouter({
+  /** List users with search + pagination */
+  list: usersProcedure
+    .input(
+      z.object({
+        search: z.string().max(100).optional(),
+        role: z.string().max(20).optional(),
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, offset } = parsePagination(input);
+
+      const conditions = [];
+      if (input.search) {
+        conditions.push(
+          or(
+            ilike(user.name, `%${input.search}%`),
+            ilike(user.email, `%${input.search}%`)
+          )
+        );
+      }
+      if (input.role) {
+        conditions.push(eq(user.role, input.role));
+      }
+
+      const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const [items, [countRow]] = await Promise.all([
+        ctx.db
+          .select({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            banned: user.banned,
+            banReason: user.banReason,
+            createdAt: user.createdAt,
+            image: user.image,
+          })
+          .from(user)
+          .where(where)
+          .orderBy(desc(user.createdAt))
+          .offset(offset)
+          .limit(pageSize),
+        ctx.db
+          .select({ count: count() })
+          .from(user)
+          .where(where),
+      ]);
+
+      return paginatedResult(items, countRow?.count ?? 0, page, pageSize);
+    }),
+
+  /** Get single user */
+  get: usersProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const [found] = await ctx.db
+        .select()
+        .from(user)
+        .where(eq(user.id, input.id))
+        .limit(1);
+
+      if (!found) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+      }
+
+      return found;
+    }),
+
+  /** Update user role */
+  updateRole: usersProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        role: z.enum(ROLES),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const actorRole = ctx.session.user.role as string;
+
+      // Only superadmin can promote to/demote from superadmin
+      const [target] = await ctx.db
+        .select({ role: user.role })
+        .from(user)
+        .where(eq(user.id, input.id))
+        .limit(1);
+
+      if (!target) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+      }
+
+      if (
+        (target.role === Role.SUPERADMIN || input.role === Role.SUPERADMIN) &&
+        !isSuperAdmin(actorRole)
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only superadmin can promote to or demote from superadmin',
+        });
+      }
+
+      await ctx.db
+        .update(user)
+        .set({ role: input.role, updatedAt: new Date() })
+        .where(eq(user.id, input.id));
+
+      return { success: true };
+    }),
+
+  /** Ban a user */
+  ban: usersProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        reason: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [target] = await ctx.db
+        .select({ role: user.role })
+        .from(user)
+        .where(eq(user.id, input.id))
+        .limit(1);
+
+      if (!target) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+      }
+
+      if (isSuperAdmin(target.role)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot ban a superadmin',
+        });
+      }
+
+      await ctx.db
+        .update(user)
+        .set({
+          banned: true,
+          banReason: input.reason ?? null,
+          updatedAt: new Date(),
+        })
+        .where(eq(user.id, input.id));
+
+      return { success: true };
+    }),
+
+  /** Unban a user */
+  unban: usersProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(user)
+        .set({
+          banned: false,
+          banReason: null,
+          banExpires: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(user.id, input.id));
+
+      return { success: true };
+    }),
+
+  /** Count users by role */
+  counts: usersProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select({
+        role: user.role,
+        count: count(),
+      })
+      .from(user)
+      .groupBy(user.role);
+
+    const result: Record<string, number> = { all: 0 };
+    for (const row of rows) {
+      result[row.role] = row.count;
+      result.all += row.count;
+    }
+    return result;
+  }),
+});
