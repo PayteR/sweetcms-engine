@@ -9,6 +9,8 @@ interface Props {
   sectionTitle?: string;
   /** CSS class for the section wrapper */
   sectionClassName?: string;
+  /** CSS class for an inner container div (e.g. max-width + padding) */
+  containerClassName?: string;
 }
 
 export async function TagCloud({
@@ -16,6 +18,7 @@ export async function TagCloud({
   limit = 20,
   sectionTitle,
   sectionClassName,
+  containerClassName,
 }: Props) {
   let tags: { id: string; name: string; slug: string; count: number }[] = [];
 
@@ -60,12 +63,20 @@ export async function TagCloud({
   );
 
   if (sectionTitle) {
+    const content = (
+      <>
+        <h2 className="text-lg font-semibold text-gray-900">{sectionTitle}</h2>
+        <div className="mt-4">{cloud}</div>
+      </>
+    );
+
     return (
       <section className={sectionClassName}>
-        <div className="mx-auto max-w-5xl px-4 py-12">
-          <h2 className="text-xl font-bold text-gray-900">{sectionTitle}</h2>
-          <div className="mt-4">{cloud}</div>
-        </div>
+        {containerClassName ? (
+          <div className={containerClassName}>{content}</div>
+        ) : (
+          content
+        )}
       </section>
     );
   }

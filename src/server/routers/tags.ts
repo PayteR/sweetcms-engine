@@ -436,6 +436,7 @@ export const tagsRouter = createTRPCRouter({
           )
         )
         .groupBy(cmsTerms.id, cmsTerms.name, cmsTerms.slug)
+        .orderBy(desc(sql`count(${cmsTermRelationships.objectId})`), cmsTerms.name)
         .limit(input.limit);
     }),
 

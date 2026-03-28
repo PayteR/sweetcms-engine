@@ -96,7 +96,7 @@ export default async function HomePage() {
       )}
 
       {/* Tag cloud */}
-      <TagCloud limit={15} sectionTitle="Popular Tags" sectionClassName="border-t border-gray-100 bg-white" />
+      <TagCloud limit={15} sectionTitle="Popular Tags" sectionClassName="border-t border-gray-100 bg-white" containerClassName="mx-auto max-w-5xl px-4 py-12" />
 
       {/* Features */}
       <section className="border-t border-gray-100">
