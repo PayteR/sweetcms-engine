@@ -51,14 +51,6 @@ export interface ContentTypeDeclaration {
   listDescription?: string;
 }
 
-/** Coded routes that can have CMS SEO overrides (Page type, auto-created via admin button) */
-export const SEO_OVERRIDE_ROUTES: { slug: string; label: string }[] = [
-  { slug: '', label: 'Homepage' },
-  { slug: 'blog', label: 'Blog Index' },
-  { slug: 'login', label: 'Login' },
-  { slug: 'register', label: 'Register' },
-];
-
 const contentTypesDef = [
   {
     id: 'page',

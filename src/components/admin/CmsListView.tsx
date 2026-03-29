@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Plus,
@@ -20,10 +20,10 @@ import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/types/cms';
 import { LOCALES } from '@/lib/constants';
-import { isSeoOverrideSlug } from '@/lib/coded-routes';
 import { cn } from '@/lib/utils';
 import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { SeoOverridesDialog } from '@/components/admin/SeoOverridesDialog';
 import { TaxonomyOverview } from '@/components/admin/TaxonomyOverview';
 
 const STATUS_LABELS: Record<number, string> = {
@@ -60,6 +60,7 @@ export function CmsListView({ contentType }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<'delete' | 'permanentDelete' | 'publish' | null>(null);
   const [langFilter, setLangFilter] = useState<string>('');
+  const [seoDialogOpen, setSeoDialogOpen] = useState(false);
 
   const isPostType = contentType.postType != null;
   const isCategoryType = contentType.id === 'category';
@@ -232,19 +233,15 @@ export function CmsListView({ contentType }: Props) {
     onError: (err) => toast.error(err.message),
   });
 
-  // SEO overrides mutation (Pages only)
-  const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation({
-    onSuccess: (result) => {
-      if (result.created > 0) {
-        toast.success(__(`Created ${result.created} SEO override(s)`));
-        utils.cms.list.invalidate();
-        utils.cms.counts.invalidate();
-      } else {
-        toast.success(__('All SEO overrides already exist'));
-      }
-    },
-    onError: (err) => toast.error(err.message),
+  // SEO overrides (Pages only)
+  const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation();
+  const { data: seoStatus } = trpc.cms.getSeoOverrideStatus.useQuery(undefined, {
+    enabled: !!contentType.canOverrideCodedRouteSEO,
   });
+  const seoOverrideSlugs = useMemo(
+    () => new Set(seoStatus?.map((s) => s.slug) ?? []),
+    [seoStatus]
+  );
 
   // Unified data
   const data = isPostType ? postList.data : isTagType ? tagList.data : catList.data;
@@ -369,16 +366,11 @@ export function CmsListView({ contentType }: Props) {
         <div className="flex items-center gap-2">
           {contentType.canOverrideCodedRouteSEO && (
             <button
-              onClick={() => createSeoOverrides.mutate()}
-              disabled={createSeoOverrides.isPending}
+              onClick={() => setSeoDialogOpen(true)}
               className="admin-btn admin-btn-secondary"
             >
-              {createSeoOverrides.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-              {__('Create Missing SEO Overrides')}
+              <Plus className="h-4 w-4" />
+              {__('SEO Overrides')}
             </button>
           )}
           <Link
@@ -573,7 +565,7 @@ export function CmsListView({ contentType }: Props) {
                           /{contentType.urlPrefix === '/' ? '' : contentType.urlPrefix}
                           {item.slug || __('(homepage)')}
                         </span>
-                        {contentType.canOverrideCodedRouteSEO && isSeoOverrideSlug(item.slug) && (
+                        {contentType.canOverrideCodedRouteSEO && seoOverrideSlugs.has(item.slug) && (
                           <span className="inline-block rounded bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-blue-700 dark:text-blue-400">
                             {__('SEO')}
                           </span>
@@ -713,6 +705,30 @@ export function CmsListView({ contentType }: Props) {
         variant={bulkAction === 'publish' ? 'default' : 'danger'}
         onConfirm={confirmBulkAction}
         onCancel={() => setBulkAction(null)}
+      />
+
+      <SeoOverridesDialog
+        open={seoDialogOpen}
+        onClose={() => setSeoDialogOpen(false)}
+        onConfirm={(selected) => {
+          createSeoOverrides.mutate(
+            { routes: selected },
+            {
+              onSuccess: (result) => {
+                setSeoDialogOpen(false);
+                if (result.created > 0) {
+                  toast.success(__(`Created ${result.created} SEO override(s)`));
+                  utils.cms.list.invalidate();
+                  utils.cms.counts.invalidate();
+                } else {
+                  toast.success(__('All SEO overrides already exist'));
+                }
+              },
+              onError: (err) => toast.error(err.message),
+            }
+          );
+        }}
+        isPending={createSeoOverrides.isPending}
       />
     </div>
   );

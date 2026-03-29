@@ -3,8 +3,12 @@ import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
-import { getContentTypeByPostType, SEO_OVERRIDE_ROUTES } from '@/config/cms';
+import { getContentTypeByPostType } from '@/config/cms';
 import { LOCALES } from '@/lib/constants';
+import {
+  SEO_OVERRIDE_ROUTES,
+  SEO_OVERRIDE_SLUGS,
+} from '@/server/utils/seo-routes';
 import { cmsPosts, cmsTermRelationships } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/types/cms';
 import {
@@ -146,7 +150,7 @@ export const cmsRouter = createTRPCRouter({
       z.object({
         type: z.number().int().min(1),
         title: z.string().min(1).max(255),
-        slug: z.string().min(1).max(255),
+        slug: z.string().max(255),
         lang: z.string().min(2).max(2),
         content: z.string().default(''),
         status: z.number().int().default(ContentStatus.DRAFT),
@@ -223,7 +227,7 @@ export const cmsRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         title: z.string().min(1).max(255).optional(),
-        slug: z.string().min(1).max(255).optional(),
+        slug: z.string().max(255).optional(),
         content: z.string().optional(),
         status: z.number().int().optional(),
         metaDescription: z.string().max(500).optional().nullable(),
@@ -510,12 +514,51 @@ export const cmsRouter = createTRPCRouter({
       };
     }),
 
-  /** Create missing SEO override pages for coded routes × all locales */
-  createMissingSeoOverrides: contentProcedure.mutation(async ({ ctx }) => {
-    let created = 0;
+  /** Status of all SEO override routes × locales (exists or missing) */
+  getSeoOverrideStatus: contentProcedure.query(async ({ ctx }) => {
+    const existing = await ctx.db
+      .select({ slug: cmsPosts.slug, lang: cmsPosts.lang })
+      .from(cmsPosts)
+      .where(eq(cmsPosts.type, PostType.PAGE));
 
+    const existingKeys = new Set(existing.map((p) => `${p.lang}:${p.slug}`));
+
+    const result: { slug: string; label: string; lang: string; exists: boolean }[] = [];
     for (const route of SEO_OVERRIDE_ROUTES) {
       for (const lang of LOCALES) {
+        result.push({
+          slug: route.slug,
+          label: route.label,
+          lang,
+          exists: existingKeys.has(`${lang}:${route.slug}`),
+        });
+      }
+    }
+    return result;
+  }),
+
+  /** Create SEO override pages for selected coded routes × locales */
+  createMissingSeoOverrides: contentProcedure
+    .input(
+      z.object({
+        routes: z
+          .array(
+            z.object({
+              slug: z.string().max(255),
+              label: z.string().max(255),
+              lang: z.string().max(2),
+            })
+          )
+          .min(1)
+          .max(50),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      let created = 0;
+
+      for (const route of input.routes) {
+        if (!SEO_OVERRIDE_SLUGS.has(route.slug)) continue;
+
         // Check if row exists (include soft-deleted to avoid re-creating trashed overrides)
         const [existing] = await ctx.db
           .select({ id: cmsPosts.id })
@@ -524,7 +567,7 @@ export const cmsRouter = createTRPCRouter({
             and(
               eq(cmsPosts.type, PostType.PAGE),
               eq(cmsPosts.slug, route.slug),
-              eq(cmsPosts.lang, lang)
+              eq(cmsPosts.lang, route.lang)
             )
           )
           .limit(1);
@@ -537,7 +580,7 @@ export const cmsRouter = createTRPCRouter({
           status: ContentStatus.DRAFT,
           title: route.label,
           slug: route.slug,
-          lang,
+          lang: route.lang,
           content: '',
           noindex: false,
           previewToken,
@@ -545,10 +588,9 @@ export const cmsRouter = createTRPCRouter({
         });
         created++;
       }
-    }
 
-    return { created };
-  }),
+      return { created };
+    }),
 
   /** Public: get related posts by shared tags */
   getRelatedPosts: publicProcedure

@@ -257,7 +257,6 @@ export function PostForm({ contentType, postId }: Props) {
               </label>
               <input
                 type="text"
-                required
                 value={slug}
                 onChange={(e) => {
                   setSlug(e.target.value);
