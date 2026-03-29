@@ -99,7 +99,7 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
   onChangeRef.current = onChange;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Flush debounce on unmount so the last edit isn't lost
+  // Clear pending debounce on unmount (editor may already be destroyed)
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
@@ -211,8 +211,11 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
 
   return (
     <div className="overflow-hidden rounded-md border border-(--border-primary) focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-secondary) px-2 py-1.5">
+      {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
+      <div className={cn(
+        'flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-secondary) px-2 py-1.5',
+        mode === 'source' && 'pointer-events-none opacity-40',
+      )}>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}
