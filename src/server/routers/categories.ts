@@ -280,6 +280,45 @@ export const categoriesRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  /** Update just the status of a category (for bulk actions) */
+  updateStatus: contentProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: z.number().int().min(0).max(2),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ id: cmsCategories.id, publishedAt: cmsCategories.publishedAt })
+        .from(cmsCategories)
+        .where(eq(cmsCategories.id, input.id))
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Category not found',
+        });
+      }
+
+      const updates: Record<string, unknown> = {
+        status: input.status,
+        updatedAt: new Date(),
+      };
+
+      if (input.status === ContentStatus.PUBLISHED && !existing.publishedAt) {
+        updates.publishedAt = new Date();
+      }
+
+      await ctx.db
+        .update(cmsCategories)
+        .set(updates)
+        .where(eq(cmsCategories.id, input.id));
+
+      return { success: true };
+    }),
+
   delete: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {

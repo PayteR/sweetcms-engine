@@ -313,6 +313,42 @@ export const cmsRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  /** Update just the status of a post (for bulk actions) */
+  updateStatus: contentProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: z.number().int().min(0).max(2),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ id: cmsPosts.id, publishedAt: cmsPosts.publishedAt })
+        .from(cmsPosts)
+        .where(eq(cmsPosts.id, input.id))
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+      }
+
+      const updates: Record<string, unknown> = {
+        status: input.status,
+        updatedAt: new Date(),
+      };
+
+      if (input.status === ContentStatus.PUBLISHED && !existing.publishedAt) {
+        updates.publishedAt = new Date();
+      }
+
+      await ctx.db
+        .update(cmsPosts)
+        .set(updates)
+        .where(eq(cmsPosts.id, input.id));
+
+      return { success: true };
+    }),
+
   /** Soft-delete (trash) a post */
   delete: contentProcedure
     .input(z.object({ id: z.string().uuid() }))

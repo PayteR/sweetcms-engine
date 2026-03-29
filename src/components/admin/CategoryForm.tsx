@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -10,6 +10,10 @@ import { slugify } from '@/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
+import { useCmsAutosave } from '@/hooks/useCmsAutosave';
+import AutosaveIndicator from './AutosaveIndicator';
+import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
+import CmsFormShell from './CmsFormShell';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
 import { TagInput } from './TagInput';
@@ -81,6 +85,7 @@ export function CategoryForm({ categoryId }: Props) {
 
   const createCat = trpc.categories.create.useMutation({
     onSuccess: (data) => {
+      clearAutosave(currentData);
       toast.success(__('Category created'));
       utils.categories.list.invalidate();
       utils.categories.counts.invalidate();
@@ -91,6 +96,7 @@ export function CategoryForm({ categoryId }: Props) {
 
   const updateCat = trpc.categories.update.useMutation({
     onSuccess: () => {
+      clearAutosave(currentData);
       toast.success(__('Category updated'));
       utils.categories.list.invalidate();
       existingCat.refetch();
@@ -103,7 +109,56 @@ export function CategoryForm({ categoryId }: Props) {
     icon, order, noindex, publishedAt, lang,
   }), [name, slug, title, text, status, metaDescription, seoTitle, icon, order, noindex, publishedAt, lang]);
 
+  const initialData = useMemo(() => {
+    const c = existingCat.data;
+    if (!c) return currentData;
+    return {
+      name: c.name, slug: c.slug, title: c.title, text: c.text,
+      status: c.status, metaDescription: c.metaDescription ?? '',
+      seoTitle: c.seoTitle ?? '', icon: c.icon ?? '', order: c.order,
+      noindex: c.noindex,
+      publishedAt: c.publishedAt ? new Date(c.publishedAt).toISOString().slice(0, 16) : '',
+      lang: c.lang,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingCat.data]);
+
   const isSaving = createCat.isPending || updateCat.isPending;
+
+  const {
+    isDirty,
+    recoveredData,
+    acceptRecovery,
+    dismissRecovery,
+    lastAutosaveAt,
+    clearAutosave,
+  } = useCmsAutosave({
+    contentTypeId: 'category',
+    contentId: categoryId ?? null,
+    formData: currentData,
+    initialData,
+    dbUpdatedAt: existingCat.data?.updatedAt ?? null,
+    saving: isSaving,
+  });
+
+  const handleRestore = useCallback(() => {
+    if (!recoveredData) return;
+    const d = recoveredData.formData;
+    setName(d.name as string);
+    setSlug(d.slug as string);
+    setSlugManual(true);
+    setTitle(d.title as string);
+    setText(d.text as string);
+    setStatus(d.status as number);
+    setMetaDescription(d.metaDescription as string);
+    setSeoTitle(d.seoTitle as string);
+    setIcon(d.icon as string);
+    setOrder(d.order as number);
+    setNoindex(d.noindex as boolean);
+    setPublishedAt(d.publishedAt as string);
+    setLang(d.lang as string);
+    acceptRecovery();
+  }, [recoveredData, acceptRecovery]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -155,20 +210,21 @@ export function CategoryForm({ categoryId }: Props) {
     );
   }
 
-  return (
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/cms/categories"
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-(--text-primary)">
-            {isNew ? __('New Category') : __('Edit Category')}
-          </h1>
-        </div>
+  const toolbar = (
+    <>
+      <div className="flex items-center gap-3">
+        <Link
+          href="/dashboard/cms/categories"
+          className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <h1 className="text-2xl font-bold text-(--text-primary)">
+          {isNew ? __('New Category') : __('Edit Category')}
+        </h1>
+      </div>
+      <div className="flex items-center gap-2">
+        <AutosaveIndicator lastAutosaveAt={lastAutosaveAt} isDirty={isDirty} />
         <button
           type="submit"
           form="category-form"
@@ -183,8 +239,20 @@ export function CategoryForm({ categoryId }: Props) {
           {__('Save')}
         </button>
       </div>
+    </>
+  );
 
-      <form id="category-form" onSubmit={handleSubmit} className="mt-6">
+  return (
+    <CmsFormShell toolbar={toolbar}>
+      {recoveredData && (
+        <AutosaveRecoveryBanner
+          savedAt={recoveredData.savedAt}
+          onRestore={handleRestore}
+          onDismiss={dismissRecovery}
+        />
+      )}
+
+      <form id="category-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <div className="admin-card p-6">
@@ -374,6 +442,6 @@ export function CategoryForm({ categoryId }: Props) {
           </div>
         </div>
       </form>
-    </div>
+    </CmsFormShell>
   );
 }

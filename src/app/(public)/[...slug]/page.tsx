@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Rss } from 'lucide-react';
@@ -9,6 +9,7 @@ import { serverTRPC } from '@/lib/trpc/server';
 import { PostType } from '@/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
+import { resolveSlugRedirect } from '@/server/utils/slug-redirects';
 
 interface Props {
   params: Promise<{ slug: string[] }>;
@@ -116,6 +117,17 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
   const resolved = resolveSlug(slug);
 
   if (!resolved) {
+    // Try slug redirect before 404-ing
+    for (const ct of CONTENT_TYPES) {
+      const slugStr = slug.length === 2 && ct.listSegment === slug[0]
+        ? slug[1]!
+        : slug.length === 1 && ct.urlPrefix === '/'
+          ? slug[0]!
+          : null;
+      if (!slugStr) continue;
+      const redirectPath = await resolveSlugRedirect(slugStr, ct.urlPrefix);
+      if (redirectPath) redirect(redirectPath);
+    }
     notFound();
   }
 
@@ -397,6 +409,12 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
     notFound();
   } catch {
+    // Try slug redirect before 404-ing
+    const redirectPath = await resolveSlugRedirect(
+      resolved.slug,
+      resolved.contentType.urlPrefix
+    );
+    if (redirectPath) redirect(redirectPath);
     notFound();
   }
 }

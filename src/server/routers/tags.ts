@@ -518,6 +518,38 @@ export const tagsRouter = createTRPCRouter({
       return { count: input.ids.length };
     }),
 
+  /** Admin: update status of a single tag (for bulk actions) */
+  updateStatus: contentProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: z.number().int().min(0).max(2),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ id: cmsTerms.id })
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.id, input.id),
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID)
+          )
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
+      }
+
+      await ctx.db
+        .update(cmsTerms)
+        .set({ status: input.status, updatedAt: new Date() })
+        .where(eq(cmsTerms.id, input.id));
+
+      return { success: true };
+    }),
+
   /** Admin: bulk publish tags */
   bulkPublish: contentProcedure
     .input(z.object({ ids: z.array(z.string().uuid()).max(50) }))

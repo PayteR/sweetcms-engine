@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 import { getContentTypeByAdminSlug } from '@/config/cms';
 import { CmsListView } from '@/components/admin/CmsListView';
@@ -15,5 +17,15 @@ export default async function CmsSectionPage({ params }: Props) {
     notFound();
   }
 
-  return <CmsListView contentType={contentType} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
+        </div>
+      }
+    >
+      <CmsListView contentType={contentType} />
+    </Suspense>
+  );
 }

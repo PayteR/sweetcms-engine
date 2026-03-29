@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Plus,
@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Loader2,
   X,
-  CheckSquare,
 } from 'lucide-react';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
@@ -25,6 +24,10 @@ import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SeoOverridesDialog } from '@/components/admin/SeoOverridesDialog';
 import { TaxonomyOverview } from '@/components/admin/TaxonomyOverview';
+import { useListViewState, SortIcon } from '@/hooks/useListViewState';
+import { useBulkSelection } from '@/hooks/useBulkSelection';
+import { useBulkActions } from '@/hooks/useBulkActions';
+import BulkActionBar from './BulkActionBar';
 
 const STATUS_LABELS: Record<number, string> = {
   [ContentStatus.DRAFT]: 'Draft',
@@ -40,6 +43,10 @@ const STATUS_COLORS: Record<number, string> = {
 
 type StatusTab = 'all' | 'draft' | 'published' | 'scheduled' | 'trash';
 
+const TABS = new Set<StatusTab>(['all', 'draft', 'published', 'scheduled', 'trash']);
+const SORT_KEYS = new Set(['title', 'updated_at', 'published_at', 'created_at'] as const);
+type SortKey = typeof SORT_KEYS extends Set<infer T> ? T : never;
+
 interface Props {
   contentType: ContentTypeDeclaration;
 }
@@ -48,18 +55,35 @@ export function CmsListView({ contentType }: Props) {
   const __ = useBlankTranslations();
   const utils = trpc.useUtils();
 
-  const [tab, setTab] = useState<StatusTab>('all');
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [page, setPage] = useState(1);
+  const {
+    searchQuery,
+    debouncedSearch,
+    selectedLang,
+    activeTab,
+    page,
+    sortBy,
+    sortDir,
+    handleSearchChange,
+    handleTabChange,
+    handleLangChange,
+    handlePageChange,
+    toggleSort,
+  } = useListViewState<StatusTab, SortKey>({
+    tabs: TABS,
+    sortKeys: SORT_KEYS,
+    defaultTab: 'all',
+    defaultSort: 'updated_at',
+  });
+
+  const tab = activeTab;
+  const search = debouncedSearch;
+  const langFilter = selectedLang === 'all' ? '' : selectedLang;
+
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     title: string;
     permanent?: boolean;
   } | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkAction, setBulkAction] = useState<'delete' | 'permanentDelete' | 'publish' | null>(null);
-  const [langFilter, setLangFilter] = useState<string>('');
   const [seoDialogOpen, setSeoDialogOpen] = useState(false);
 
   const isPostType = contentType.postType != null;
@@ -73,6 +97,8 @@ export function CmsListView({ contentType }: Props) {
       search: search || undefined,
       trashed: tab === 'trash',
       lang: langFilter || undefined,
+      sortBy,
+      sortDir,
       page,
       pageSize: 20,
     },
@@ -90,6 +116,8 @@ export function CmsListView({ contentType }: Props) {
       search: search || undefined,
       trashed: tab === 'trash',
       lang: langFilter || undefined,
+      sortBy,
+      sortDir,
       page,
       pageSize: 20,
     },
@@ -116,122 +144,48 @@ export function CmsListView({ contentType }: Props) {
     enabled: isTagType,
   });
 
-  // Mutations
+  // ── Single-item mutations ─────────────────────────────
   const deletePost = trpc.cms.delete.useMutation({
-    onSuccess: () => {
-      toast.success(__('Moved to trash'));
-      utils.cms.list.invalidate();
-      utils.cms.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Moved to trash')); utils.cms.list.invalidate(); utils.cms.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
-
   const restorePost = trpc.cms.restore.useMutation({
-    onSuccess: () => {
-      toast.success(__('Restored'));
-      utils.cms.list.invalidate();
-      utils.cms.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Restored')); utils.cms.list.invalidate(); utils.cms.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
-
   const permanentDeletePost = trpc.cms.permanentDelete.useMutation({
-    onSuccess: () => {
-      toast.success(__('Permanently deleted'));
-      utils.cms.list.invalidate();
-      utils.cms.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Permanently deleted')); utils.cms.list.invalidate(); utils.cms.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
+  const updatePostStatus = trpc.cms.updateStatus.useMutation();
 
   const deleteCat = trpc.categories.delete.useMutation({
-    onSuccess: () => {
-      toast.success(__('Moved to trash'));
-      utils.categories.list.invalidate();
-      utils.categories.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Moved to trash')); utils.categories.list.invalidate(); utils.categories.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
-
   const restoreCat = trpc.categories.restore.useMutation({
-    onSuccess: () => {
-      toast.success(__('Restored'));
-      utils.categories.list.invalidate();
-      utils.categories.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Restored')); utils.categories.list.invalidate(); utils.categories.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
-
   const permanentDeleteCat = trpc.categories.permanentDelete.useMutation({
-    onSuccess: () => {
-      toast.success(__('Permanently deleted'));
-      utils.categories.list.invalidate();
-      utils.categories.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Permanently deleted')); utils.categories.list.invalidate(); utils.categories.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
+  const updateCatStatus = trpc.categories.updateStatus.useMutation();
 
-  // Tag mutations
   const deleteTag = trpc.tags.delete.useMutation({
-    onSuccess: () => {
-      toast.success(__('Moved to trash'));
-      utils.tags.list.invalidate();
-      utils.tags.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Moved to trash')); utils.tags.list.invalidate(); utils.tags.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
-
   const restoreTag = trpc.tags.restore.useMutation({
-    onSuccess: () => {
-      toast.success(__('Restored'));
-      utils.tags.list.invalidate();
-      utils.tags.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Restored')); utils.tags.list.invalidate(); utils.tags.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
-
   const permanentDeleteTag = trpc.tags.permanentDelete.useMutation({
-    onSuccess: () => {
-      toast.success(__('Permanently deleted'));
-      utils.tags.list.invalidate();
-      utils.tags.counts.invalidate();
-    },
+    onSuccess: () => { toast.success(__('Permanently deleted')); utils.tags.list.invalidate(); utils.tags.counts.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
-
-  // Bulk tag mutations
-  const bulkDeleteTag = trpc.tags.bulkDelete.useMutation({
-    onSuccess: (result) => {
-      toast.success(__(`${result.count} tags moved to trash`));
-      setSelectedIds(new Set());
-      utils.tags.list.invalidate();
-      utils.tags.counts.invalidate();
-      utils.tags.stats.invalidate();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const bulkPermanentDeleteTag = trpc.tags.bulkPermanentDelete.useMutation({
-    onSuccess: (result) => {
-      toast.success(__(`${result.count} tags permanently deleted`));
-      setSelectedIds(new Set());
-      utils.tags.list.invalidate();
-      utils.tags.counts.invalidate();
-      utils.tags.stats.invalidate();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const bulkPublishTag = trpc.tags.bulkPublish.useMutation({
-    onSuccess: (result) => {
-      toast.success(__(`${result.count} tags published`));
-      setSelectedIds(new Set());
-      utils.tags.list.invalidate();
-      utils.tags.counts.invalidate();
-      utils.tags.stats.invalidate();
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const updateTagStatus = trpc.tags.updateStatus.useMutation();
 
   // SEO overrides (Pages only)
   const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation();
@@ -243,7 +197,7 @@ export function CmsListView({ contentType }: Props) {
     [seoStatus]
   );
 
-  // Unified data
+  // ── Unified data ──────────────────────────────────────
   const data = isPostType ? postList.data : isTagType ? tagList.data : catList.data;
   const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : catCounts.data;
   const isLoading = isPostType ? postList.isLoading : isTagType ? tagList.isLoading : catList.isLoading;
@@ -266,6 +220,76 @@ export function CmsListView({ contentType }: Props) {
     publishedAt: (item.publishedAt ?? null) as Date | null,
   }));
 
+  // ── Bulk selection + actions ──────────────────────────
+  const resetKey = `${tab}:${page}:${search}:${langFilter}`;
+  const {
+    selectedIds,
+    toggle: toggleSelect,
+    selectAll,
+    deselectAll,
+    selectedCount,
+  } = useBulkSelection(resetKey);
+
+  const bulkDeleteAsync = useCallback(
+    async (input: { id: string }) => {
+      if (isPostType) return deletePost.mutateAsync(input);
+      if (isTagType) return deleteTag.mutateAsync(input);
+      return deleteCat.mutateAsync(input);
+    },
+    [isPostType, isTagType, deletePost, deleteTag, deleteCat]
+  );
+
+  const bulkRestoreAsync = useCallback(
+    async (input: { id: string }) => {
+      if (isPostType) return restorePost.mutateAsync(input);
+      if (isTagType) return restoreTag.mutateAsync(input);
+      return restoreCat.mutateAsync(input);
+    },
+    [isPostType, isTagType, restorePost, restoreTag, restoreCat]
+  );
+
+  const bulkUpdateStatusAsync = useCallback(
+    async (input: { id: string; status: number }) => {
+      if (isPostType) return updatePostStatus.mutateAsync(input);
+      if (isCategoryType) return updateCatStatus.mutateAsync(input);
+      return updateTagStatus.mutateAsync(input);
+    },
+    [isPostType, isCategoryType, updatePostStatus, updateCatStatus, updateTagStatus]
+  );
+
+  const refetch = useCallback(() => {
+    if (isPostType) postList.refetch();
+    else if (isTagType) { tagList.refetch(); utils.tags.stats.invalidate(); }
+    else catList.refetch();
+  }, [isPostType, isTagType, postList, tagList, catList, utils.tags.stats]);
+
+  const invalidateCounts = useCallback(() => {
+    if (isPostType) utils.cms.counts.invalidate();
+    else if (isTagType) utils.tags.counts.invalidate();
+    else utils.categories.counts.invalidate();
+  }, [isPostType, isTagType, utils]);
+
+  const {
+    isPending: isBulkPending,
+    confirmAction,
+    requestBulkTrash,
+    executeBulkTrash,
+    executeBulkRestore,
+    dismissConfirm,
+    executeBulkStatusChange,
+  } = useBulkActions({
+    selectedIds,
+    deselectAll,
+    mutations: {
+      deleteMutateAsync: bulkDeleteAsync,
+      restoreMutateAsync: bulkRestoreAsync,
+      updateMutateAsync: bulkUpdateStatusAsync,
+    },
+    refetch,
+    invalidateCounts,
+  });
+
+  // ── Tab definitions ───────────────────────────────────
   const allTabs: { key: StatusTab; label: string; count?: number }[] = [
     { key: 'all', label: 'All', count: counts?.all },
     { key: 'draft', label: 'Draft', count: counts?.draft },
@@ -278,12 +302,6 @@ export function CmsListView({ contentType }: Props) {
   const tabs = isTagType
     ? allTabs.filter((t) => t.key !== 'scheduled')
     : allTabs;
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setSearch(searchInput);
-    setPage(1);
-  }
 
   function handleDelete(id: string, title: string) {
     if (tab === 'trash') {
@@ -322,41 +340,6 @@ export function CmsListView({ contentType }: Props) {
     });
   }
 
-  // Selection helpers
-  function toggleSelect(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function toggleSelectAll() {
-    if (selectedIds.size === items.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(items.map((i) => i.id)));
-    }
-  }
-
-  function confirmBulkAction() {
-    const ids = [...selectedIds];
-    if (bulkAction === 'delete') {
-      bulkDeleteTag.mutate({ ids });
-    } else if (bulkAction === 'permanentDelete') {
-      bulkPermanentDeleteTag.mutate({ ids });
-    } else if (bulkAction === 'publish') {
-      bulkPublishTag.mutate({ ids });
-    }
-    setBulkAction(null);
-  }
-
-  const isBulkPending =
-    bulkDeleteTag.isPending ||
-    bulkPermanentDeleteTag.isPending ||
-    bulkPublishTag.isPending;
-
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -391,11 +374,7 @@ export function CmsListView({ contentType }: Props) {
         {tabs.map((t) => (
           <button
             key={t.key}
-            onClick={() => {
-              setTab(t.key);
-              setPage(1);
-              setSelectedIds(new Set());
-            }}
+            onClick={() => handleTabChange(t.key)}
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               tab === t.key
@@ -412,24 +391,20 @@ export function CmsListView({ contentType }: Props) {
       </div>
 
       {/* Search + language filter */}
-      <form onSubmit={handleSearch} className="mt-4 flex gap-2">
+      <div className="mt-4 flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={__(`Search ${contentType.labelPlural.toLowerCase()}...`)}
             className="w-full rounded-md border border-(--border-primary) py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
-          {search && (
+          {searchQuery && (
             <button
               type="button"
-              onClick={() => {
-                setSearch('');
-                setSearchInput('');
-                setPage(1);
-              }}
+              onClick={() => handleSearchChange('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text-secondary)"
             >
               <X className="h-4 w-4" />
@@ -437,69 +412,29 @@ export function CmsListView({ contentType }: Props) {
           )}
         </div>
         <select
-          value={langFilter}
-          onChange={(e) => {
-            setLangFilter(e.target.value);
-            setPage(1);
-          }}
+          value={selectedLang}
+          onChange={(e) => handleLangChange(e.target.value)}
           className="rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
-          <option value="">{__('All langs')}</option>
+          <option value="all">{__('All langs')}</option>
           {LOCALES.map((loc) => (
             <option key={loc} value={loc}>
               {loc.toUpperCase()}
             </option>
           ))}
         </select>
-        <button type="submit" className="admin-btn admin-btn-secondary">
-          {__('Search')}
-        </button>
-      </form>
+      </div>
 
-      {/* Bulk action bar (tags only) */}
-      {isTagType && selectedIds.size > 0 && (
-        <div className="mt-3 flex items-center gap-2 rounded-md bg-blue-50 dark:bg-blue-500/15 px-4 py-2">
-          <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
-            {selectedIds.size} {__('selected')}
-          </span>
-          <div className="ml-auto flex gap-2">
-            {tab !== 'trash' && (
-              <>
-                <button
-                  onClick={() => setBulkAction('publish')}
-                  disabled={isBulkPending}
-                  className="admin-btn admin-btn-secondary text-xs"
-                >
-                  {__('Publish')}
-                </button>
-                <button
-                  onClick={() => setBulkAction('delete')}
-                  disabled={isBulkPending}
-                  className="admin-btn text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/15"
-                >
-                  {__('Trash')}
-                </button>
-              </>
-            )}
-            {tab === 'trash' && (
-              <button
-                onClick={() => setBulkAction('permanentDelete')}
-                disabled={isBulkPending}
-                className="admin-btn text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/15"
-              >
-                {__('Delete permanently')}
-              </button>
-            )}
-            <button
-              onClick={() => setSelectedIds(new Set())}
-              className="admin-btn admin-btn-secondary text-xs"
-            >
-              {__('Clear')}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Bulk action bar (all content types) */}
+      <BulkActionBar
+        selectedCount={selectedCount}
+        trashed={tab === 'trash'}
+        onBulkTrash={requestBulkTrash}
+        onBulkRestore={executeBulkRestore}
+        onBulkStatusChange={executeBulkStatusChange}
+        onDeselectAll={deselectAll}
+        isPending={isBulkPending}
+      />
 
       {/* Table */}
       <div className="admin-card mt-4 overflow-hidden">
@@ -511,20 +446,34 @@ export function CmsListView({ contentType }: Props) {
           <table className="w-full">
             <thead className="admin-thead">
               <tr>
-                {isTagType && (
-                  <th className="admin-th w-10">
-                    <input
-                      type="checkbox"
-                      checked={items.length > 0 && selectedIds.size === items.length}
-                      onChange={toggleSelectAll}
-                      className="rounded border-(--border-primary)"
-                    />
-                  </th>
-                )}
-                <th className="admin-th">{__('Title')}</th>
+                <th className="admin-th w-10">
+                  <input
+                    type="checkbox"
+                    checked={items.length > 0 && selectedIds.size === items.length}
+                    onChange={() => selectAll(items.map((i) => i.id))}
+                    className="rounded border-(--border-primary)"
+                  />
+                </th>
+                <th
+                  className="admin-th cursor-pointer select-none"
+                  onClick={() => toggleSort('title')}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {__('Title')}
+                    <SortIcon col="title" sortBy={sortBy} sortDir={sortDir} />
+                  </span>
+                </th>
                 <th className="admin-th w-24">{__('Status')}</th>
                 <th className="admin-th w-20">{__('Lang')}</th>
-                <th className="admin-th w-32">{__('Date')}</th>
+                <th
+                  className="admin-th w-32 cursor-pointer select-none"
+                  onClick={() => toggleSort('updated_at')}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {__('Date')}
+                    <SortIcon col="updated_at" sortBy={sortBy} sortDir={sortDir} />
+                  </span>
+                </th>
                 <th className="admin-th w-28" />
               </tr>
             </thead>
@@ -533,7 +482,7 @@ export function CmsListView({ contentType }: Props) {
                 <tr>
                   <td
                     className="admin-td py-12 text-center text-(--text-muted)"
-                    colSpan={isTagType ? 6 : 5}
+                    colSpan={6}
                   >
                     {search
                       ? __('No results found.')
@@ -543,16 +492,14 @@ export function CmsListView({ contentType }: Props) {
               ) : (
                 items.map((item) => (
                   <tr key={item.id} className="hover:bg-(--surface-secondary)">
-                    {isTagType && (
-                      <td className="admin-td">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleSelect(item.id)}
-                          className="rounded border-(--border-primary)"
-                        />
-                      </td>
-                    )}
+                    <td className="admin-td">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelect(item.id)}
+                        className="rounded border-(--border-primary)"
+                      />
+                    </td>
                     <td className="admin-td">
                       <Link
                         href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
@@ -642,14 +589,14 @@ export function CmsListView({ contentType }: Props) {
           </p>
           <div className="flex gap-1">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => handlePageChange(Math.max(1, page - 1))}
               disabled={page <= 1}
               className="admin-btn admin-btn-secondary disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
-              onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+              onClick={() => handlePageChange(Math.min(data.totalPages, page + 1))}
               disabled={page >= data.totalPages}
               className="admin-btn admin-btn-secondary disabled:opacity-40"
             >
@@ -678,33 +625,15 @@ export function CmsListView({ contentType }: Props) {
         onCancel={() => setDeleteTarget(null)}
       />
 
-      {/* Bulk action confirmation */}
+      {/* Bulk trash confirmation */}
       <ConfirmDialog
-        open={!!bulkAction}
-        title={
-          bulkAction === 'permanentDelete'
-            ? __('Delete permanently?')
-            : bulkAction === 'delete'
-              ? __('Move to trash?')
-              : __('Publish selected?')
-        }
-        message={
-          bulkAction === 'permanentDelete'
-            ? __(`${selectedIds.size} tags will be permanently deleted. This cannot be undone.`)
-            : bulkAction === 'delete'
-              ? __(`${selectedIds.size} tags will be moved to trash.`)
-              : __(`${selectedIds.size} tags will be published.`)
-        }
-        confirmLabel={
-          bulkAction === 'permanentDelete'
-            ? __('Delete')
-            : bulkAction === 'delete'
-              ? __('Trash')
-              : __('Publish')
-        }
-        variant={bulkAction === 'publish' ? 'default' : 'danger'}
-        onConfirm={confirmBulkAction}
-        onCancel={() => setBulkAction(null)}
+        open={confirmAction === 'trash'}
+        title={__('Move to trash?')}
+        message={__(`${selectedCount} items will be moved to trash.`)}
+        confirmLabel={__('Trash')}
+        variant="danger"
+        onConfirm={executeBulkTrash}
+        onCancel={dismissConfirm}
       />
 
       <SeoOverridesDialog

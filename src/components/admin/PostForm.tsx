@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
@@ -12,6 +12,10 @@ import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
+import { useCmsAutosave } from '@/hooks/useCmsAutosave';
+import AutosaveIndicator from './AutosaveIndicator';
+import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
+import CmsFormShell from './CmsFormShell';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPickerDialog } from './MediaPickerDialog';
@@ -92,6 +96,7 @@ export function PostForm({ contentType, postId }: Props) {
 
   const createPost = trpc.cms.create.useMutation({
     onSuccess: (data) => {
+      clearAutosave(currentData);
       toast.success(__(`${contentType.label} created`));
       utils.cms.list.invalidate();
       utils.cms.counts.invalidate();
@@ -102,6 +107,7 @@ export function PostForm({ contentType, postId }: Props) {
 
   const updatePost = trpc.cms.update.useMutation({
     onSuccess: () => {
+      clearAutosave(currentData);
       toast.success(__(`${contentType.label} updated`));
       utils.cms.list.invalidate();
       existingPost.refetch();
@@ -114,7 +120,56 @@ export function PostForm({ contentType, postId }: Props) {
     featuredImage, featuredImageAlt, jsonLd, noindex, publishedAt, lang,
   }), [title, slug, content, status, metaDescription, seoTitle, featuredImage, featuredImageAlt, jsonLd, noindex, publishedAt, lang]);
 
+  const initialData = useMemo(() => {
+    const p = existingPost.data;
+    if (!p) return currentData;
+    return {
+      title: p.title, slug: p.slug, content: p.content, status: p.status,
+      metaDescription: p.metaDescription ?? '', seoTitle: p.seoTitle ?? '',
+      featuredImage: p.featuredImage ?? '', featuredImageAlt: p.featuredImageAlt ?? '',
+      jsonLd: p.jsonLd ?? '', noindex: p.noindex,
+      publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString().slice(0, 16) : '',
+      lang: p.lang,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingPost.data]);
+
   const isSaving = createPost.isPending || updatePost.isPending;
+
+  const {
+    isDirty,
+    recoveredData,
+    acceptRecovery,
+    dismissRecovery,
+    lastAutosaveAt,
+    clearAutosave,
+  } = useCmsAutosave({
+    contentTypeId: contentType.id,
+    contentId: postId ?? null,
+    formData: currentData,
+    initialData,
+    dbUpdatedAt: existingPost.data?.updatedAt ?? null,
+    saving: isSaving,
+  });
+
+  const handleRestore = useCallback(() => {
+    if (!recoveredData) return;
+    const d = recoveredData.formData;
+    setTitle(d.title as string);
+    setSlug(d.slug as string);
+    setSlugManual(true);
+    setContent(d.content as string);
+    setStatus(d.status as number);
+    setMetaDescription(d.metaDescription as string);
+    setSeoTitle(d.seoTitle as string);
+    setFeaturedImage(d.featuredImage as string);
+    setFeaturedImageAlt(d.featuredImageAlt as string);
+    setJsonLd(d.jsonLd as string);
+    setNoindex(d.noindex as boolean);
+    setPublishedAt(d.publishedAt as string);
+    setLang(d.lang as string);
+    acceptRecovery();
+  }, [recoveredData, acceptRecovery]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -184,62 +239,72 @@ export function PostForm({ contentType, postId }: Props) {
     );
   }
 
-  return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/dashboard/cms/${contentType.adminSlug}`}
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
+  const toolbar = (
+    <>
+      <div className="flex items-center gap-3">
+        <Link
+          href={`/dashboard/cms/${contentType.adminSlug}`}
+          className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <h1 className="text-2xl font-bold text-(--text-primary)">
+          {isNew
+            ? __(`New ${contentType.label}`)
+            : __(`Edit ${contentType.label}`)}
+        </h1>
+      </div>
+      <div className="flex items-center gap-2">
+        <AutosaveIndicator lastAutosaveAt={lastAutosaveAt} isDirty={isDirty} />
+        {existingPost.data?.previewToken && (
+          <a
+            href={`${contentType.urlPrefix}${slug}?preview=${existingPost.data.previewToken}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="admin-btn admin-btn-secondary"
           >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-(--text-primary)">
-            {isNew
-              ? __(`New ${contentType.label}`)
-              : __(`Edit ${contentType.label}`)}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {existingPost.data?.previewToken && (
-            <a
-              href={`${contentType.urlPrefix}${slug}?preview=${existingPost.data.previewToken}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="admin-btn admin-btn-secondary"
-            >
-              <Eye className="h-4 w-4" />
-              {__('Preview')}
-            </a>
-          )}
-          {status !== ContentStatus.PUBLISHED && (
-            <button
-              type="button"
-              onClick={handlePublish}
-              disabled={isSaving || !title}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
-            >
-              {__('Publish')}
-            </button>
-          )}
+            <Eye className="h-4 w-4" />
+            {__('Preview')}
+          </a>
+        )}
+        {status !== ContentStatus.PUBLISHED && (
           <button
-            type="submit"
-            form="post-form"
+            type="button"
+            onClick={handlePublish}
             disabled={isSaving || !title}
             className="admin-btn admin-btn-primary disabled:opacity-50"
           >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {__('Save')}
+            {__('Publish')}
           </button>
-        </div>
+        )}
+        <button
+          type="submit"
+          form="post-form"
+          disabled={isSaving || !title}
+          className="admin-btn admin-btn-primary disabled:opacity-50"
+        >
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          {__('Save')}
+        </button>
       </div>
+    </>
+  );
 
-      <form id="post-form" onSubmit={handleSubmit} className="mt-6">
+  return (
+    <CmsFormShell toolbar={toolbar}>
+      {recoveredData && (
+        <AutosaveRecoveryBanner
+          savedAt={recoveredData.savedAt}
+          onRestore={handleRestore}
+          onDismiss={dismissRecovery}
+        />
+      )}
+
+      <form id="post-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main content — 2/3 */}
           <div className="space-y-6 lg:col-span-2">
@@ -522,6 +587,6 @@ export function PostForm({ contentType, postId }: Props) {
           if (alt) setFeaturedImageAlt(alt);
         }}
       />
-    </div>
+    </CmsFormShell>
   );
 }
