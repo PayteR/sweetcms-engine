@@ -87,6 +87,16 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const [mode, setMode] = useState<'wysiwyg' | 'source'>('wysiwyg');
   const [sourceValue, setSourceValue] = useState('');
   const lastEmittedContent = useRef(content);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -112,9 +122,12 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
     ],
     content: prepareForEditor(markdownToHtml(content)),
     onUpdate: ({ editor: e }) => {
-      const md = htmlToMarkdown(serializeForStorage(e.getHTML()));
-      lastEmittedContent.current = md;
-      onChange(md);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        const md = htmlToMarkdown(serializeForStorage(e.getHTML()));
+        lastEmittedContent.current = md;
+        onChangeRef.current(md);
+      }, 300);
     },
     editorProps: {
       attributes: {
@@ -138,13 +151,24 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const toggleMode = useCallback(() => {
     if (!editor) return;
     if (mode === 'wysiwyg') {
-      // WYSIWYG → Source: serialize current editor content to Markdown
+      // Flush any pending debounced update before reading HTML
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
       const md = htmlToMarkdown(serializeForStorage(editor.getHTML()));
       setSourceValue(md);
+      lastEmittedContent.current = md;
+      onChangeRef.current(md);
       setMode('source');
     } else {
-      // Source → WYSIWYG: parse Markdown back into editor
-      editor.commands.setContent(prepareForEditor(markdownToHtml(sourceValue)));
+      // Source → WYSIWYG: suppress emitUpdate to avoid double-fire
+      editor.commands.setContent(prepareForEditor(markdownToHtml(sourceValue)), {
+        emitUpdate: false,
+      });
+      const md = htmlToMarkdown(serializeForStorage(editor.getHTML()));
+      lastEmittedContent.current = md;
+      onChangeRef.current(md);
       setMode('wysiwyg');
     }
   }, [editor, mode, sourceValue]);
@@ -394,7 +418,7 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
           onChange={(e) => {
             setSourceValue(e.target.value);
             lastEmittedContent.current = e.target.value;
-            onChange(e.target.value);
+            onChangeRef.current(e.target.value);
           }}
           style={{
             fontFamily: 'monospace',

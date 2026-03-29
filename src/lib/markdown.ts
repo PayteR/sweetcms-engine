@@ -34,7 +34,7 @@ turndown.addRule('strikethrough', {
 turndown.addRule('textAlign', {
   filter: (node) => {
     const style = node.getAttribute('style') ?? '';
-    return /text-align:\s*(center|right)/i.test(style);
+    return /text-align:\s*(center|right|justify)/i.test(style);
   },
   replacement: (_content, node) => {
     return `\n\n${(node as HTMLElement).outerHTML}\n\n`;
