@@ -1,6 +1,7 @@
 'use client';
 
 import { parseShortcodes } from '@/lib/shortcodes/parser';
+import { markdownToHtml } from '@/lib/markdown';
 import { CalloutBlock } from './shortcodes/CalloutBlock';
 import { CtaBlock } from './shortcodes/CtaBlock';
 import { YoutubeEmbed } from './shortcodes/YoutubeEmbed';
@@ -17,10 +18,11 @@ const SHORTCODE_COMPONENTS: Record<
 };
 
 interface Props {
-  html: string;
+  content: string;
 }
 
-export function ShortcodeRenderer({ html }: Props) {
+export function ShortcodeRenderer({ content }: Props) {
+  const html = markdownToHtml(content);
   const segments = parseShortcodes(html);
 
   return (

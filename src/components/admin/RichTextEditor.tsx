@@ -35,12 +35,13 @@ import {
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
 import { SHORTCODE_REGISTRY } from '@/lib/shortcodes/registry';
+import { htmlToMarkdown, markdownToHtml } from '@/lib/markdown';
 import { ShortcodeNode } from './shortcodes/ShortcodeNode';
 import { prepareForEditor, serializeForStorage } from './shortcodes/shortcode-utils';
 
 interface Props {
   content: string;
-  onChange: (html: string) => void;
+  onChange: (value: string) => void;
   placeholder?: string;
 }
 
@@ -83,7 +84,9 @@ function ToolbarDivider() {
 export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const __ = useBlankTranslations();
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
-  const isInternalChange = useRef(false);
+  const [mode, setMode] = useState<'wysiwyg' | 'source'>('wysiwyg');
+  const [sourceValue, setSourceValue] = useState('');
+  const lastEmittedContent = useRef(content);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -107,10 +110,11 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       }),
       ShortcodeNode,
     ],
-    content: prepareForEditor(content),
+    content: prepareForEditor(markdownToHtml(content)),
     onUpdate: ({ editor: e }) => {
-      isInternalChange.current = true;
-      onChange(serializeForStorage(e.getHTML()));
+      const md = htmlToMarkdown(serializeForStorage(e.getHTML()));
+      lastEmittedContent.current = md;
+      onChange(md);
     },
     editorProps: {
       attributes: {
@@ -123,15 +127,26 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
   // Sync content from parent when it changes externally (e.g. autosave restore)
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
-    if (isInternalChange.current) {
-      isInternalChange.current = false;
-      return;
-    }
-    const currentContent = serializeForStorage(editor.getHTML());
-    if (currentContent !== content) {
-      editor.commands.setContent(prepareForEditor(content), { emitUpdate: false });
-    }
+    if (content === lastEmittedContent.current) return;
+    lastEmittedContent.current = content;
+    editor.commands.setContent(prepareForEditor(markdownToHtml(content)), {
+      emitUpdate: false,
+    });
   }, [editor, content]);
+
+  const toggleMode = useCallback(() => {
+    if (!editor) return;
+    if (mode === 'wysiwyg') {
+      // WYSIWYG → Source: serialize current editor content to Markdown
+      const md = htmlToMarkdown(serializeForStorage(editor.getHTML()));
+      setSourceValue(md);
+      setMode('source');
+    } else {
+      // Source → WYSIWYG: parse Markdown back into editor
+      editor.commands.setContent(prepareForEditor(markdownToHtml(sourceValue)));
+      setMode('wysiwyg');
+    }
+  }, [editor, mode, sourceValue]);
 
   if (!editor) return null;
 
@@ -355,10 +370,47 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
         >
           <Redo className={iconSize} />
         </ToolbarButton>
+
+        <ToolbarDivider />
+
+        <ToolbarButton
+          onClick={toggleMode}
+          active={mode === 'source'}
+          title={mode === 'wysiwyg' ? __('Source') : __('Visual')}
+        >
+          <Code2 className={iconSize} />
+        </ToolbarButton>
       </div>
 
       {/* Editor */}
-      <EditorContent editor={editor} />
+      <EditorContent
+        editor={editor}
+        style={{ display: mode === 'source' ? 'none' : undefined }}
+      />
+      {mode === 'source' && (
+        <textarea
+          value={sourceValue}
+          onChange={(e) => {
+            setSourceValue(e.target.value);
+            lastEmittedContent.current = e.target.value;
+            onChange(e.target.value);
+          }}
+          style={{
+            fontFamily: 'monospace',
+            fontSize: '13px',
+            lineHeight: 1.6,
+            tabSize: 2,
+            width: '100%',
+            minHeight: '300px',
+            padding: '12px 16px',
+            border: 'none',
+            outline: 'none',
+            resize: 'vertical',
+            background: 'transparent',
+            color: 'inherit',
+          }}
+        />
+      )}
     </div>
   );
 }

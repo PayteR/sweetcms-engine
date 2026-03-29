@@ -288,7 +288,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           )}
 
           <div className="prose prose-gray dark:prose-invert mt-8 max-w-none">
-            <ShortcodeRenderer html={post.content} />
+            <ShortcodeRenderer content={post.content} />
           </div>
 
           {/* Related Posts */}
@@ -455,10 +455,9 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           </h1>
 
           {cat.text && (
-            <div
-              className="prose prose-gray dark:prose-invert mt-6 max-w-none"
-              dangerouslySetInnerHTML={{ __html: cat.text }}
-            />
+            <div className="prose prose-gray dark:prose-invert mt-6 max-w-none">
+              <ShortcodeRenderer content={cat.text} />
+            </div>
           )}
 
           {posts.results.length > 0 && (
