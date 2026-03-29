@@ -6,10 +6,14 @@ import { Rss } from 'lucide-react';
 import { CONTENT_TYPES } from '@/config/cms';
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
-import { PostType } from '@/types/cms';
+import { PostType, ContentStatus } from '@/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
 import { resolveSlugRedirect } from '@/server/utils/slug-redirects';
+import { ShortcodeRenderer } from '@/components/public/ShortcodeRenderer';
+import { db } from '@/server/db';
+import { cmsPosts } from '@/server/db/schema';
+import { eq, and, isNull } from 'drizzle-orm';
 
 interface Props {
   params: Promise<{ slug: string[] }>;
@@ -48,6 +52,53 @@ function resolveSlug(segments: string[]): {
   }
 
   return null;
+}
+
+async function getAncestors(postId: string): Promise<{ title: string; slug: string }[]> {
+  const ancestors: { title: string; slug: string }[] = [];
+  let currentId: string | null = postId;
+  const seen = new Set<string>();
+
+  while (currentId && ancestors.length < 10) {
+    if (seen.has(currentId)) break;
+    seen.add(currentId);
+
+    const [row] = await db
+      .select({
+        parentId: cmsPosts.parentId,
+        title: cmsPosts.title,
+        slug: cmsPosts.slug,
+      })
+      .from(cmsPosts)
+      .where(
+        and(
+          eq(cmsPosts.id, currentId),
+          eq(cmsPosts.status, ContentStatus.PUBLISHED),
+          isNull(cmsPosts.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!row?.parentId) break;
+
+    const [parent] = await db
+      .select({ id: cmsPosts.id, title: cmsPosts.title, slug: cmsPosts.slug })
+      .from(cmsPosts)
+      .where(
+        and(
+          eq(cmsPosts.id, row.parentId),
+          eq(cmsPosts.status, ContentStatus.PUBLISHED),
+          isNull(cmsPosts.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!parent) break;
+    ancestors.unshift({ title: parent.title, slug: parent.slug });
+    currentId = parent.id;
+  }
+
+  return ancestors;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -165,12 +216,37 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         }
       }
 
+      // Fetch ancestors for breadcrumb (pages only)
+      let ancestors: { title: string; slug: string }[] = [];
+      if (resolved.contentType.id === 'page' && post.parentId) {
+        try {
+          ancestors = await getAncestors(post.id);
+        } catch {
+          // Breadcrumbs are optional
+        }
+      }
+
       return (
         <article className="mx-auto max-w-3xl px-4 py-12">
           {preview && (
             <div className="mb-6 rounded-md bg-yellow-50 dark:bg-yellow-500/15 border border-yellow-200 dark:border-yellow-500/30 px-4 py-2 text-sm text-yellow-800 dark:text-yellow-300">
               Preview mode — this content is not yet published.
             </div>
+          )}
+
+          {/* Breadcrumb for hierarchical pages */}
+          {ancestors.length > 0 && (
+            <nav className="mb-6 text-sm text-(--text-muted)">
+              {ancestors.map((a, i) => (
+                <span key={a.slug}>
+                  <Link href={`/${a.slug}`} className="hover:text-(--text-secondary) hover:underline">
+                    {a.title}
+                  </Link>
+                  {i < ancestors.length && <span className="mx-1.5">/</span>}
+                </span>
+              ))}
+              <span className="text-(--text-secondary)">{post.title}</span>
+            </nav>
           )}
 
           {post.featuredImage && (
@@ -211,10 +287,9 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          <div
-            className="prose prose-gray dark:prose-invert mt-8 max-w-none"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <div className="prose prose-gray dark:prose-invert mt-8 max-w-none">
+            <ShortcodeRenderer html={post.content} />
+          </div>
 
           {/* Related Posts */}
           {relatedPosts.length > 0 && (

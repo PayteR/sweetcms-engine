@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
@@ -26,6 +26,8 @@ import {
   deleteAllTermRelationships,
   resolveTagsForPosts,
 } from '@/server/utils/taxonomy-helpers';
+import { logAudit } from '@/server/utils/audit';
+import { dispatchWebhook } from '@/server/utils/webhooks';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -163,6 +165,7 @@ export const cmsRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional(),
         translationGroup: z.string().uuid().optional(),
         fallbackToDefault: z.boolean().optional(),
+        parentId: z.string().uuid().optional(),
         categoryIds: z.array(z.string().uuid()).max(20).optional(),
         tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
@@ -206,6 +209,7 @@ export const cmsRouter = createTRPCRouter({
           previewToken,
           translationGroup: postInput.translationGroup ?? null,
           fallbackToDefault: postInput.fallbackToDefault ?? null,
+          parentId: postInput.parentId ?? null,
           authorId: ctx.session.user.id as string,
         })
         .returning();
@@ -217,6 +221,16 @@ export const cmsRouter = createTRPCRouter({
       if (tagIds?.length && post) {
         await syncTermRelationships(ctx.db, post.id, 'tag', tagIds);
       }
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'create',
+        entityType: 'post',
+        entityId: post!.id,
+        entityTitle: post!.title,
+      });
+      dispatchWebhook(ctx.db, 'post.created', { id: post!.id, title: post!.title, type: post!.type });
 
       return post!;
     }),
@@ -239,6 +253,7 @@ export const cmsRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional().nullable(),
         translationGroup: z.string().uuid().optional().nullable(),
         fallbackToDefault: z.boolean().optional().nullable(),
+        parentId: z.string().uuid().optional().nullable(),
         categoryIds: z.array(z.string().uuid()).max(20).optional(),
         tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
@@ -309,6 +324,16 @@ export const cmsRouter = createTRPCRouter({
       if (tagIds !== undefined) {
         await syncTermRelationships(ctx.db, id, 'tag', tagIds);
       }
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'update',
+        entityType: 'post',
+        entityId: id,
+        entityTitle: updates.title ?? existing.title,
+      });
+      dispatchWebhook(ctx.db, 'post.updated', { id, title: updates.title ?? existing.title });
 
       return { success: true };
     }),
@@ -384,6 +409,169 @@ export const cmsRouter = createTRPCRouter({
         await deleteAllTermRelationships(tx, input.id);
       });
       return { success: true };
+    }),
+
+  /** Duplicate a post */
+  duplicate: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [original] = await ctx.db
+        .select()
+        .from(cmsPosts)
+        .where(eq(cmsPosts.id, input.id))
+        .limit(1);
+
+      if (!original) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+      }
+
+      // Generate a unique slug for the copy
+      let copySlug = original.slug + '-copy';
+      let attempt = 0;
+      while (attempt < 20) {
+        const suffix = attempt === 0 ? '' : `-${attempt + 1}`;
+        const candidate = original.slug + '-copy' + suffix;
+        const [existing] = await ctx.db
+          .select({ id: cmsPosts.id })
+          .from(cmsPosts)
+          .where(
+            and(
+              eq(cmsPosts.slug, candidate),
+              eq(cmsPosts.type, original.type),
+              eq(cmsPosts.lang, original.lang),
+              isNull(cmsPosts.deletedAt)
+            )
+          )
+          .limit(1);
+
+        if (!existing) {
+          copySlug = candidate;
+          break;
+        }
+        attempt++;
+      }
+
+      const previewToken = crypto.randomBytes(32).toString('hex');
+
+      const [copy] = await ctx.db
+        .insert(cmsPosts)
+        .values({
+          type: original.type,
+          title: original.title + ' (Copy)',
+          slug: copySlug,
+          lang: original.lang,
+          content: original.content,
+          status: ContentStatus.DRAFT,
+          metaDescription: original.metaDescription,
+          seoTitle: original.seoTitle,
+          featuredImage: original.featuredImage,
+          featuredImageAlt: original.featuredImageAlt,
+          jsonLd: original.jsonLd,
+          noindex: original.noindex,
+          publishedAt: null,
+          previewToken,
+          parentId: original.parentId,
+          authorId: ctx.session.user.id as string,
+        })
+        .returning();
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'duplicate',
+        entityType: 'post',
+        entityId: copy!.id,
+        entityTitle: copy!.title,
+        metadata: { originalId: input.id },
+      });
+
+      return copy!;
+    }),
+
+  /** Export posts as JSON or CSV */
+  exportPosts: contentProcedure
+    .input(
+      z.object({
+        type: z.number().int().min(1),
+        format: z.enum(['json', 'csv']),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const posts = await ctx.db
+        .select({
+          title: cmsPosts.title,
+          slug: cmsPosts.slug,
+          content: cmsPosts.content,
+          metaDescription: cmsPosts.metaDescription,
+          publishedAt: cmsPosts.publishedAt,
+          status: cmsPosts.status,
+        })
+        .from(cmsPosts)
+        .where(
+          and(
+            eq(cmsPosts.type, input.type),
+            eq(cmsPosts.status, ContentStatus.PUBLISHED),
+            isNull(cmsPosts.deletedAt)
+          )
+        )
+        .orderBy(desc(cmsPosts.publishedAt))
+        .limit(5000);
+
+      if (input.format === 'json') {
+        return { data: JSON.stringify(posts, null, 2), contentType: 'application/json' };
+      }
+
+      // CSV serialization
+      const escape = (v: string | null | undefined) => {
+        if (v == null) return '';
+        const s = String(v).replace(/"/g, '""');
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+      };
+      const header = 'title,slug,content,metaDescription,publishedAt,status';
+      const rows = posts.map(
+        (p) =>
+          `${escape(p.title)},${escape(p.slug)},${escape(p.content)},${escape(p.metaDescription)},${escape(p.publishedAt?.toISOString())},${p.status}`
+      );
+      return { data: [header, ...rows].join('\n'), contentType: 'text/csv' };
+    }),
+
+  /** Get page tree (hierarchical pages) */
+  getPageTree: contentProcedure
+    .input(z.object({ lang: z.string().max(2).default('en') }))
+    .query(async ({ ctx, input }) => {
+      const pages = await ctx.db
+        .select({
+          id: cmsPosts.id,
+          title: cmsPosts.title,
+          slug: cmsPosts.slug,
+          parentId: cmsPosts.parentId,
+          status: cmsPosts.status,
+        })
+        .from(cmsPosts)
+        .where(
+          and(
+            eq(cmsPosts.type, PostType.PAGE),
+            eq(cmsPosts.lang, input.lang),
+            isNull(cmsPosts.deletedAt)
+          )
+        )
+        .orderBy(asc(cmsPosts.title))
+        .limit(500);
+
+      // Compute depth for each page
+      const parentMap = new Map(pages.map((p) => [p.id, p.parentId]));
+      function getDepth(id: string, seen = new Set<string>()): number {
+        if (seen.has(id)) return 0; // prevent cycles
+        seen.add(id);
+        const pid = parentMap.get(id);
+        if (!pid) return 0;
+        return 1 + getDepth(pid, seen);
+      }
+
+      return pages.map((p) => ({
+        ...p,
+        depth: getDepth(p.id),
+      }));
     }),
 
   /** Public: get a published post by slug (supports preview token) */

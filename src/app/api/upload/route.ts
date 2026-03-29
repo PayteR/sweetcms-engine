@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
+import sharp from 'sharp';
 import { auth } from '@/lib/auth';
 import { Policy } from '@/lib/policy';
 import { getStorage } from '@/server/storage';
 import { slugifyFilename } from '@/lib/slug';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 export async function POST(request: Request) {
   // Auth check
@@ -36,11 +38,51 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const safeFilename = slugifyFilename(file.name);
     const datePath = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
-    const filepath = `${datePath}/${Date.now()}-${safeFilename}`;
+    const timestamp = Date.now();
+    const filepath = `${datePath}/${timestamp}-${safeFilename}`;
 
     const storage = getStorage();
     const storedPath = await storage.upload(filepath, buffer);
     const url = storage.url(storedPath);
+
+    let width: number | undefined;
+    let height: number | undefined;
+    let thumbnailPath: string | undefined;
+    let mediumPath: string | undefined;
+
+    // Generate image variants for supported types
+    if (IMAGE_TYPES.has(file.type)) {
+      try {
+        const image = sharp(buffer);
+        const meta = await image.metadata();
+        width = meta.width;
+        height = meta.height;
+
+        const nameBase = safeFilename.replace(/\.[^.]+$/, '');
+
+        // Thumbnail: 400px wide
+        if (meta.width && meta.width > 400) {
+          const thumbBuffer = await sharp(buffer)
+            .resize(400, undefined, { withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toBuffer();
+          const thumbFilepath = `${datePath}/${timestamp}-${nameBase}-thumb.webp`;
+          thumbnailPath = await storage.upload(thumbFilepath, thumbBuffer);
+        }
+
+        // Medium: 800px wide
+        if (meta.width && meta.width > 800) {
+          const medBuffer = await sharp(buffer)
+            .resize(800, undefined, { withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toBuffer();
+          const medFilepath = `${datePath}/${timestamp}-${nameBase}-medium.webp`;
+          mediumPath = await storage.upload(medFilepath, medBuffer);
+        }
+      } catch {
+        // Image processing is non-critical — continue with original
+      }
+    }
 
     return NextResponse.json({
       filepath: storedPath,
@@ -48,6 +90,10 @@ export async function POST(request: Request) {
       mimeType: file.type,
       fileSize: file.size,
       url,
+      width,
+      height,
+      thumbnailPath,
+      mediumPath,
     });
   } catch (err) {
     console.error('Upload error:', err);

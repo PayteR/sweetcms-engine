@@ -1,12 +1,13 @@
 import { z } from 'zod';
-import { and, eq, ilike, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 
 import { cmsPosts } from '@/server/db/schema/cms';
 import { cmsCategories } from '@/server/db/schema/categories';
 import { cmsTerms } from '@/server/db/schema/terms';
 import { ContentStatus } from '@/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
-import { createTRPCRouter, sectionProcedure } from '../trpc';
+import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
 
 /**
  * Content search router — search across all content types for internal linking.
@@ -142,5 +143,106 @@ export const contentSearchRouter = createTRPCRouter({
       });
 
       return results.slice(0, limit);
+    }),
+
+  /** Public: full-text search across published posts */
+  fullTextSearch: publicProcedure
+    .input(
+      z.object({
+        query: z.string().min(1).max(200),
+        lang: z.string().max(2).default('en'),
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(50).default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, offset } = parsePagination(input);
+
+      // For very short queries, fall back to ILIKE
+      if (input.query.length < 3) {
+        const pattern = `%${input.query}%`;
+        const conditions = and(
+          eq(cmsPosts.status, ContentStatus.PUBLISHED),
+          eq(cmsPosts.lang, input.lang),
+          isNull(cmsPosts.deletedAt),
+          or(
+            ilike(cmsPosts.title, pattern),
+            ilike(cmsPosts.content, pattern)
+          )
+        );
+
+        const [items, countResult] = await Promise.all([
+          ctx.db
+            .select({
+              id: cmsPosts.id,
+              title: cmsPosts.title,
+              slug: cmsPosts.slug,
+              type: cmsPosts.type,
+              metaDescription: cmsPosts.metaDescription,
+              publishedAt: cmsPosts.publishedAt,
+            })
+            .from(cmsPosts)
+            .where(conditions)
+            .orderBy(desc(cmsPosts.publishedAt))
+            .offset(offset)
+            .limit(pageSize),
+          ctx.db
+            .select({ count: sql<number>`count(*)` })
+            .from(cmsPosts)
+            .where(conditions),
+        ]);
+
+        const total = Number(countResult[0]?.count ?? 0);
+        const results = items.map((item) => {
+          const ct = CONTENT_TYPES.find((c) => c.postType === item.type);
+          const url = ct
+            ? ct.urlPrefix === '/' ? `/${item.slug}` : `${ct.urlPrefix}${item.slug}`
+            : `/${item.slug}`;
+          return { ...item, url, headline: item.metaDescription ?? '' };
+        });
+        return paginatedResult(results, total, page, pageSize);
+      }
+
+      // Full-text search with tsvector
+      const tsQuery = sql`plainto_tsquery('english', ${input.query})`;
+      const conditions = and(
+        eq(cmsPosts.status, ContentStatus.PUBLISHED),
+        eq(cmsPosts.lang, input.lang),
+        isNull(cmsPosts.deletedAt),
+        sql`search_vector @@ ${tsQuery}`
+      );
+
+      const [items, countResult] = await Promise.all([
+        ctx.db
+          .select({
+            id: cmsPosts.id,
+            title: cmsPosts.title,
+            slug: cmsPosts.slug,
+            type: cmsPosts.type,
+            metaDescription: cmsPosts.metaDescription,
+            publishedAt: cmsPosts.publishedAt,
+            rank: sql<number>`ts_rank(search_vector, ${tsQuery})`.as('rank'),
+            headline: sql<string>`ts_headline('english', coalesce(content, ''), ${tsQuery}, 'MaxWords=35, MinWords=15, StartSel=<mark>, StopSel=</mark>')`.as('headline'),
+          })
+          .from(cmsPosts)
+          .where(conditions)
+          .orderBy(desc(sql`ts_rank(search_vector, ${tsQuery})`))
+          .offset(offset)
+          .limit(pageSize),
+        ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(cmsPosts)
+          .where(conditions),
+      ]);
+
+      const total = Number(countResult[0]?.count ?? 0);
+      const results = items.map((item) => {
+        const ct = CONTENT_TYPES.find((c) => c.postType === item.type);
+        const url = ct
+          ? ct.urlPrefix === '/' ? `/${item.slug}` : `${ct.urlPrefix}${item.slug}`
+          : `/${item.slug}`;
+        return { ...item, url };
+      });
+      return paginatedResult(results, total, page, pageSize);
     }),
 });

@@ -23,6 +23,10 @@ export const cmsMedia = pgTable(
     mimeType: varchar('mime_type', { length: 100 }).notNull(),
     fileSize: integer('file_size').notNull(),
     altText: varchar('alt_text', { length: 255 }),
+    width: integer('width'),
+    height: integer('height'),
+    thumbnailPath: varchar('thumbnail_path', { length: 1024 }),
+    mediumPath: varchar('medium_path', { length: 1024 }),
     uploadedById: text('uploaded_by_id').references(() => user.id, {
       onDelete: 'set null',
     }),

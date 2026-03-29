@@ -1,0 +1,156 @@
+import { TRPCError } from '@trpc/server';
+import crypto from 'crypto';
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+
+import { cmsWebhooks } from '@/server/db/schema';
+import { createTRPCRouter, sectionProcedure } from '../trpc';
+
+const settingsProcedure = sectionProcedure('settings');
+
+export const webhooksRouter = createTRPCRouter({
+  /** List all webhooks */
+  list: settingsProcedure.query(async ({ ctx }) => {
+    return ctx.db
+      .select()
+      .from(cmsWebhooks)
+      .orderBy(cmsWebhooks.createdAt)
+      .limit(100);
+  }),
+
+  /** Get a single webhook */
+  get: settingsProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [hook] = await ctx.db
+        .select()
+        .from(cmsWebhooks)
+        .where(eq(cmsWebhooks.id, input.id))
+        .limit(1);
+
+      if (!hook) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Webhook not found' });
+      }
+      return hook;
+    }),
+
+  /** Create a webhook */
+  create: settingsProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(255),
+        url: z.string().url().max(1024),
+        events: z.array(z.string().max(50)).min(1).max(20),
+        active: z.boolean().default(true),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const secret = crypto.randomBytes(32).toString('hex');
+
+      const [hook] = await ctx.db
+        .insert(cmsWebhooks)
+        .values({
+          name: input.name,
+          url: input.url,
+          secret,
+          events: input.events,
+          active: input.active,
+        })
+        .returning();
+
+      return hook!;
+    }),
+
+  /** Update a webhook */
+  update: settingsProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string().min(1).max(255).optional(),
+        url: z.string().url().max(1024).optional(),
+        events: z.array(z.string().max(50)).min(1).max(20).optional(),
+        active: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updates } = input;
+
+      const [existing] = await ctx.db
+        .select({ id: cmsWebhooks.id })
+        .from(cmsWebhooks)
+        .where(eq(cmsWebhooks.id, id))
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Webhook not found' });
+      }
+
+      await ctx.db
+        .update(cmsWebhooks)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(cmsWebhooks.id, id));
+
+      return { success: true };
+    }),
+
+  /** Delete a webhook */
+  delete: settingsProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ id: cmsWebhooks.id })
+        .from(cmsWebhooks)
+        .where(eq(cmsWebhooks.id, input.id))
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Webhook not found' });
+      }
+
+      await ctx.db.delete(cmsWebhooks).where(eq(cmsWebhooks.id, input.id));
+      return { success: true };
+    }),
+
+  /** Test a webhook by sending a test payload */
+  test: settingsProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [hook] = await ctx.db
+        .select()
+        .from(cmsWebhooks)
+        .where(eq(cmsWebhooks.id, input.id))
+        .limit(1);
+
+      if (!hook) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Webhook not found' });
+      }
+
+      const body = JSON.stringify({
+        event: 'test',
+        timestamp: new Date().toISOString(),
+        data: { message: 'This is a test webhook from SweetCMS' },
+      });
+
+      const signature = crypto
+        .createHmac('sha256', hook.secret)
+        .update(body)
+        .digest('hex');
+
+      try {
+        const res = await fetch(hook.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Webhook-Signature': signature,
+          },
+          body,
+        });
+        return { success: true, status: res.status };
+      } catch {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Failed to reach webhook URL',
+        });
+      }
+    }),
+});

@@ -11,11 +11,13 @@ import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 import { useCmsAutosave } from '@/hooks/useCmsAutosave';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import AutosaveIndicator from './AutosaveIndicator';
 import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
 import CmsFormShell from './CmsFormShell';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
+import { SeoPreviewCard } from './SeoPreviewCard';
 import { TagInput } from './TagInput';
 
 interface Props {
@@ -141,6 +143,23 @@ export function CategoryForm({ categoryId }: Props) {
     saving: isSaving,
     loading: !!categoryId && existingCat.isLoading,
   });
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts(
+    useMemo(
+      () => [
+        {
+          key: 's',
+          ctrl: true,
+          handler: () => {
+            const form = document.getElementById('category-form') as HTMLFormElement;
+            form?.requestSubmit();
+          },
+        },
+      ],
+      []
+    )
+  );
 
   const handleRestore = useCallback(() => {
     if (!recoveredData) return;
@@ -363,6 +382,14 @@ export function CategoryForm({ categoryId }: Props) {
                 </label>
               </div>
             </div>
+
+            {/* SEO Preview */}
+            <SeoPreviewCard
+              title={seoTitle || name}
+              description={metaDescription}
+              slug={slug}
+              urlPrefix="/category/"
+            />
 
             {/* Revision History */}
             {!isNew && categoryId && (

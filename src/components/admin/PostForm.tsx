@@ -9,16 +9,18 @@ import type { ContentTypeDeclaration } from '@/config/cms';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus, PostType } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 import { useCmsAutosave } from '@/hooks/useCmsAutosave';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import AutosaveIndicator from './AutosaveIndicator';
 import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
 import CmsFormShell from './CmsFormShell';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPickerDialog } from './MediaPickerDialog';
+import { SeoPreviewCard } from './SeoPreviewCard';
 import { TagInput } from './TagInput';
 
 interface Props {
@@ -48,6 +50,7 @@ export function PostForm({ contentType, postId }: Props) {
   const [publishedAt, setPublishedAt] = useState('');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [parentId, setParentId] = useState<string | null>(null);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   // Fetch existing post
@@ -84,6 +87,7 @@ export function PostForm({ contentType, postId }: Props) {
       );
       setCategoryIds(p.categoryIds ?? []);
       setTagIds(p.tagIds ?? []);
+      setParentId((p as unknown as { parentId: string | null }).parentId ?? null);
     }
   }, [existingPost.data]);
 
@@ -153,6 +157,37 @@ export function PostForm({ contentType, postId }: Props) {
     loading: !!postId && existingPost.isLoading,
   });
 
+  // Page tree for parent page selector (pages only)
+  const isPageType = contentType.postType === PostType.PAGE;
+  const pageTree = trpc.cms.getPageTree.useQuery(
+    { lang: 'en' },
+    { enabled: isPageType }
+  );
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts(
+    useMemo(
+      () => [
+        {
+          key: 's',
+          ctrl: true,
+          handler: () => {
+            const form = document.getElementById('post-form') as HTMLFormElement;
+            form?.requestSubmit();
+          },
+        },
+        {
+          key: 'p',
+          ctrl: true,
+          shift: true,
+          handler: () => handlePublish(),
+        },
+      ],
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      []
+    )
+  );
+
   const handleRestore = useCallback(() => {
     if (!recoveredData) return;
     const d = recoveredData.formData;
@@ -190,6 +225,7 @@ export function PostForm({ contentType, postId }: Props) {
         jsonLd: jsonLd || undefined,
         noindex,
         publishedAt: publishedAt ? new Date(publishedAt).toISOString() : undefined,
+        parentId: parentId ?? undefined,
         categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
         tagIds: tagIds.length > 0 ? tagIds : undefined,
       });
@@ -207,6 +243,7 @@ export function PostForm({ contentType, postId }: Props) {
         jsonLd: jsonLd || null,
         noindex,
         publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+        parentId,
         categoryIds,
         tagIds,
       });
@@ -395,6 +432,15 @@ export function PostForm({ contentType, postId }: Props) {
               </div>
             </div>
 
+            {/* SEO Preview */}
+            <SeoPreviewCard
+              title={seoTitle || title}
+              description={metaDescription}
+              slug={slug}
+              urlPrefix={contentType.urlPrefix}
+              featuredImage={featuredImage || undefined}
+            />
+
             {/* Revision History */}
             {!isNew && postId && (
               <RevisionHistory
@@ -472,6 +518,27 @@ export function PostForm({ contentType, postId }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* Parent Page (pages only) */}
+            {isPageType && (
+              <div className="admin-card p-6">
+                <h3 className="admin-h2">{__('Parent Page')}</h3>
+                <select
+                  value={parentId ?? ''}
+                  onChange={(e) => setParentId(e.target.value || null)}
+                  className="mt-3 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">{__('None (top level)')}</option>
+                  {(pageTree.data ?? [])
+                    .filter((p) => p.id !== postId)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {'— '.repeat(p.depth)}{p.title}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
 
             {/* Categories */}
             <div className="admin-card p-6">

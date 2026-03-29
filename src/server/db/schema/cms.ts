@@ -36,6 +36,7 @@ export const cmsPosts = pgTable(
     previewToken: varchar('preview_token', { length: 64 }),
     translationGroup: uuid('translation_group'),
     fallbackToDefault: boolean('fallback_to_default'),
+    parentId: uuid('parent_id'),
     authorId: text('author_id').references(() => user.id, {
       onDelete: 'set null',
     }),
@@ -53,6 +54,7 @@ export const cmsPosts = pgTable(
     index('cms_posts_deleted_at_idx').on(t.deletedAt),
     index('cms_posts_author_id_idx').on(t.authorId),
     index('cms_posts_created_at_idx').on(t.createdAt),
+    index('cms_posts_parent_id_idx').on(t.parentId),
   ]
 );
 

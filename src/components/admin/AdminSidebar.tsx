@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  Activity,
   FileText,
   FolderOpen,
   Hash,
   Home,
   Image,
   Layers,
+  Menu,
   Settings,
   Users,
 } from 'lucide-react';
@@ -24,10 +26,12 @@ const navigation = [
       { name: 'Blog', href: '/dashboard/cms/blog', icon: Layers },
       { name: 'Categories', href: '/dashboard/cms/categories', icon: FolderOpen },
       { name: 'Tags', href: '/dashboard/cms/tags', icon: Hash },
+      { name: 'Menus', href: '/dashboard/cms/menus', icon: Menu },
     ],
   },
   { name: 'Media', href: '/dashboard/media', icon: Image },
   { name: 'Users', href: '/dashboard/users', icon: Users },
+  { name: 'Activity', href: '/dashboard/cms/activity', icon: Activity },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 

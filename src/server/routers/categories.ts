@@ -19,6 +19,7 @@ import {
   getTermRelationships,
   syncTermRelationships,
 } from '@/server/utils/taxonomy-helpers';
+import { logAudit } from '@/server/utils/audit';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -189,7 +190,79 @@ export const categoriesRouter = createTRPCRouter({
         await syncTermRelationships(ctx.db, category.id, 'tag', tagIds);
       }
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'create',
+        entityType: 'category',
+        entityId: category!.id,
+        entityTitle: category!.name,
+      });
+
       return category!;
+    }),
+
+  /** Duplicate a category */
+  duplicate: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [original] = await ctx.db
+        .select()
+        .from(cmsCategories)
+        .where(eq(cmsCategories.id, input.id))
+        .limit(1);
+
+      if (!original) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
+      }
+
+      const copySlug = original.slug + '-copy';
+      await ensureSlugUnique(
+        ctx.db,
+        {
+          table: cmsCategories,
+          slugCol: cmsCategories.slug,
+          slug: copySlug,
+          langCol: cmsCategories.lang,
+          lang: original.lang,
+          deletedAtCol: cmsCategories.deletedAt,
+        },
+        'Category'
+      );
+
+      const previewToken = crypto.randomBytes(32).toString('hex');
+
+      const [copy] = await ctx.db
+        .insert(cmsCategories)
+        .values({
+          name: original.name + ' (Copy)',
+          slug: copySlug,
+          lang: original.lang,
+          title: original.title + ' (Copy)',
+          text: original.text,
+          status: ContentStatus.DRAFT,
+          icon: original.icon,
+          metaDescription: original.metaDescription,
+          seoTitle: original.seoTitle,
+          order: original.order,
+          noindex: original.noindex,
+          publishedAt: null,
+          previewToken,
+          jsonLd: original.jsonLd,
+        })
+        .returning();
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'duplicate',
+        entityType: 'category',
+        entityId: copy!.id,
+        entityTitle: copy!.name,
+        metadata: { originalId: input.id },
+      });
+
+      return copy!;
     }),
 
   update: contentProcedure
@@ -276,6 +349,15 @@ export const categoriesRouter = createTRPCRouter({
       if (tagIds !== undefined) {
         await syncTermRelationships(ctx.db, id, 'tag', tagIds);
       }
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'update',
+        entityType: 'category',
+        entityId: id,
+        entityTitle: updates.name ?? existing.name,
+      });
 
       return { success: true };
     }),

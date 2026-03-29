@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsMedia } from '@/server/db/schema';
@@ -9,6 +9,7 @@ import { FileType } from '@/types/cms';
 import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
 import {
   createTRPCRouter,
+  publicProcedure,
   sectionProcedure,
   staffProcedure,
 } from '../trpc';
@@ -89,6 +90,10 @@ export const mediaRouter = createTRPCRouter({
         mimeType: z.string().max(100),
         fileSize: z.number().int().min(0),
         altText: z.string().max(255).optional(),
+        width: z.number().int().min(0).optional(),
+        height: z.number().int().min(0).optional(),
+        thumbnailPath: z.string().max(1024).optional(),
+        mediumPath: z.string().max(1024).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -104,6 +109,10 @@ export const mediaRouter = createTRPCRouter({
           mimeType: input.mimeType,
           fileSize: input.fileSize,
           altText: input.altText ?? null,
+          width: input.width ?? null,
+          height: input.height ?? null,
+          thumbnailPath: input.thumbnailPath ?? null,
+          mediumPath: input.mediumPath ?? null,
           uploadedById: ctx.session.user.id as string,
         })
         .returning();
@@ -136,5 +145,42 @@ export const mediaRouter = createTRPCRouter({
         .where(eq(cmsMedia.id, input.id));
 
       return { success: true };
+    }),
+
+  /** Public: get media URLs by IDs (for gallery shortcode) */
+  getByIds: publicProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()).max(50) }))
+    .query(async ({ ctx, input }) => {
+      if (input.ids.length === 0) return [];
+
+      const items = await ctx.db
+        .select({
+          id: cmsMedia.id,
+          filepath: cmsMedia.filepath,
+          altText: cmsMedia.altText,
+          width: cmsMedia.width,
+          height: cmsMedia.height,
+          thumbnailPath: cmsMedia.thumbnailPath,
+          mediumPath: cmsMedia.mediumPath,
+        })
+        .from(cmsMedia)
+        .where(
+          and(
+            inArray(cmsMedia.id, input.ids),
+            isNull(cmsMedia.deletedAt)
+          )
+        )
+        .limit(50);
+
+      const storage = getStorage();
+      return items.map((item) => ({
+        id: item.id,
+        url: storage.url(item.filepath),
+        altText: item.altText,
+        width: item.width,
+        height: item.height,
+        thumbnailUrl: item.thumbnailPath ? storage.url(item.thumbnailPath) : null,
+        mediumUrl: item.mediumPath ? storage.url(item.mediumPath) : null,
+      }));
     }),
 });

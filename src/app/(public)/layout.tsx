@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import { Search } from 'lucide-react';
 
 import { siteConfig } from '@/config/site';
 import { db } from '@/server/db';
 import { cmsCategories } from '@/server/db/schema';
 import { ContentStatus } from '@/types/cms';
 import { and, eq, isNull } from 'drizzle-orm';
+import { DynamicNav } from '@/components/public/DynamicNav';
 
 async function getPublishedCategories() {
   try {
@@ -46,18 +48,29 @@ export default async function PublicLayout({
             {siteConfig.name}
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            <Link href="/blog" className="text-(--text-secondary) hover:text-(--text-primary)">
-              Blog
+            <DynamicNav menuSlug="main" fallback={
+              <>
+                <Link href="/blog" className="text-(--text-secondary) hover:text-(--text-primary)">
+                  Blog
+                </Link>
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.slug}
+                    href={`/category/${cat.slug}`}
+                    className="hidden text-(--text-secondary) hover:text-(--text-primary) sm:block"
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </>
+            } />
+            <Link
+              href="/search"
+              className="text-(--text-muted) hover:text-(--text-primary)"
+              title="Search"
+            >
+              <Search className="h-4 w-4" />
             </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.slug}
-                href={`/category/${cat.slug}`}
-                className="hidden text-(--text-secondary) hover:text-(--text-primary) sm:block"
-              >
-                {cat.name}
-              </Link>
-            ))}
             <Link
               href="/dashboard"
               className="rounded-md bg-(--text-primary) px-3 py-1.5 text-xs font-medium text-(--surface-primary) hover:opacity-80"

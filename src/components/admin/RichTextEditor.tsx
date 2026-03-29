@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -28,10 +29,14 @@ import {
   Redo,
   Code2,
   Minus,
+  Blocks,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
+import { SHORTCODE_REGISTRY } from '@/lib/shortcodes/registry';
+import { ShortcodeNode } from './shortcodes/ShortcodeNode';
+import { prepareForEditor, serializeForStorage } from './shortcodes/shortcode-utils';
 
 interface Props {
   content: string;
@@ -77,6 +82,7 @@ function ToolbarDivider() {
 
 export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const __ = useBlankTranslations();
+  const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -98,10 +104,11 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       Placeholder.configure({
         placeholder: placeholder ?? __('Start writing...'),
       }),
+      ShortcodeNode,
     ],
-    content,
+    content: prepareForEditor(content),
     onUpdate: ({ editor: e }) => {
-      onChange(e.getHTML());
+      onChange(serializeForStorage(e.getHTML()));
     },
     editorProps: {
       attributes: {
@@ -271,6 +278,51 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
         <ToolbarButton onClick={addImage} title={__('Image')}>
           <ImageIcon className={iconSize} />
         </ToolbarButton>
+
+        <ToolbarDivider />
+
+        {/* Shortcode insert dropdown */}
+        <div className="relative">
+          <ToolbarButton
+            onClick={() => setShortcodeMenuOpen(!shortcodeMenuOpen)}
+            title={__('Insert Block')}
+          >
+            <Blocks className={iconSize} />
+          </ToolbarButton>
+          {shortcodeMenuOpen && (
+            <div className="absolute left-0 top-full z-10 mt-1 w-40 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
+              {SHORTCODE_REGISTRY.map((sc) => (
+                <button
+                  key={sc.name}
+                  type="button"
+                  className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                  onClick={() => {
+                    if (!editor) return;
+                    const defaultAttrs: Record<string, string> = {};
+                    for (const attr of sc.attrs) {
+                      if (attr.default) defaultAttrs[attr.name] = attr.default;
+                    }
+                    editor
+                      .chain()
+                      .focus()
+                      .insertContent({
+                        type: 'shortcode',
+                        attrs: {
+                          shortcodeName: sc.name,
+                          shortcodeAttrs: JSON.stringify(defaultAttrs),
+                          shortcodeContent: '',
+                        },
+                      })
+                      .run();
+                    setShortcodeMenuOpen(false);
+                  }}
+                >
+                  {__(sc.label)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <ToolbarDivider />
 

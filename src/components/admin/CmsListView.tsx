@@ -12,6 +12,8 @@ import {
   ChevronRight,
   Loader2,
   X,
+  Copy,
+  Download,
 } from 'lucide-react';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
@@ -187,6 +189,49 @@ export function CmsListView({ contentType }: Props) {
   });
   const updateTagStatus = trpc.tags.updateStatus.useMutation();
 
+  // ── Duplicate mutations ─────────────────────────────
+  const duplicatePost = trpc.cms.duplicate.useMutation({
+    onSuccess: (data) => {
+      toast.success(__('Duplicated'));
+      utils.cms.list.invalidate();
+      utils.cms.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const duplicateCat = trpc.categories.duplicate.useMutation({
+    onSuccess: () => {
+      toast.success(__('Duplicated'));
+      utils.categories.list.invalidate();
+      utils.categories.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  function handleDuplicate(id: string) {
+    if (isPostType) duplicatePost.mutate({ id });
+    else if (isCategoryType) duplicateCat.mutate({ id });
+  }
+
+  // ── Export ──────────────────────────────────────────
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+
+  async function handleExport(format: 'json' | 'csv') {
+    setExportMenuOpen(false);
+    if (!isPostType) return;
+    try {
+      const result = await utils.cms.exportPosts.fetch({ type: contentType.postType!, format });
+      const blob = new Blob([result.data], { type: result.contentType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${contentType.adminSlug}-export.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(__('Export failed'));
+    }
+  }
+
   // SEO overrides (Pages only)
   const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation();
   const { data: seoStatus } = trpc.cms.getSeoOverrideStatus.useQuery(undefined, {
@@ -347,6 +392,34 @@ export function CmsListView({ contentType }: Props) {
           {__(contentType.labelPlural)}
         </h1>
         <div className="flex items-center gap-2">
+          {/* Export dropdown (posts only) */}
+          {isPostType && (
+            <div className="relative">
+              <button
+                onClick={() => setExportMenuOpen(!exportMenuOpen)}
+                className="admin-btn admin-btn-secondary"
+              >
+                <Download className="h-4 w-4" />
+                {__('Export')}
+              </button>
+              {exportMenuOpen && (
+                <div className="absolute right-0 top-full z-10 mt-1 w-32 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
+                  <button
+                    onClick={() => handleExport('json')}
+                    className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                  >
+                    JSON
+                  </button>
+                  <button
+                    onClick={() => handleExport('csv')}
+                    className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                  >
+                    CSV
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           {contentType.canOverrideCodedRouteSEO && (
             <button
               onClick={() => setSeoDialogOpen(true)}
@@ -554,6 +627,15 @@ export function CmsListView({ contentType }: Props) {
                           </>
                         ) : (
                           <>
+                            {(isPostType || isCategoryType) && (
+                              <button
+                                onClick={() => handleDuplicate(item.id)}
+                                className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-green-600"
+                                title={__('Duplicate')}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </button>
+                            )}
                             <Link
                               href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
                               className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
