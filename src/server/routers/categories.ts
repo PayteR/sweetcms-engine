@@ -292,6 +292,88 @@ export const categoriesRouter = createTRPCRouter({
       return copy!;
     }),
 
+  /** Duplicate a category as a translation in another language */
+  duplicateAsTranslation: contentProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        targetLang: z.string().min(2).max(5),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [source] = await ctx.db
+        .select()
+        .from(cmsCategories)
+        .where(eq(cmsCategories.id, input.id))
+        .limit(1);
+
+      if (!source) throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
+
+      // Create or reuse translation group
+      const translationGroup = source.translationGroup ?? crypto.randomUUID();
+
+      // If source had no group, update it
+      if (!source.translationGroup) {
+        await ctx.db
+          .update(cmsCategories)
+          .set({ translationGroup })
+          .where(eq(cmsCategories.id, input.id));
+      }
+
+      // Generate unique slug
+      let slug = `${source.slug}-${input.targetLang}`;
+      const [existing] = await ctx.db
+        .select({ slug: cmsCategories.slug })
+        .from(cmsCategories)
+        .where(
+          and(
+            eq(cmsCategories.slug, slug),
+            eq(cmsCategories.lang, input.targetLang),
+            isNull(cmsCategories.deletedAt)
+          )
+        )
+        .limit(1);
+      if (existing) {
+        slug = `${slug}-${Date.now()}`;
+      }
+
+      const previewToken = crypto.randomBytes(32).toString('hex');
+
+      const [newCategory] = await ctx.db
+        .insert(cmsCategories)
+        .values({
+          name: source.name,
+          slug,
+          lang: input.targetLang,
+          title: source.title,
+          text: source.text,
+          status: ContentStatus.DRAFT,
+          icon: source.icon,
+          metaDescription: source.metaDescription,
+          seoTitle: source.seoTitle,
+          order: source.order,
+          noindex: source.noindex,
+          publishedAt: null,
+          previewToken,
+          translationGroup,
+          fallbackToDefault: source.fallbackToDefault,
+          jsonLd: source.jsonLd,
+        })
+        .returning();
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'duplicate',
+        entityType: 'category',
+        entityId: newCategory!.id,
+        entityTitle: newCategory!.name,
+        metadata: { originalId: input.id, targetLang: input.targetLang },
+      });
+
+      return { id: newCategory!.id, slug: newCategory!.slug };
+    }),
+
   update: contentProcedure
     .input(
       z.object({

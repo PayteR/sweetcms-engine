@@ -9,7 +9,7 @@ import {
   SEO_OVERRIDE_ROUTES,
   SEO_OVERRIDE_SLUGS,
 } from '@/server/utils/seo-routes';
-import { cmsPosts, cmsTermRelationships } from '@/server/db/schema';
+import { cmsPosts, cmsCategories, cmsTerms, cmsTermRelationships } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/types/cms';
 import {
   buildAdminList,
@@ -518,6 +518,170 @@ export const cmsRouter = createTRPCRouter({
       });
 
       return copy!;
+    }),
+
+  /** Validate a list of internal URLs against published CMS content */
+  validateLinks: contentProcedure
+    .input(z.object({ urls: z.array(z.string().max(500)).max(100) }))
+    .query(async ({ ctx, input }) => {
+      const results: { url: string; valid: boolean }[] = [];
+
+      for (const url of input.urls) {
+        // Normalize: strip leading slash, split segments
+        const clean = url.startsWith('/') ? url.slice(1) : url;
+        const parts = clean.split('/').filter(Boolean);
+
+        let valid = false;
+
+        if (parts.length === 0) {
+          // Root URL — always valid
+          valid = true;
+        } else if (parts.length === 1) {
+          // Single segment — check cmsPosts (pages) by slug
+          const [row] = await ctx.db
+            .select({ id: cmsPosts.id })
+            .from(cmsPosts)
+            .where(
+              and(
+                eq(cmsPosts.slug, parts[0]!),
+                eq(cmsPosts.status, ContentStatus.PUBLISHED),
+                isNull(cmsPosts.deletedAt)
+              )
+            )
+            .limit(1);
+          valid = !!row;
+        } else if (parts[0] === 'blog' && parts.length === 2) {
+          // /blog/slug — check cmsPosts with blog type
+          const [row] = await ctx.db
+            .select({ id: cmsPosts.id })
+            .from(cmsPosts)
+            .where(
+              and(
+                eq(cmsPosts.slug, parts[1]!),
+                eq(cmsPosts.status, ContentStatus.PUBLISHED),
+                isNull(cmsPosts.deletedAt)
+              )
+            )
+            .limit(1);
+          valid = !!row;
+        } else if (parts[0] === 'category' && parts.length === 2) {
+          // /category/slug — check cmsCategories
+          const [row] = await ctx.db
+            .select({ id: cmsCategories.id })
+            .from(cmsCategories)
+            .where(
+              and(
+                eq(cmsCategories.slug, parts[1]!),
+                eq(cmsCategories.status, ContentStatus.PUBLISHED),
+                isNull(cmsCategories.deletedAt)
+              )
+            )
+            .limit(1);
+          valid = !!row;
+        } else if (parts[0] === 'tag' && parts.length === 2) {
+          // /tag/slug — check cmsTerms
+          const [row] = await ctx.db
+            .select({ id: cmsTerms.id })
+            .from(cmsTerms)
+            .where(
+              and(
+                eq(cmsTerms.slug, parts[1]!),
+                eq(cmsTerms.taxonomyId, 'tag'),
+                isNull(cmsTerms.deletedAt)
+              )
+            )
+            .limit(1);
+          valid = !!row;
+        }
+
+        results.push({ url, valid });
+      }
+
+      return results;
+    }),
+
+  /** Duplicate a post as a translation in another language */
+  duplicateAsTranslation: contentProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        targetLang: z.string().min(2).max(5),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [source] = await ctx.db
+        .select()
+        .from(cmsPosts)
+        .where(eq(cmsPosts.id, input.id))
+        .limit(1);
+
+      if (!source) throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+
+      // Create or reuse translation group
+      const translationGroup = source.translationGroup ?? crypto.randomUUID();
+
+      // If source had no group, update it
+      if (!source.translationGroup) {
+        await ctx.db
+          .update(cmsPosts)
+          .set({ translationGroup })
+          .where(eq(cmsPosts.id, input.id));
+      }
+
+      // Generate unique slug
+      let slug = `${source.slug}-${input.targetLang}`;
+      const [existing] = await ctx.db
+        .select({ slug: cmsPosts.slug })
+        .from(cmsPosts)
+        .where(
+          and(
+            eq(cmsPosts.slug, slug),
+            eq(cmsPosts.lang, input.targetLang),
+            isNull(cmsPosts.deletedAt)
+          )
+        )
+        .limit(1);
+      if (existing) {
+        slug = `${slug}-${Date.now()}`;
+      }
+
+      const previewToken = crypto.randomBytes(32).toString('hex');
+
+      const [newPost] = await ctx.db
+        .insert(cmsPosts)
+        .values({
+          type: source.type,
+          title: source.title,
+          slug,
+          lang: input.targetLang,
+          content: source.content,
+          status: ContentStatus.DRAFT,
+          metaDescription: source.metaDescription,
+          seoTitle: source.seoTitle,
+          featuredImage: source.featuredImage,
+          featuredImageAlt: source.featuredImageAlt,
+          jsonLd: source.jsonLd,
+          noindex: source.noindex,
+          publishedAt: null,
+          previewToken,
+          translationGroup,
+          fallbackToDefault: source.fallbackToDefault,
+          parentId: source.parentId,
+          authorId: ctx.session.user.id as string,
+        })
+        .returning();
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action: 'duplicate',
+        entityType: 'post',
+        entityId: newPost!.id,
+        entityTitle: newPost!.title,
+        metadata: { originalId: input.id, targetLang: input.targetLang },
+      });
+
+      return { id: newPost!.id, slug: newPost!.slug };
     }),
 
   /** Export posts as JSON or CSV */
