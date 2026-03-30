@@ -684,6 +684,33 @@ export const cmsRouter = createTRPCRouter({
       return { id: newPost!.id, slug: newPost!.slug };
     }),
 
+  /** Get translation siblings for a post (other posts in the same translation group) */
+  getTranslationSiblings: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [post] = await ctx.db
+        .select({ translationGroup: cmsPosts.translationGroup })
+        .from(cmsPosts)
+        .where(eq(cmsPosts.id, input.id))
+        .limit(1);
+
+      if (!post?.translationGroup) return [];
+
+      const siblings = await ctx.db
+        .select({ id: cmsPosts.id, lang: cmsPosts.lang, slug: cmsPosts.slug })
+        .from(cmsPosts)
+        .where(
+          and(
+            eq(cmsPosts.translationGroup, post.translationGroup),
+            ne(cmsPosts.id, input.id),
+            isNull(cmsPosts.deletedAt)
+          )
+        )
+        .limit(20);
+
+      return siblings;
+    }),
+
   /** Export posts as JSON or CSV */
   exportPosts: contentProcedure
     .input(

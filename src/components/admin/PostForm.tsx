@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
-import Link from 'next/link';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
 import { useSession } from '@/lib/auth-client';
@@ -12,17 +11,45 @@ import { slugify } from '@/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus, PostType } from '@/types/cms';
 import { toast } from '@/store/toast-store';
-import { cn } from '@/lib/utils';
+import { DEFAULT_LOCALE } from '@/lib/constants';
+import { convertUTCToLocal, convertLocalToUTC } from '@/lib/datetime';
+import { useCmsFormState } from '@/hooks/useCmsFormState';
+import { useLinkPicker } from '@/hooks/useLinkPicker';
+import { useLinkValidation } from '@/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/hooks/useCmsAutosave';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import AutosaveIndicator from './AutosaveIndicator';
 import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
+import BrokenLinksBanner from './BrokenLinksBanner';
 import CmsFormShell from './CmsFormShell';
+import { FallbackRadio } from './FallbackRadio';
+import InternalLinkDialog from './InternalLinkDialog';
+import { MediaPickerDialog } from './MediaPickerDialog';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
-import { MediaPickerDialog } from './MediaPickerDialog';
+import { SEOFields } from './SEOFields';
 import { SeoPreviewCard } from './SeoPreviewCard';
 import { TagInput } from './TagInput';
+import { TranslationBar } from './TranslationBar';
+
+interface PostFormData extends Record<string, unknown> {
+  title: string;
+  slug: string;
+  content: string;
+  status: number;
+  lang: string;
+  metaDescription: string;
+  seoTitle: string;
+  featuredImage: string;
+  featuredImageAlt: string;
+  jsonLd: string;
+  noindex: boolean;
+  publishedAt: string;
+  categoryIds: string[];
+  tagIds: string[];
+  parentId: string | null;
+  fallbackToDefault: boolean | null;
+}
 
 interface Props {
   contentType: ContentTypeDeclaration;
@@ -36,27 +63,18 @@ export function PostForm({ contentType, postId }: Props) {
   const { data: session } = useSession();
   const isNew = !postId;
 
-  // Form state
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
+  // UI-only state (not part of form data)
   const [slugManual, setSlugManual] = useState(false);
-  const [content, setContent] = useState('');
-  const [status, setStatus] = useState<number>(ContentStatus.DRAFT);
-  const [lang, setLang] = useState('en');
-  const [metaDescription, setMetaDescription] = useState('');
-  const [seoTitle, setSeoTitle] = useState('');
-  const [featuredImage, setFeaturedImage] = useState('');
-  const [featuredImageAlt, setFeaturedImageAlt] = useState('');
-  const [jsonLd, setJsonLd] = useState('');
-  const [noindex, setNoindex] = useState(false);
-  const [publishedAt, setPublishedAt] = useState('');
-  const [categoryIds, setCategoryIds] = useState<string[]>([]);
-  const [tagIds, setTagIds] = useState<string[]>([]);
-  const [parentId, setParentId] = useState<string | null>(null);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   // Fetch existing post (wait for session to avoid UNAUTHORIZED on first render)
   const existingPost = trpc.cms.get.useQuery(
+    { id: postId! },
+    { enabled: !!postId && !!session }
+  );
+
+  // Fetch translation siblings (edit mode only)
+  const translationSiblings = trpc.cms.getTranslationSiblings.useQuery(
     { id: postId! },
     { enabled: !!postId && !!session }
   );
@@ -67,41 +85,94 @@ export function PostForm({ contentType, postId }: Props) {
     { enabled: !!session },
   );
 
-  // Populate form with existing data
-  useEffect(() => {
-    if (existingPost.data) {
-      const p = existingPost.data;
-      setTitle(p.title);
-      setSlug(p.slug);
-      setSlugManual(true);
-      setContent(p.content);
-      setStatus(p.status);
-      setLang(p.lang);
-      setMetaDescription(p.metaDescription ?? '');
-      setSeoTitle(p.seoTitle ?? '');
-      setFeaturedImage(p.featuredImage ?? '');
-      setFeaturedImageAlt(p.featuredImageAlt ?? '');
-      setJsonLd(p.jsonLd ?? '');
-      setNoindex(p.noindex);
-      setPublishedAt(
-        p.publishedAt ? new Date(p.publishedAt).toISOString().slice(0, 16) : ''
-      );
-      setCategoryIds(p.categoryIds ?? []);
-      setTagIds(p.tagIds ?? []);
-      setParentId((p as unknown as { parentId: string | null }).parentId ?? null);
-    }
-  }, [existingPost.data]);
+  // Page tree for parent page selector (pages only)
+  const isPageType = contentType.postType === PostType.PAGE;
+  const pageTree = trpc.cms.getPageTree.useQuery(
+    { lang: 'en' },
+    { enabled: isPageType && !!session }
+  );
 
-  // Auto-generate slug from title
+  const post = existingPost.data;
+
+  // Compute initial form data from post
+  const initialFormData: PostFormData = useMemo(() => {
+    if (!post) {
+      return {
+        title: '', slug: '', content: '', status: ContentStatus.DRAFT,
+        lang: DEFAULT_LOCALE, metaDescription: '', seoTitle: '',
+        featuredImage: '', featuredImageAlt: '', jsonLd: '', noindex: false,
+        publishedAt: '', categoryIds: [], tagIds: [], parentId: null,
+        fallbackToDefault: null,
+      };
+    }
+    return {
+      title: post.title,
+      slug: post.slug,
+      content: post.content ?? '',
+      status: post.status,
+      lang: post.lang ?? DEFAULT_LOCALE,
+      metaDescription: post.metaDescription ?? '',
+      seoTitle: post.seoTitle ?? '',
+      featuredImage: post.featuredImage ?? '',
+      featuredImageAlt: post.featuredImageAlt ?? '',
+      jsonLd: post.jsonLd ?? '',
+      noindex: post.noindex ?? false,
+      publishedAt: post.publishedAt ? convertUTCToLocal(post.publishedAt) : '',
+      categoryIds: post.categoryIds ?? [],
+      tagIds: post.tagIds ?? [],
+      parentId: (post as unknown as { parentId: string | null }).parentId ?? null,
+      fallbackToDefault: post.fallbackToDefault ?? null,
+    };
+  }, [post]);
+
+  const {
+    formData, setFormData, saving, setSaving,
+    fieldErrors, setFieldErrors, handleChange, fieldErrorClass, handleSaveError,
+    initialData,
+  } = useCmsFormState<PostFormData>(initialFormData, 'info');
+
+  // Sync form data when post loads (replaces old useEffect with many setState calls)
+  useEffect(() => {
+    if (post) {
+      setFormData({
+        title: post.title,
+        slug: post.slug,
+        content: post.content ?? '',
+        status: post.status,
+        lang: post.lang ?? DEFAULT_LOCALE,
+        metaDescription: post.metaDescription ?? '',
+        seoTitle: post.seoTitle ?? '',
+        featuredImage: post.featuredImage ?? '',
+        featuredImageAlt: post.featuredImageAlt ?? '',
+        jsonLd: post.jsonLd ?? '',
+        noindex: post.noindex ?? false,
+        publishedAt: post.publishedAt ? convertUTCToLocal(post.publishedAt) : '',
+        categoryIds: post.categoryIds ?? [],
+        tagIds: post.tagIds ?? [],
+        parentId: (post as unknown as { parentId: string | null }).parentId ?? null,
+        fallbackToDefault: post.fallbackToDefault ?? null,
+      });
+      setSlugManual(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post]);
+
+  // Auto-generate slug from title (new posts only)
   useEffect(() => {
     if (!slugManual && isNew) {
-      setSlug(slugify(title));
+      handleChange('slug', slugify(formData.title));
     }
-  }, [title, slugManual, isNew]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.title, slugManual, isNew]);
+
+  // New hooks
+  const { linkPickerOpen, openLinkPicker, closeLinkPicker, handleLinkSelect, editorRef } = useLinkPicker();
+  const { brokenLinks, validateLinks, dismissBrokenLinks } = useLinkValidation();
+  const duplicateAsTranslation = trpc.cms.duplicateAsTranslation.useMutation();
 
   const createPost = trpc.cms.create.useMutation({
     onSuccess: (data) => {
-      clearAutosave(currentData);
+      clearAutosave(formData);
       toast.success(__(`${contentType.label} created`));
       utils.cms.list.invalidate();
       utils.cms.counts.invalidate();
@@ -112,32 +183,15 @@ export function PostForm({ contentType, postId }: Props) {
 
   const updatePost = trpc.cms.update.useMutation({
     onSuccess: () => {
-      clearAutosave(currentData);
+      clearAutosave(formData);
       toast.success(__(`${contentType.label} updated`));
       utils.cms.list.invalidate();
       existingPost.refetch();
+      // Post-save link validation
+      validateLinks(formData.content);
     },
     onError: (err) => toast.error(err.message),
   });
-
-  const currentData = useMemo(() => ({
-    title, slug, content, status, metaDescription, seoTitle,
-    featuredImage, featuredImageAlt, jsonLd, noindex, publishedAt, lang,
-  }), [title, slug, content, status, metaDescription, seoTitle, featuredImage, featuredImageAlt, jsonLd, noindex, publishedAt, lang]);
-
-  const initialData = useMemo(() => {
-    const p = existingPost.data;
-    if (!p) return currentData;
-    return {
-      title: p.title, slug: p.slug, content: p.content, status: p.status,
-      metaDescription: p.metaDescription ?? '', seoTitle: p.seoTitle ?? '',
-      featuredImage: p.featuredImage ?? '', featuredImageAlt: p.featuredImageAlt ?? '',
-      jsonLd: p.jsonLd ?? '', noindex: p.noindex,
-      publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString().slice(0, 16) : '',
-      lang: p.lang,
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingPost.data]);
 
   const isSaving = createPost.isPending || updatePost.isPending;
 
@@ -151,19 +205,12 @@ export function PostForm({ contentType, postId }: Props) {
   } = useCmsAutosave({
     contentTypeId: contentType.id,
     contentId: postId ?? null,
-    formData: currentData,
+    formData,
     initialData,
     dbUpdatedAt: existingPost.data?.updatedAt ?? null,
     saving: isSaving,
     loading: !!postId && existingPost.isLoading,
   });
-
-  // Page tree for parent page selector (pages only)
-  const isPageType = contentType.postType === PostType.PAGE;
-  const pageTree = trpc.cms.getPageTree.useQuery(
-    { lang: 'en' },
-    { enabled: isPageType && !!session }
-  );
 
   // Use ref so keyboard shortcut always calls the latest handlePublish
   const handlePublishRef = useRef(handlePublish);
@@ -197,21 +244,27 @@ export function PostForm({ contentType, postId }: Props) {
   const handleRestore = useCallback(() => {
     if (!recoveredData) return;
     const d = recoveredData.formData;
-    setTitle(d.title as string);
-    setSlug(d.slug as string);
+    setFormData({
+      title: d.title as string,
+      slug: d.slug as string,
+      content: d.content as string,
+      status: d.status as number,
+      lang: d.lang as string,
+      metaDescription: d.metaDescription as string,
+      seoTitle: d.seoTitle as string,
+      featuredImage: d.featuredImage as string,
+      featuredImageAlt: d.featuredImageAlt as string,
+      jsonLd: d.jsonLd as string,
+      noindex: d.noindex as boolean,
+      publishedAt: d.publishedAt as string,
+      categoryIds: d.categoryIds as string[],
+      tagIds: d.tagIds as string[],
+      parentId: d.parentId as string | null,
+      fallbackToDefault: d.fallbackToDefault as boolean | null,
+    });
     setSlugManual(true);
-    setContent(d.content as string);
-    setStatus(d.status as number);
-    setMetaDescription(d.metaDescription as string);
-    setSeoTitle(d.seoTitle as string);
-    setFeaturedImage(d.featuredImage as string);
-    setFeaturedImageAlt(d.featuredImageAlt as string);
-    setJsonLd(d.jsonLd as string);
-    setNoindex(d.noindex as boolean);
-    setPublishedAt(d.publishedAt as string);
-    setLang(d.lang as string);
     acceptRecovery();
-  }, [recoveredData, acceptRecovery]);
+  }, [recoveredData, acceptRecovery, setFormData]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -219,47 +272,49 @@ export function PostForm({ contentType, postId }: Props) {
     if (isNew) {
       createPost.mutate({
         type: contentType.postType!,
-        title,
-        slug,
-        lang,
-        content,
-        status,
-        metaDescription: metaDescription || undefined,
-        seoTitle: seoTitle || undefined,
-        featuredImage: featuredImage || undefined,
-        featuredImageAlt: featuredImageAlt || undefined,
-        jsonLd: jsonLd || undefined,
-        noindex,
-        publishedAt: publishedAt ? new Date(publishedAt).toISOString() : undefined,
-        parentId: parentId ?? undefined,
-        categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
-        tagIds: tagIds.length > 0 ? tagIds : undefined,
+        title: formData.title,
+        slug: formData.slug,
+        lang: formData.lang,
+        content: formData.content,
+        status: formData.status,
+        metaDescription: formData.metaDescription || undefined,
+        seoTitle: formData.seoTitle || undefined,
+        featuredImage: formData.featuredImage || undefined,
+        featuredImageAlt: formData.featuredImageAlt || undefined,
+        jsonLd: formData.jsonLd || undefined,
+        noindex: formData.noindex,
+        publishedAt: formData.publishedAt ? convertLocalToUTC(formData.publishedAt) : undefined,
+        parentId: formData.parentId ?? undefined,
+        categoryIds: formData.categoryIds.length > 0 ? formData.categoryIds : undefined,
+        tagIds: formData.tagIds.length > 0 ? formData.tagIds : undefined,
+        fallbackToDefault: formData.fallbackToDefault ?? undefined,
       });
     } else {
       updatePost.mutate({
         id: postId!,
-        title,
-        slug,
-        content,
-        status,
-        metaDescription: metaDescription || null,
-        seoTitle: seoTitle || null,
-        featuredImage: featuredImage || null,
-        featuredImageAlt: featuredImageAlt || null,
-        jsonLd: jsonLd || null,
-        noindex,
-        publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
-        parentId,
-        categoryIds,
-        tagIds,
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        status: formData.status,
+        metaDescription: formData.metaDescription || null,
+        seoTitle: formData.seoTitle || null,
+        featuredImage: formData.featuredImage || null,
+        featuredImageAlt: formData.featuredImageAlt || null,
+        jsonLd: formData.jsonLd || null,
+        noindex: formData.noindex,
+        publishedAt: formData.publishedAt ? convertLocalToUTC(formData.publishedAt) : null,
+        parentId: formData.parentId,
+        categoryIds: formData.categoryIds,
+        tagIds: formData.tagIds,
+        fallbackToDefault: formData.fallbackToDefault,
       });
     }
   }
 
   function handlePublish() {
-    setStatus(ContentStatus.PUBLISHED);
-    if (!publishedAt) {
-      setPublishedAt(new Date().toISOString().slice(0, 16));
+    handleChange('status', ContentStatus.PUBLISHED);
+    if (!formData.publishedAt) {
+      handleChange('publishedAt', new Date().toISOString().slice(0, 16));
     }
     setTimeout(() => {
       const form = document.getElementById('post-form') as HTMLFormElement;
@@ -268,10 +323,11 @@ export function PostForm({ contentType, postId }: Props) {
   }
 
   function toggleCategory(catId: string) {
-    setCategoryIds((prev) =>
-      prev.includes(catId)
-        ? prev.filter((id) => id !== catId)
-        : [...prev, catId]
+    handleChange(
+      'categoryIds',
+      formData.categoryIds.includes(catId)
+        ? formData.categoryIds.filter((id) => id !== catId)
+        : [...formData.categoryIds, catId]
     );
   }
 
@@ -286,12 +342,16 @@ export function PostForm({ contentType, postId }: Props) {
   const toolbar = (
     <>
       <div className="flex items-center gap-3">
-        <Link
-          href={`/dashboard/cms/${contentType.adminSlug}`}
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 1) router.back();
+            else router.push(`/dashboard/cms/${contentType.adminSlug}`);
+          }}
           className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
         >
           <ArrowLeft className="h-5 w-5" />
-        </Link>
+        </button>
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {isNew
             ? __(`New ${contentType.label}`)
@@ -302,7 +362,7 @@ export function PostForm({ contentType, postId }: Props) {
         <AutosaveIndicator lastAutosaveAt={lastAutosaveAt} isDirty={isDirty} />
         {existingPost.data?.previewToken && (
           <a
-            href={`${contentType.urlPrefix}${slug}?preview=${existingPost.data.previewToken}`}
+            href={`${contentType.urlPrefix}${formData.slug}?preview=${existingPost.data.previewToken}`}
             target="_blank"
             rel="noopener noreferrer"
             className="admin-btn admin-btn-secondary"
@@ -311,11 +371,11 @@ export function PostForm({ contentType, postId }: Props) {
             {__('Preview')}
           </a>
         )}
-        {status !== ContentStatus.PUBLISHED && (
+        {formData.status !== ContentStatus.PUBLISHED && (
           <button
             type="button"
             onClick={handlePublish}
-            disabled={isSaving || !title}
+            disabled={isSaving || !formData.title}
             className="admin-btn admin-btn-primary disabled:opacity-50"
           >
             {__('Publish')}
@@ -324,7 +384,7 @@ export function PostForm({ contentType, postId }: Props) {
         <button
           type="submit"
           form="post-form"
-          disabled={isSaving || !title}
+          disabled={isSaving || !formData.title}
           className="admin-btn admin-btn-primary disabled:opacity-50"
         >
           {isSaving ? (
@@ -348,6 +408,8 @@ export function PostForm({ contentType, postId }: Props) {
         />
       )}
 
+      <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
+
       <form id="post-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main content — 2/3 */}
@@ -360,8 +422,8 @@ export function PostForm({ contentType, postId }: Props) {
               <input
                 type="text"
                 required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={formData.title}
+                onChange={(e) => handleChange('title', e.target.value)}
                 className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder={__(`${contentType.label} title`)}
               />
@@ -371,9 +433,9 @@ export function PostForm({ contentType, postId }: Props) {
               </label>
               <input
                 type="text"
-                value={slug}
+                value={formData.slug}
                 onChange={(e) => {
-                  setSlug(e.target.value);
+                  handleChange('slug', e.target.value);
                   setSlugManual(true);
                 }}
                 className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -387,9 +449,13 @@ export function PostForm({ contentType, postId }: Props) {
                 {__('Content')}
               </label>
               <RichTextEditor
-                content={content}
-                onChange={setContent}
+                content={formData.content}
+                onChange={(v) => handleChange('content', v)}
                 placeholder={__('Start writing your content...')}
+                postId={post?.id}
+                storageKey={`post-${post?.id ?? 'new'}`}
+                onRequestLinkPicker={openLinkPicker}
+                editorRef={editorRef}
               />
             </div>
 
@@ -397,54 +463,25 @@ export function PostForm({ contentType, postId }: Props) {
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('SEO')}</h3>
               <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-(--text-secondary)">
-                    {__('SEO Title')}
-                  </label>
-                  <input
-                    type="text"
-                    value={seoTitle}
-                    onChange={(e) => setSeoTitle(e.target.value)}
-                    maxLength={100}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder={__('Custom title for search engines')}
-                  />
-                  <p className="mt-1 text-xs text-(--text-muted)">
-                    {seoTitle.length}/100
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-(--text-secondary)">
-                    {__('Meta Description')}
-                  </label>
-                  <textarea
-                    value={metaDescription}
-                    onChange={(e) => setMetaDescription(e.target.value)}
-                    maxLength={500}
-                    rows={3}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder={__('Description for search engines')}
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={noindex}
-                    onChange={(e) => setNoindex(e.target.checked)}
-                    className="rounded border-(--border-primary)"
-                  />
-                  {__('No-index (hide from search engines)')}
-                </label>
+                <SEOFields
+                  seoTitle={formData.seoTitle}
+                  metaDescription={formData.metaDescription}
+                  noindex={formData.noindex}
+                  onSeoTitleChange={(v) => handleChange('seoTitle', v)}
+                  onMetaDescriptionChange={(v) => handleChange('metaDescription', v)}
+                  onNoindexChange={(v) => handleChange('noindex', v)}
+                  fieldErrors={fieldErrors}
+                />
               </div>
             </div>
 
             {/* SEO Preview */}
             <SeoPreviewCard
-              title={seoTitle || title}
-              description={metaDescription}
-              slug={slug}
+              title={formData.seoTitle || formData.title}
+              description={formData.metaDescription}
+              slug={formData.slug}
               urlPrefix={contentType.urlPrefix}
-              featuredImage={featuredImage || undefined}
+              featuredImage={formData.featuredImage || undefined}
             />
 
             {/* Revision History */}
@@ -452,7 +489,7 @@ export function PostForm({ contentType, postId }: Props) {
               <RevisionHistory
                 contentType="post"
                 contentId={postId}
-                currentData={currentData}
+                currentData={formData}
                 onRestored={() => existingPost.refetch()}
               />
             )}
@@ -462,8 +499,8 @@ export function PostForm({ contentType, postId }: Props) {
               <div className="admin-card p-6">
                 <h3 className="admin-h2">{__('Structured Data (JSON-LD)')}</h3>
                 <textarea
-                  value={jsonLd}
-                  onChange={(e) => setJsonLd(e.target.value)}
+                  value={formData.jsonLd}
+                  onChange={(e) => handleChange('jsonLd', e.target.value)}
                   rows={6}
                   className="mt-3 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder='{"@context": "https://schema.org", ...}'
@@ -483,8 +520,8 @@ export function PostForm({ contentType, postId }: Props) {
                     {__('Status')}
                   </label>
                   <select
-                    value={status}
-                    onChange={(e) => setStatus(Number(e.target.value))}
+                    value={formData.status}
+                    onChange={(e) => handleChange('status', Number(e.target.value))}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
@@ -503,25 +540,50 @@ export function PostForm({ contentType, postId }: Props) {
                   </label>
                   <input
                     type="datetime-local"
-                    value={publishedAt}
-                    onChange={(e) => setPublishedAt(e.target.value)}
+                    value={formData.publishedAt}
+                    onChange={(e) => handleChange('publishedAt', e.target.value)}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-(--text-secondary)">
-                    {__('Language')}
-                  </label>
-                  <select
-                    value={lang}
-                    onChange={(e) => setLang(e.target.value)}
-                    disabled={!isNew}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-(--surface-secondary)"
-                  >
-                    <option value="en">English</option>
-                  </select>
+                  {post && translationSiblings.data ? (
+                    <TranslationBar
+                      currentLang={formData.lang}
+                      translations={translationSiblings.data}
+                      adminSlug={contentType.adminSlug}
+                      onDuplicate={async (targetLang) => {
+                        const result = await duplicateAsTranslation.mutateAsync({
+                          id: post.id,
+                          targetLang,
+                        });
+                        router.push(`/dashboard/cms/${contentType.adminSlug}/${result.id}`);
+                      }}
+                    />
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-(--text-secondary)">
+                        {__('Language')}
+                      </label>
+                      <select
+                        value={formData.lang}
+                        onChange={(e) => handleChange('lang', e.target.value)}
+                        disabled={!isNew}
+                        className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-(--surface-secondary)"
+                      >
+                        <option value="en">English</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
+
+                {post && (
+                  <FallbackRadio
+                    value={formData.fallbackToDefault}
+                    onChange={(v) => handleChange('fallbackToDefault', v)}
+                    ct={contentType}
+                  />
+                )}
               </div>
             </div>
 
@@ -530,8 +592,8 @@ export function PostForm({ contentType, postId }: Props) {
               <div className="admin-card p-6">
                 <h3 className="admin-h2">{__('Parent Page')}</h3>
                 <select
-                  value={parentId ?? ''}
-                  onChange={(e) => setParentId(e.target.value || null)}
+                  value={formData.parentId ?? ''}
+                  onChange={(e) => handleChange('parentId', e.target.value || null)}
                   className="mt-3 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">{__('None (top level)')}</option>
@@ -564,7 +626,7 @@ export function PostForm({ contentType, postId }: Props) {
                     >
                       <input
                         type="checkbox"
-                        checked={categoryIds.includes(cat.id)}
+                        checked={formData.categoryIds.includes(cat.id)}
                         onChange={() => toggleCategory(cat.id)}
                         className="rounded border-(--border-primary)"
                       />
@@ -580,9 +642,9 @@ export function PostForm({ contentType, postId }: Props) {
               <h3 className="admin-h2">{__('Tags')}</h3>
               <div className="mt-3">
                 <TagInput
-                  selectedTagIds={tagIds}
-                  onChange={setTagIds}
-                  lang={lang}
+                  selectedTagIds={formData.tagIds}
+                  onChange={(v) => handleChange('tagIds', v)}
+                  lang={formData.lang}
                 />
               </div>
             </div>
@@ -592,18 +654,18 @@ export function PostForm({ contentType, postId }: Props) {
               <div className="admin-card p-6">
                 <h3 className="admin-h2">{__('Featured Image')}</h3>
                 <div className="mt-4 space-y-3">
-                  {featuredImage ? (
+                  {formData.featuredImage ? (
                     <div className="relative">
                       <img
-                        src={featuredImage}
-                        alt={featuredImageAlt || 'Preview'}
+                        src={formData.featuredImage}
+                        alt={formData.featuredImageAlt || 'Preview'}
                         className="h-32 w-full rounded-md border border-(--border-primary) object-cover"
                       />
                       <button
                         type="button"
                         onClick={() => {
-                          setFeaturedImage('');
-                          setFeaturedImageAlt('');
+                          handleChange('featuredImage', '');
+                          handleChange('featuredImageAlt', '');
                         }}
                         className="absolute right-1 top-1 rounded bg-(--surface-primary)/90 p-1 shadow-sm hover:bg-(--surface-primary)"
                       >
@@ -620,7 +682,7 @@ export function PostForm({ contentType, postId }: Props) {
                       {__('Select Image')}
                     </button>
                   )}
-                  {featuredImage && (
+                  {formData.featuredImage && (
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -631,15 +693,15 @@ export function PostForm({ contentType, postId }: Props) {
                       </button>
                     </div>
                   )}
-                  {featuredImage && (
+                  {formData.featuredImage && (
                     <div>
                       <label className="block text-sm font-medium text-(--text-secondary)">
                         {__('Alt Text')}
                       </label>
                       <input
                         type="text"
-                        value={featuredImageAlt}
-                        onChange={(e) => setFeaturedImageAlt(e.target.value)}
+                        value={formData.featuredImageAlt}
+                        onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
                         className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder={__('Describe the image')}
                       />
@@ -657,9 +719,16 @@ export function PostForm({ contentType, postId }: Props) {
         open={showMediaPicker}
         onClose={() => setShowMediaPicker(false)}
         onSelect={(url, alt) => {
-          setFeaturedImage(url);
-          if (alt) setFeaturedImageAlt(alt);
+          handleChange('featuredImage', url);
+          if (alt) handleChange('featuredImageAlt', alt);
         }}
+      />
+
+      {/* Internal Link Dialog */}
+      <InternalLinkDialog
+        isOpen={linkPickerOpen}
+        onClose={closeLinkPicker}
+        onSelect={handleLinkSelect}
       />
     </CmsFormShell>
   );
