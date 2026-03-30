@@ -36,7 +36,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
 import { SHORTCODE_REGISTRY } from '@/lib/shortcodes/registry';
-import { htmlToMarkdown, markdownToHtml } from '@/lib/markdown';
+import { htmlToMarkdown, markdownToHtml } from '@/engine/lib/markdown';
 import { ShortcodeNode } from './shortcodes/ShortcodeNode';
 import { prepareForEditor, serializeForStorage } from './shortcodes/shortcode-utils';
 import { toast } from '@/store/toast-store';

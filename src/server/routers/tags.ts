@@ -3,7 +3,7 @@ import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsTerms, cmsTermRelationships } from '@/server/db/schema';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus } from '@/engine/types/cms';
 import {
   buildAdminList,
   buildStatusCounts,
@@ -18,7 +18,7 @@ import {
   deleteTermRelationshipsByTerm,
   resolveTagsForPosts,
 } from '@/server/utils/taxonomy-helpers';
-import { slugify } from '@/lib/slug';
+import { slugify } from '@/engine/lib/slug';
 import {
   createTRPCRouter,
   publicProcedure,

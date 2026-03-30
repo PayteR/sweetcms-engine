@@ -9,7 +9,7 @@
 import { db } from '../server/db';
 import { cmsPosts, cmsCategories } from '../server/db/schema';
 import { eq } from 'drizzle-orm';
-import { htmlToMarkdown } from '../lib/markdown';
+import { htmlToMarkdown } from '../engine/lib/markdown';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 

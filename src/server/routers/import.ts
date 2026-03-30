@@ -1,13 +1,13 @@
 import crypto from 'crypto';
 import { z } from 'zod';
 
-import { slugify } from '@/lib/slug';
+import { slugify } from '@/engine/lib/slug';
 import { cmsPosts } from '@/server/db/schema';
 import { logAudit } from '@/server/utils/audit';
 import { parseCSV } from '@/server/utils/importers/csv';
 import { parseGhostJSON } from '@/server/utils/importers/ghost';
 import { parseWordPressWXR } from '@/server/utils/importers/wordpress';
-import { ContentStatus, PostType } from '@/types/cms';
+import { ContentStatus, PostType } from '@/engine/types/cms';
 
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 

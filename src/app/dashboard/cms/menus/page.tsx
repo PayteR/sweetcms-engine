@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
-import { slugify } from '@/lib/slug';
+import { slugify } from '@/engine/lib/slug';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function MenusPage() {

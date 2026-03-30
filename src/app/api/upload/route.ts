@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 import { auth } from '@/lib/auth';
-import { Policy } from '@/lib/policy';
+import { Policy } from '@/engine/policy';
 import { getStorage } from '@/server/storage';
-import { slugifyFilename } from '@/lib/slug';
+import { slugifyFilename } from '@/engine/lib/slug';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);

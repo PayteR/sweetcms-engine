@@ -4,8 +4,8 @@ import { z } from 'zod';
 
 import { cmsMedia } from '@/server/db/schema';
 import { getStorage } from '@/server/storage';
-import { slugifyFilename } from '@/lib/slug';
-import { FileType } from '@/types/cms';
+import { slugifyFilename } from '@/engine/lib/slug';
+import { FileType } from '@/engine/types/cms';
 import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
 import {
   createTRPCRouter,

@@ -6,10 +6,10 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 import { trpc } from '@/lib/trpc/client';
-import { slugify } from '@/lib/slug';
+import { slugify } from '@/engine/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
 
 interface Props {
