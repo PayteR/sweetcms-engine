@@ -3,23 +3,52 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 
+import { getContentType } from '@/config/cms';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
+import { DEFAULT_LOCALE } from '@/lib/constants';
+import { convertUTCToLocal, convertLocalToUTC } from '@/lib/datetime';
+import { useCmsFormState } from '@/hooks/useCmsFormState';
+import { useLinkPicker } from '@/hooks/useLinkPicker';
+import { useLinkValidation } from '@/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/hooks/useCmsAutosave';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import AutosaveIndicator from './AutosaveIndicator';
 import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
+import BrokenLinksBanner from './BrokenLinksBanner';
 import CmsFormShell from './CmsFormShell';
+import { FallbackRadio } from './FallbackRadio';
+import InternalLinkDialog from './InternalLinkDialog';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
+import { SEOFields } from './SEOFields';
 import { SeoPreviewCard } from './SeoPreviewCard';
 import { TagInput } from './TagInput';
+import { TranslationBar } from './TranslationBar';
+
+interface CategoryFormData extends Record<string, unknown> {
+  name: string;
+  slug: string;
+  title: string;
+  text: string;
+  status: number;
+  lang: string;
+  icon: string;
+  order: number;
+  metaDescription: string;
+  seoTitle: string;
+  noindex: boolean;
+  publishedAt: string;
+  tagIds: string[];
+  fallbackToDefault: boolean | null;
+}
+
+const categoryContentType = getContentType('category');
 
 interface Props {
   categoryId?: string;
@@ -32,64 +61,104 @@ export function CategoryForm({ categoryId }: Props) {
   const { data: session } = useSession();
   const isNew = !categoryId;
 
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
+  // UI-only state (not part of form data)
   const [slugManual, setSlugManual] = useState(false);
-  const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
-  const [status, setStatus] = useState<number>(ContentStatus.DRAFT);
-  const [lang, setLang] = useState('en');
-  const [icon, setIcon] = useState('');
-  const [order, setOrder] = useState(0);
-  const [metaDescription, setMetaDescription] = useState('');
-  const [seoTitle, setSeoTitle] = useState('');
-  const [noindex, setNoindex] = useState(false);
-  const [publishedAt, setPublishedAt] = useState('');
-  const [tagIds, setTagIds] = useState<string[]>([]);
 
+  // Fetch existing category (wait for session to avoid UNAUTHORIZED on first render)
   const existingCat = trpc.categories.get.useQuery(
     { id: categoryId! },
     { enabled: !!categoryId && !!session }
   );
 
-  useEffect(() => {
-    if (existingCat.data) {
-      const c = existingCat.data;
-      setName(c.name);
-      setSlug(c.slug);
-      setSlugManual(true);
-      setTitle(c.title);
-      setText(c.text);
-      setStatus(c.status);
-      setLang(c.lang);
-      setIcon(c.icon ?? '');
-      setOrder(c.order);
-      setMetaDescription(c.metaDescription ?? '');
-      setSeoTitle(c.seoTitle ?? '');
-      setNoindex(c.noindex);
-      setPublishedAt(
-        c.publishedAt ? new Date(c.publishedAt).toISOString().slice(0, 16) : ''
-      );
-      if (c.tagIds) setTagIds(c.tagIds);
-    }
-  }, [existingCat.data]);
+  // Fetch translation siblings (edit mode only)
+  const translationSiblings = trpc.categories.getTranslationSiblings.useQuery(
+    { id: categoryId! },
+    { enabled: !!categoryId && !!session }
+  );
 
+  const cat = existingCat.data;
+
+  // Compute initial form data from category
+  const initialFormData: CategoryFormData = useMemo(() => {
+    if (!cat) {
+      return {
+        name: '', slug: '', title: '', text: '', status: ContentStatus.DRAFT,
+        lang: DEFAULT_LOCALE, icon: '', order: 0, metaDescription: '', seoTitle: '',
+        noindex: false, publishedAt: '', tagIds: [], fallbackToDefault: null,
+      };
+    }
+    return {
+      name: cat.name,
+      slug: cat.slug,
+      title: cat.title,
+      text: cat.text,
+      status: cat.status,
+      lang: cat.lang ?? DEFAULT_LOCALE,
+      icon: cat.icon ?? '',
+      order: cat.order,
+      metaDescription: cat.metaDescription ?? '',
+      seoTitle: cat.seoTitle ?? '',
+      noindex: cat.noindex ?? false,
+      publishedAt: cat.publishedAt ? convertUTCToLocal(cat.publishedAt) : '',
+      tagIds: cat.tagIds ?? [],
+      fallbackToDefault: cat.fallbackToDefault ?? null,
+    };
+  }, [cat]);
+
+  const {
+    formData, setFormData, saving, setSaving,
+    fieldErrors, setFieldErrors, handleChange, fieldErrorClass, handleSaveError,
+    initialData,
+  } = useCmsFormState<CategoryFormData>(initialFormData, 'info');
+
+  // Sync form data when category loads
+  useEffect(() => {
+    if (cat) {
+      setFormData({
+        name: cat.name,
+        slug: cat.slug,
+        title: cat.title,
+        text: cat.text,
+        status: cat.status,
+        lang: cat.lang ?? DEFAULT_LOCALE,
+        icon: cat.icon ?? '',
+        order: cat.order,
+        metaDescription: cat.metaDescription ?? '',
+        seoTitle: cat.seoTitle ?? '',
+        noindex: cat.noindex ?? false,
+        publishedAt: cat.publishedAt ? convertUTCToLocal(cat.publishedAt) : '',
+        tagIds: cat.tagIds ?? [],
+        fallbackToDefault: cat.fallbackToDefault ?? null,
+      });
+      setSlugManual(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cat]);
+
+  // Auto-generate slug from name (new categories only)
   useEffect(() => {
     if (!slugManual && isNew) {
-      setSlug(slugify(name));
+      handleChange('slug', slugify(formData.name));
     }
-  }, [name, slugManual, isNew]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.name, slugManual, isNew]);
 
-  // Auto-fill title from name
+  // Auto-fill title from name (new categories only, only when title is empty)
   useEffect(() => {
-    if (isNew && !title) {
-      setTitle(name);
+    if (isNew && !formData.title) {
+      handleChange('title', formData.name);
     }
-  }, [name, isNew, title]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.name, isNew, formData.title]);
+
+  // New hooks
+  const { linkPickerOpen, openLinkPicker, closeLinkPicker, handleLinkSelect, editorRef } = useLinkPicker();
+  const { brokenLinks, validateLinks, dismissBrokenLinks } = useLinkValidation();
+  const duplicateAsTranslation = trpc.categories.duplicateAsTranslation.useMutation();
 
   const createCat = trpc.categories.create.useMutation({
     onSuccess: (data) => {
-      clearAutosave(currentData);
+      clearAutosave(formData);
       toast.success(__('Category created'));
       utils.categories.list.invalidate();
       utils.categories.counts.invalidate();
@@ -100,32 +169,15 @@ export function CategoryForm({ categoryId }: Props) {
 
   const updateCat = trpc.categories.update.useMutation({
     onSuccess: () => {
-      clearAutosave(currentData);
+      clearAutosave(formData);
       toast.success(__('Category updated'));
       utils.categories.list.invalidate();
       existingCat.refetch();
+      // Post-save link validation
+      validateLinks(formData.text);
     },
     onError: (err) => toast.error(err.message),
   });
-
-  const currentData = useMemo(() => ({
-    name, slug, title, text, status, metaDescription, seoTitle,
-    icon, order, noindex, publishedAt, lang,
-  }), [name, slug, title, text, status, metaDescription, seoTitle, icon, order, noindex, publishedAt, lang]);
-
-  const initialData = useMemo(() => {
-    const c = existingCat.data;
-    if (!c) return currentData;
-    return {
-      name: c.name, slug: c.slug, title: c.title, text: c.text,
-      status: c.status, metaDescription: c.metaDescription ?? '',
-      seoTitle: c.seoTitle ?? '', icon: c.icon ?? '', order: c.order,
-      noindex: c.noindex,
-      publishedAt: c.publishedAt ? new Date(c.publishedAt).toISOString().slice(0, 16) : '',
-      lang: c.lang,
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingCat.data]);
 
   const isSaving = createCat.isPending || updateCat.isPending;
 
@@ -139,7 +191,7 @@ export function CategoryForm({ categoryId }: Props) {
   } = useCmsAutosave({
     contentTypeId: 'category',
     contentId: categoryId ?? null,
-    formData: currentData,
+    formData,
     initialData,
     dbUpdatedAt: existingCat.data?.updatedAt ?? null,
     saving: isSaving,
@@ -166,60 +218,62 @@ export function CategoryForm({ categoryId }: Props) {
   const handleRestore = useCallback(() => {
     if (!recoveredData) return;
     const d = recoveredData.formData;
-    setName(d.name as string);
-    setSlug(d.slug as string);
+    setFormData({
+      name: d.name as string,
+      slug: d.slug as string,
+      title: d.title as string,
+      text: d.text as string,
+      status: d.status as number,
+      lang: d.lang as string,
+      icon: d.icon as string,
+      order: d.order as number,
+      metaDescription: d.metaDescription as string,
+      seoTitle: d.seoTitle as string,
+      noindex: d.noindex as boolean,
+      publishedAt: d.publishedAt as string,
+      tagIds: d.tagIds as string[],
+      fallbackToDefault: d.fallbackToDefault as boolean | null,
+    });
     setSlugManual(true);
-    setTitle(d.title as string);
-    setText(d.text as string);
-    setStatus(d.status as number);
-    setMetaDescription(d.metaDescription as string);
-    setSeoTitle(d.seoTitle as string);
-    setIcon(d.icon as string);
-    setOrder(d.order as number);
-    setNoindex(d.noindex as boolean);
-    setPublishedAt(d.publishedAt as string);
-    setLang(d.lang as string);
     acceptRecovery();
-  }, [recoveredData, acceptRecovery]);
+  }, [recoveredData, acceptRecovery, setFormData]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (isNew) {
       createCat.mutate({
-        name,
-        slug,
-        lang,
-        title: title || name,
-        text,
-        status,
-        icon: icon || undefined,
-        order,
-        metaDescription: metaDescription || undefined,
-        seoTitle: seoTitle || undefined,
-        noindex,
-        publishedAt: publishedAt
-          ? new Date(publishedAt).toISOString()
-          : undefined,
-        tagIds,
+        name: formData.name,
+        slug: formData.slug,
+        lang: formData.lang,
+        title: formData.title || formData.name,
+        text: formData.text,
+        status: formData.status,
+        icon: formData.icon || undefined,
+        order: formData.order,
+        metaDescription: formData.metaDescription || undefined,
+        seoTitle: formData.seoTitle || undefined,
+        noindex: formData.noindex,
+        publishedAt: formData.publishedAt ? convertLocalToUTC(formData.publishedAt) : undefined,
+        tagIds: formData.tagIds.length > 0 ? formData.tagIds : undefined,
+        fallbackToDefault: formData.fallbackToDefault ?? undefined,
       });
     } else {
       updateCat.mutate({
         id: categoryId!,
-        name,
-        slug,
-        title: title || name,
-        text,
-        status,
-        icon: icon || null,
-        order,
-        metaDescription: metaDescription || null,
-        seoTitle: seoTitle || null,
-        noindex,
-        publishedAt: publishedAt
-          ? new Date(publishedAt).toISOString()
-          : null,
-        tagIds,
+        name: formData.name,
+        slug: formData.slug,
+        title: formData.title || formData.name,
+        text: formData.text,
+        status: formData.status,
+        icon: formData.icon || null,
+        order: formData.order,
+        metaDescription: formData.metaDescription || null,
+        seoTitle: formData.seoTitle || null,
+        noindex: formData.noindex,
+        publishedAt: formData.publishedAt ? convertLocalToUTC(formData.publishedAt) : null,
+        tagIds: formData.tagIds,
+        fallbackToDefault: formData.fallbackToDefault,
       });
     }
   }
@@ -235,12 +289,16 @@ export function CategoryForm({ categoryId }: Props) {
   const toolbar = (
     <>
       <div className="flex items-center gap-3">
-        <Link
-          href="/dashboard/cms/categories"
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 1) router.back();
+            else router.push('/dashboard/cms/categories');
+          }}
           className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
         >
           <ArrowLeft className="h-5 w-5" />
-        </Link>
+        </button>
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {isNew ? __('New Category') : __('Edit Category')}
         </h1>
@@ -250,7 +308,7 @@ export function CategoryForm({ categoryId }: Props) {
         <button
           type="submit"
           form="category-form"
-          disabled={isSaving || !name}
+          disabled={isSaving || !formData.name}
           className="admin-btn admin-btn-primary disabled:opacity-50"
         >
           {isSaving ? (
@@ -274,6 +332,8 @@ export function CategoryForm({ categoryId }: Props) {
         />
       )}
 
+      <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
+
       <form id="category-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
@@ -286,8 +346,8 @@ export function CategoryForm({ categoryId }: Props) {
                   <input
                     type="text"
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={formData.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Category name')}
                   />
@@ -299,9 +359,9 @@ export function CategoryForm({ categoryId }: Props) {
                   <input
                     type="text"
                     required
-                    value={slug}
+                    value={formData.slug}
                     onChange={(e) => {
-                      setSlug(e.target.value);
+                      handleChange('slug', e.target.value);
                       setSlugManual(true);
                     }}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -314,8 +374,8 @@ export function CategoryForm({ categoryId }: Props) {
                   <input
                     type="text"
                     required
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    value={formData.title}
+                    onChange={(e) => handleChange('title', e.target.value)}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Display title (can differ from name)')}
                   />
@@ -326,8 +386,8 @@ export function CategoryForm({ categoryId }: Props) {
                   </label>
                   <input
                     type="text"
-                    value={icon}
-                    onChange={(e) => setIcon(e.target.value)}
+                    value={formData.icon}
+                    onChange={(e) => handleChange('icon', e.target.value)}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Icon name or URL')}
                   />
@@ -340,56 +400,36 @@ export function CategoryForm({ categoryId }: Props) {
                 {__('Description')}
               </label>
               <RichTextEditor
-                content={text}
-                onChange={setText}
+                content={formData.text}
+                onChange={(v) => handleChange('text', v)}
                 placeholder={__('Category description...')}
+                storageKey={`category-${cat?.id ?? 'new'}`}
+                onRequestLinkPicker={openLinkPicker}
+                editorRef={editorRef}
               />
             </div>
 
+            {/* SEO */}
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('SEO')}</h3>
               <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-(--text-secondary)">
-                    {__('SEO Title')}
-                  </label>
-                  <input
-                    type="text"
-                    value={seoTitle}
-                    onChange={(e) => setSeoTitle(e.target.value)}
-                    maxLength={255}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-(--text-secondary)">
-                    {__('Meta Description')}
-                  </label>
-                  <textarea
-                    value={metaDescription}
-                    onChange={(e) => setMetaDescription(e.target.value)}
-                    maxLength={500}
-                    rows={3}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={noindex}
-                    onChange={(e) => setNoindex(e.target.checked)}
-                    className="rounded border-(--border-primary)"
-                  />
-                  {__('No-index')}
-                </label>
+                <SEOFields
+                  seoTitle={formData.seoTitle}
+                  metaDescription={formData.metaDescription}
+                  noindex={formData.noindex}
+                  onSeoTitleChange={(v) => handleChange('seoTitle', v)}
+                  onMetaDescriptionChange={(v) => handleChange('metaDescription', v)}
+                  onNoindexChange={(v) => handleChange('noindex', v)}
+                  fieldErrors={fieldErrors}
+                />
               </div>
             </div>
 
             {/* SEO Preview */}
             <SeoPreviewCard
-              title={seoTitle || name}
-              description={metaDescription}
-              slug={slug}
+              title={formData.seoTitle || formData.name}
+              description={formData.metaDescription}
+              slug={formData.slug}
               urlPrefix="/category/"
             />
 
@@ -398,7 +438,7 @@ export function CategoryForm({ categoryId }: Props) {
               <RevisionHistory
                 contentType="category"
                 contentId={categoryId}
-                currentData={currentData}
+                currentData={formData}
                 onRestored={() => existingCat.refetch()}
               />
             )}
@@ -410,9 +450,9 @@ export function CategoryForm({ categoryId }: Props) {
               <h3 className="admin-h2">{__('Tags')}</h3>
               <div className="mt-4">
                 <TagInput
-                  selectedTagIds={tagIds}
-                  onChange={setTagIds}
-                  lang={lang}
+                  selectedTagIds={formData.tagIds}
+                  onChange={(v) => handleChange('tagIds', v)}
+                  lang={formData.lang}
                 />
               </div>
             </div>
@@ -422,8 +462,8 @@ export function CategoryForm({ categoryId }: Props) {
               <div className="mt-4 space-y-4">
                 <div>
                   <select
-                    value={status}
-                    onChange={(e) => setStatus(Number(e.target.value))}
+                    value={formData.status}
+                    onChange={(e) => handleChange('status', Number(e.target.value))}
                     className="block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
@@ -438,32 +478,58 @@ export function CategoryForm({ categoryId }: Props) {
                   </label>
                   <input
                     type="number"
-                    value={order}
-                    onChange={(e) => setOrder(Number(e.target.value))}
+                    value={formData.order}
+                    onChange={(e) => handleChange('order', Number(e.target.value))}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-(--text-secondary)">
-                    {__('Language')}
-                  </label>
-                  <select
-                    value={lang}
-                    disabled={!isNew}
-                    onChange={(e) => setLang(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm disabled:bg-(--surface-secondary)"
-                  >
-                    <option value="en">English</option>
-                  </select>
+                  {cat && translationSiblings.data ? (
+                    <TranslationBar
+                      currentLang={formData.lang}
+                      translations={translationSiblings.data}
+                      adminSlug="categories"
+                      onDuplicate={async (targetLang) => {
+                        const result = await duplicateAsTranslation.mutateAsync({
+                          id: cat.id,
+                          targetLang,
+                        });
+                        router.push(`/dashboard/cms/categories/${result.id}`);
+                      }}
+                    />
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-(--text-secondary)">
+                        {__('Language')}
+                      </label>
+                      <select
+                        value={formData.lang}
+                        disabled={!isNew}
+                        onChange={(e) => handleChange('lang', e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm disabled:bg-(--surface-secondary)"
+                      >
+                        <option value="en">English</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
+
+                {cat && (
+                  <FallbackRadio
+                    value={formData.fallbackToDefault}
+                    onChange={(v) => handleChange('fallbackToDefault', v)}
+                    ct={categoryContentType}
+                  />
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>
                   <input
                     type="datetime-local"
-                    value={publishedAt}
-                    onChange={(e) => setPublishedAt(e.target.value)}
+                    value={formData.publishedAt}
+                    onChange={(e) => handleChange('publishedAt', e.target.value)}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
@@ -472,6 +538,13 @@ export function CategoryForm({ categoryId }: Props) {
           </div>
         </div>
       </form>
+
+      {/* Internal Link Dialog */}
+      <InternalLinkDialog
+        isOpen={linkPickerOpen}
+        onClose={closeLinkPicker}
+        onSelect={handleLinkSelect}
+      />
     </CmsFormShell>
   );
 }

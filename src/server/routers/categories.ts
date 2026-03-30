@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
@@ -372,6 +372,33 @@ export const categoriesRouter = createTRPCRouter({
       });
 
       return { id: newCategory!.id, slug: newCategory!.slug };
+    }),
+
+  /** Get translation siblings for a category */
+  getTranslationSiblings: contentProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [cat] = await ctx.db
+        .select({ translationGroup: cmsCategories.translationGroup })
+        .from(cmsCategories)
+        .where(eq(cmsCategories.id, input.id))
+        .limit(1);
+
+      if (!cat?.translationGroup) return [];
+
+      const siblings = await ctx.db
+        .select({ id: cmsCategories.id, lang: cmsCategories.lang, slug: cmsCategories.slug })
+        .from(cmsCategories)
+        .where(
+          and(
+            eq(cmsCategories.translationGroup, cat.translationGroup),
+            ne(cmsCategories.id, input.id),
+            isNull(cmsCategories.deletedAt)
+          )
+        )
+        .limit(20);
+
+      return siblings;
     }),
 
   update: contentProcedure
