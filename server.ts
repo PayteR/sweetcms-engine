@@ -65,8 +65,12 @@ async function main() {
   // Initialize BullMQ workers
   if (enableWorkers) {
     const { startEmailWorker } = await import('./src/server/jobs/email/index');
+    const { startContentWorker } = await import(
+      './src/server/jobs/content/index'
+    );
     startEmailWorker();
-    console.log('BullMQ workers ready (email worker started)');
+    startContentWorker();
+    console.log('BullMQ workers ready (email + content workers started)');
   }
 
   // Graceful shutdown

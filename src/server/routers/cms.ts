@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
@@ -711,6 +711,54 @@ export const cmsRouter = createTRPCRouter({
       return siblings;
     }),
 
+  /** Export specific posts by ID array */
+  exportBulk: contentProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()).min(1).max(500),
+      format: z.enum(['json', 'csv']),
+    }))
+    .query(async ({ ctx, input }) => {
+      const posts = await ctx.db
+        .select({
+          id: cmsPosts.id,
+          title: cmsPosts.title,
+          slug: cmsPosts.slug,
+          content: cmsPosts.content,
+          status: cmsPosts.status,
+          lang: cmsPosts.lang,
+          metaDescription: cmsPosts.metaDescription,
+          seoTitle: cmsPosts.seoTitle,
+          publishedAt: cmsPosts.publishedAt,
+          createdAt: cmsPosts.createdAt,
+          updatedAt: cmsPosts.updatedAt,
+        })
+        .from(cmsPosts)
+        .where(inArray(cmsPosts.id, input.ids));
+
+      if (input.format === 'json') {
+        return {
+          data: JSON.stringify(posts, null, 2),
+          contentType: 'application/json',
+        };
+      }
+
+      // CSV with tab delimiter for content fields
+      const headers = ['id', 'title', 'slug', 'status', 'lang', 'metaDescription', 'seoTitle', 'publishedAt', 'createdAt', 'updatedAt', 'content'];
+      const rows = posts.map(p =>
+        headers.map(h => {
+          const val = p[h as keyof typeof p];
+          if (val == null) return '';
+          if (val instanceof Date) return val.toISOString();
+          return String(val).replace(/\t/g, ' ').replace(/\n/g, '\\n');
+        }).join('\t')
+      );
+
+      return {
+        data: [headers.join('\t'), ...rows].join('\n'),
+        contentType: 'text/tab-separated-values',
+      };
+    }),
+
   /** Export posts as JSON or CSV */
   exportPosts: contentProcedure
     .input(
@@ -1118,5 +1166,64 @@ export const cmsRouter = createTRPCRouter({
         .limit(input.limit);
 
       return related;
+    }),
+
+  /** Calendar events: posts + categories with publishedAt in a given month */
+  calendarEvents: contentProcedure
+    .input(z.object({
+      month: z.number().int().min(1).max(12),
+      year: z.number().int().min(2000).max(2100),
+      lang: z.string().max(10).optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const startDate = new Date(input.year, input.month - 1, 1);
+      const endDate = new Date(input.year, input.month, 0, 23, 59, 59);
+
+      const conditions = [
+        isNotNull(cmsPosts.publishedAt),
+        gte(cmsPosts.publishedAt, startDate),
+        lte(cmsPosts.publishedAt, endDate),
+        isNull(cmsPosts.deletedAt),
+      ];
+      if (input.lang) conditions.push(eq(cmsPosts.lang, input.lang));
+
+      const posts = await ctx.db
+        .select({
+          id: cmsPosts.id,
+          title: cmsPosts.title,
+          type: cmsPosts.type,
+          status: cmsPosts.status,
+          slug: cmsPosts.slug,
+          publishedAt: cmsPosts.publishedAt,
+        })
+        .from(cmsPosts)
+        .where(and(...conditions))
+        .limit(500);
+
+      // Also get categories
+      const catConditions = [
+        isNotNull(cmsCategories.publishedAt),
+        gte(cmsCategories.publishedAt, startDate),
+        lte(cmsCategories.publishedAt, endDate),
+        isNull(cmsCategories.deletedAt),
+      ];
+      if (input.lang) catConditions.push(eq(cmsCategories.lang, input.lang));
+
+      const cats = await ctx.db
+        .select({
+          id: cmsCategories.id,
+          title: cmsCategories.name,
+          status: cmsCategories.status,
+          slug: cmsCategories.slug,
+          publishedAt: cmsCategories.publishedAt,
+        })
+        .from(cmsCategories)
+        .where(and(...catConditions))
+        .limit(200);
+
+      return [
+        ...posts.map(p => ({ ...p, contentType: 'post' as const })),
+        ...cats.map(c => ({ ...c, type: null, contentType: 'category' as const })),
+      ];
     }),
 });

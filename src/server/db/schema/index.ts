@@ -7,3 +7,5 @@ export * from './term-relationships';
 export * from './menu';
 export * from './audit';
 export * from './webhooks';
+export * from './custom-fields';
+export * from './forms';

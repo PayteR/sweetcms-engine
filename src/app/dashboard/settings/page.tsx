@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
@@ -19,6 +19,8 @@ interface SiteSettings {
   'site.analytics.ga_id': string;
   'site.posts_per_page': number;
   'site.allow_registration': boolean;
+  'ga4.propertyId': string;
+  'ga4.serviceAccountJson': string;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -33,6 +35,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   'site.analytics.ga_id': '',
   'site.posts_per_page': 10,
   'site.allow_registration': true,
+  'ga4.propertyId': '',
+  'ga4.serviceAccountJson': '',
 };
 
 export default function SettingsPage() {
@@ -48,6 +52,11 @@ export default function SettingsPage() {
       toast.success(__('Settings saved'));
       utils.options.getAll.invalidate();
     },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const testGA4 = trpc.analytics.testConnection.useMutation({
+    onSuccess: () => toast.success(__('GA4 connection successful')),
     onError: (err) => toast.error(err.message),
   });
 
@@ -235,6 +244,65 @@ export default function SettingsPage() {
                 className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="G-XXXXXXXXXX"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Google Analytics 4 */}
+        <div className="admin-card p-6">
+          <h2 className="admin-h2">{__('Google Analytics 4 (Dashboard)')}</h2>
+          <p className="mt-1 text-xs text-(--text-muted)">
+            {__('Connect a GA4 property to display analytics on the dashboard. Requires a service account with Analytics read access.')}
+          </p>
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-(--text-secondary)">
+                {__('GA4 Property ID')}
+              </label>
+              <input
+                type="text"
+                value={settings['ga4.propertyId']}
+                onChange={(e) => updateField('ga4.propertyId', e.target.value)}
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="123456789"
+              />
+              <p className="mt-1 text-xs text-(--text-muted)">
+                {__('Found in GA4 Admin > Property Settings > Property ID')}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-(--text-secondary)">
+                {__('Service Account JSON')}
+              </label>
+              <textarea
+                value={settings['ga4.serviceAccountJson']}
+                onChange={(e) =>
+                  updateField('ga4.serviceAccountJson', e.target.value)
+                }
+                rows={4}
+                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder='{"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}'
+              />
+              <p className="mt-1 text-xs text-(--text-muted)">
+                {__('Paste the full JSON key file contents from Google Cloud Console.')}
+              </p>
+            </div>
+            <div>
+              <button
+                type="button"
+                disabled={testGA4.isPending || !settings['ga4.propertyId'] || !settings['ga4.serviceAccountJson']}
+                onClick={() => testGA4.mutate()}
+                className="admin-btn admin-btn-secondary disabled:opacity-50"
+              >
+                {testGA4.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : testGA4.isSuccess ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                ) : testGA4.isError ? (
+                  <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                ) : null}
+                {__('Test Connection')}
+              </button>
             </div>
           </div>
         </div>

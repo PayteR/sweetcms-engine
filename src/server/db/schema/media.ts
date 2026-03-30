@@ -27,6 +27,7 @@ export const cmsMedia = pgTable(
     height: integer('height'),
     thumbnailPath: varchar('thumbnail_path', { length: 1024 }),
     mediumPath: varchar('medium_path', { length: 1024 }),
+    blurDataUrl: text('blur_data_url'),
     uploadedById: text('uploaded_by_id').references(() => user.id, {
       onDelete: 'set null',
     }),

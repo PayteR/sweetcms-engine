@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
@@ -399,6 +399,54 @@ export const categoriesRouter = createTRPCRouter({
         .limit(20);
 
       return siblings;
+    }),
+
+  /** Export specific categories by ID array */
+  exportBulk: contentProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()).min(1).max(500),
+      format: z.enum(['json', 'csv']),
+    }))
+    .query(async ({ ctx, input }) => {
+      const cats = await ctx.db
+        .select({
+          id: cmsCategories.id,
+          name: cmsCategories.name,
+          slug: cmsCategories.slug,
+          title: cmsCategories.title,
+          text: cmsCategories.text,
+          status: cmsCategories.status,
+          lang: cmsCategories.lang,
+          metaDescription: cmsCategories.metaDescription,
+          seoTitle: cmsCategories.seoTitle,
+          publishedAt: cmsCategories.publishedAt,
+          createdAt: cmsCategories.createdAt,
+          updatedAt: cmsCategories.updatedAt,
+        })
+        .from(cmsCategories)
+        .where(inArray(cmsCategories.id, input.ids));
+
+      if (input.format === 'json') {
+        return {
+          data: JSON.stringify(cats, null, 2),
+          contentType: 'application/json',
+        };
+      }
+
+      const headers = ['id', 'name', 'slug', 'title', 'status', 'lang', 'metaDescription', 'seoTitle', 'publishedAt', 'createdAt', 'updatedAt', 'text'];
+      const rows = cats.map(c =>
+        headers.map(h => {
+          const val = c[h as keyof typeof c];
+          if (val == null) return '';
+          if (val instanceof Date) return val.toISOString();
+          return String(val).replace(/\t/g, ' ').replace(/\n/g, '\\n');
+        }).join('\t')
+      );
+
+      return {
+        data: [headers.join('\t'), ...rows].join('\n'),
+        contentType: 'text/tab-separated-values',
+      };
     }),
 
   update: contentProcedure

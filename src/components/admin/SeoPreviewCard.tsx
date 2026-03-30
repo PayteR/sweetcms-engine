@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 
@@ -11,49 +12,111 @@ interface Props {
   featuredImage?: string;
 }
 
+type Tab = 'google' | 'facebook' | 'twitter';
+
 function charColor(len: number, warn: number, max: number) {
   if (len <= warn) return 'text-green-600 dark:text-green-400';
   if (len <= max) return 'text-yellow-600 dark:text-yellow-400';
   return 'text-red-600 dark:text-red-400';
 }
 
+function ImagePlaceholder({ __: t }: { __: (s: string) => string }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center text-sm text-(--text-muted)">
+      {t('No image')}
+    </div>
+  );
+}
+
 export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredImage }: Props) {
   const __ = useBlankTranslations();
+  const [activeTab, setActiveTab] = useState<Tab>('google');
+
   const displayTitle = (title || 'Page Title').slice(0, 70);
   const displayDesc = (description || 'No meta description set.').slice(0, 170);
   const displayUrl = `example.com${urlPrefix}${slug || 'page-slug'}`;
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'google', label: __('Google') },
+    { key: 'facebook', label: __('Facebook') },
+    { key: 'twitter', label: __('Twitter / X') },
+  ];
 
   return (
     <div className="admin-card p-6">
       <h3 className="admin-h2">{__('SEO Preview')}</h3>
 
-      {/* Google snippet */}
-      <div className="mt-4 rounded-md border border-(--border-primary) bg-(--surface-primary) p-4">
-        <p className="text-xs text-(--text-muted) mb-1">{__('Google Search')}</p>
-        <p className="text-sm text-blue-700 dark:text-blue-400 truncate">{displayTitle}</p>
-        <p className="text-xs text-green-700 dark:text-green-400">{displayUrl}</p>
-        <p className="mt-1 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
+      {/* Tabs */}
+      <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setActiveTab(t.key)}
+            className={cn(
+              'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
+              activeTab === t.key
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* OG card preview */}
-      <div className="mt-4 rounded-md border border-(--border-primary) overflow-hidden">
-        <p className="px-4 pt-2 text-xs text-(--text-muted)">{__('Social Card')}</p>
-        <div className="flex gap-3 p-4">
-          <div className="h-16 w-16 shrink-0 rounded bg-(--surface-secondary) flex items-center justify-center text-xs text-(--text-muted) overflow-hidden">
+      {/* Google tab */}
+      {activeTab === 'google' && (
+        <div className="mt-4 rounded-md border border-(--border-primary) bg-(--surface-primary) p-4">
+          <p className="text-sm text-blue-700 dark:text-blue-400 truncate">{displayTitle}</p>
+          <p className="text-xs text-green-700 dark:text-green-400">{displayUrl}</p>
+          <p className="mt-1 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
+        </div>
+      )}
+
+      {/* Facebook tab */}
+      {activeTab === 'facebook' && (
+        <div className="mt-4 overflow-hidden rounded-md border border-(--border-primary)">
+          {/* Image area - 16:9 */}
+          <div className="aspect-video bg-(--surface-secondary)">
             {featuredImage ? (
               <img src={featuredImage} alt="" className="h-full w-full object-cover" />
             ) : (
-              __('No img')
+              <ImagePlaceholder __={__} />
             )}
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-(--text-primary) truncate">{displayTitle}</p>
-            <p className="text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
+          {/* Meta below image */}
+          <div className="bg-(--surface-primary) p-3">
+            <p className="text-[10px] uppercase tracking-wide text-(--text-muted)">
+              {displayUrl.split('/')[0]}
+            </p>
+            <p className="mt-1 text-sm font-bold text-(--text-primary) truncate">{displayTitle}</p>
+            <p className="mt-0.5 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Character counters */}
+      {/* Twitter / X tab */}
+      {activeTab === 'twitter' && (
+        <div className="mt-4 overflow-hidden rounded-md border border-(--border-primary)">
+          {/* Image area - 2:1 */}
+          <div className="bg-(--surface-secondary)" style={{ aspectRatio: '2 / 1' }}>
+            {featuredImage ? (
+              <img src={featuredImage} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <ImagePlaceholder __={__} />
+            )}
+          </div>
+          {/* Meta below image */}
+          <div className="bg-(--surface-primary) p-3">
+            <p className="text-sm font-medium text-(--text-primary) truncate">{displayTitle}</p>
+            <p className="mt-0.5 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
+            <p className="mt-1 text-[10px] text-(--text-muted)">{displayUrl.split('/')[0]}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Character counters (always visible) */}
       <div className="mt-3 flex gap-4 text-xs">
         <span className={cn(charColor(title.length, 50, 60))}>
           {__('Title')}: {title.length}/60

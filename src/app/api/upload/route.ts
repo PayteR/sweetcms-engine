@@ -49,6 +49,7 @@ export async function POST(request: Request) {
     let height: number | undefined;
     let thumbnailPath: string | undefined;
     let mediumPath: string | undefined;
+    let blurDataUrl: string | undefined;
 
     // Generate image variants for supported types
     if (IMAGE_TYPES.has(file.type)) {
@@ -79,6 +80,18 @@ export async function POST(request: Request) {
           const medFilepath = `${datePath}/${timestamp}-${nameBase}-medium.webp`;
           mediumPath = await storage.upload(medFilepath, medBuffer);
         }
+
+        // Generate blur placeholder
+        try {
+          const blurBuffer = await sharp(buffer)
+            .resize(10, 10, { fit: 'inside' })
+            .blur()
+            .webp({ quality: 20 })
+            .toBuffer();
+          blurDataUrl = `data:image/webp;base64,${blurBuffer.toString('base64')}`;
+        } catch {
+          // Blur generation is non-critical
+        }
       } catch {
         // Image processing is non-critical — continue with original
       }
@@ -94,6 +107,7 @@ export async function POST(request: Request) {
       height,
       thumbnailPath,
       mediumPath,
+      blurDataUrl,
     });
   } catch (err) {
     console.error('Upload error:', err);

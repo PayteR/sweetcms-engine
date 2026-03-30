@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 
@@ -22,6 +22,7 @@ import AutosaveIndicator from './AutosaveIndicator';
 import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
 import BrokenLinksBanner from './BrokenLinksBanner';
 import CmsFormShell from './CmsFormShell';
+import { CustomFieldsEditor, type CustomFieldsEditorHandle } from './CustomFieldsEditor';
 import { FallbackRadio } from './FallbackRadio';
 import InternalLinkDialog from './InternalLinkDialog';
 import { RevisionHistory } from './RevisionHistory';
@@ -140,10 +141,12 @@ export function CategoryForm({ categoryId }: Props) {
   const { linkPickerOpen, openLinkPicker, closeLinkPicker, handleLinkSelect, editorRef } = useLinkPicker();
   const { brokenLinks, validateLinks, dismissBrokenLinks } = useLinkValidation();
   const duplicateAsTranslation = trpc.categories.duplicateAsTranslation.useMutation();
+  const customFieldsRef = useRef<CustomFieldsEditorHandle>(null);
 
   const createCat = trpc.categories.create.useMutation({
     onSuccess: (data) => {
       clearAutosave(formData);
+      customFieldsRef.current?.save(data.id).catch(() => {});
       toast.success(__('Category created'));
       utils.categories.list.invalidate();
       utils.categories.counts.invalidate();
@@ -155,6 +158,7 @@ export function CategoryForm({ categoryId }: Props) {
   const updateCat = trpc.categories.update.useMutation({
     onSuccess: () => {
       clearAutosave(formData);
+      if (categoryId) customFieldsRef.current?.save(categoryId).catch(() => {});
       toast.success(__('Category updated'));
       utils.categories.list.invalidate();
       existingCat.refetch();
@@ -419,6 +423,13 @@ export function CategoryForm({ categoryId }: Props) {
               description={formData.metaDescription}
               slug={formData.slug}
               urlPrefix="/category/"
+            />
+
+            {/* Custom Fields */}
+            <CustomFieldsEditor
+              ref={customFieldsRef}
+              contentType="category"
+              contentId={categoryId}
             />
 
             {/* Revision History */}

@@ -14,6 +14,7 @@ import {
   X,
   Copy,
   Download,
+  Settings2,
 } from 'lucide-react';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
@@ -29,6 +30,7 @@ import { TaxonomyOverview } from '@/components/admin/TaxonomyOverview';
 import { useListViewState, SortIcon } from '@/hooks/useListViewState';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useBulkActions } from '@/hooks/useBulkActions';
+import { useColumnVisibility } from '@/hooks/useColumnVisibility';
 import BulkActionBar from './BulkActionBar';
 
 const STATUS_LABELS: Record<number, string> = {
@@ -43,6 +45,17 @@ const STATUS_COLORS: Record<number, string> = {
   [ContentStatus.SCHEDULED]: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
 };
 
+const COLUMNS = [
+  { key: 'title', label: 'Title', default: true },
+  { key: 'status', label: 'Status', default: true },
+  { key: 'lang', label: 'Lang', default: true },
+  { key: 'date', label: 'Date', default: true },
+  { key: 'author', label: 'Author', default: false },
+  { key: 'slug', label: 'Slug', default: false },
+  { key: 'publishedAt', label: 'Published', default: false },
+  { key: 'createdAt', label: 'Created', default: false },
+] as const;
+
 type StatusTab = 'all' | 'draft' | 'published' | 'scheduled' | 'trash';
 
 const TABS = new Set<StatusTab>(['all', 'draft', 'published', 'scheduled', 'trash']);
@@ -56,6 +69,8 @@ interface Props {
 export function CmsListView({ contentType }: Props) {
   const __ = useBlankTranslations();
   const utils = trpc.useUtils();
+  const { toggle: toggleColumn, isVisible: isColVisible } = useColumnVisibility(contentType.id);
+  const [colMenuOpen, setColMenuOpen] = useState(false);
 
   const {
     searchQuery,
@@ -232,6 +247,35 @@ export function CmsListView({ contentType }: Props) {
     }
   }
 
+  // ── Bulk export ────────────────────────────────────
+  async function handleBulkExport(format: 'json' | 'csv') {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+
+    try {
+      let result: { data: string; contentType: string };
+
+      if (isPostType) {
+        result = await utils.cms.exportBulk.fetch({ ids, format });
+      } else if (isCategoryType) {
+        result = await utils.categories.exportBulk.fetch({ ids, format });
+      } else {
+        return; // Tags don't have export
+      }
+
+      const blob = new Blob([result.data], { type: result.contentType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${contentType.adminSlug}-export-${ids.length}items.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(__(`Exported ${ids.length} items`));
+    } catch {
+      toast.error(__('Export failed'));
+    }
+  }
+
   // SEO overrides (Pages only)
   const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation();
   const { data: seoStatus } = trpc.cms.getSeoOverrideStatus.useQuery(undefined, {
@@ -255,6 +299,8 @@ export function CmsListView({ contentType }: Props) {
     lang: string;
     updatedAt: Date | null;
     publishedAt: Date | null;
+    createdAt: Date | null;
+    author: string | null;
   }> = (data?.results ?? []).map((item: Record<string, unknown>) => ({
     id: item.id as string,
     title: (item.title ?? item.name ?? '') as string,
@@ -263,6 +309,8 @@ export function CmsListView({ contentType }: Props) {
     lang: item.lang as string,
     updatedAt: (item.updatedAt ?? null) as Date | null,
     publishedAt: (item.publishedAt ?? null) as Date | null,
+    createdAt: (item.createdAt ?? null) as Date | null,
+    author: (item.author ?? null) as string | null,
   }));
 
   // ── Bulk selection + actions ──────────────────────────
@@ -392,6 +440,35 @@ export function CmsListView({ contentType }: Props) {
           {__(contentType.labelPlural)}
         </h1>
         <div className="flex items-center gap-2">
+          {/* Column visibility dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setColMenuOpen(!colMenuOpen)}
+              className="admin-btn admin-btn-secondary"
+              title={__('Toggle columns')}
+            >
+              <Settings2 className="h-4 w-4" />
+              {__('Columns')}
+            </button>
+            {colMenuOpen && (
+              <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
+                {COLUMNS.map((col) => (
+                  <label
+                    key={col.key}
+                    className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isColVisible(col.key)}
+                      onChange={() => toggleColumn(col.key)}
+                      className="rounded border-(--border-primary)"
+                    />
+                    {__(col.label)}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
           {/* Export dropdown (posts only) */}
           {isPostType && (
             <div className="relative">
@@ -507,6 +584,7 @@ export function CmsListView({ contentType }: Props) {
         onBulkStatusChange={executeBulkStatusChange}
         onDeselectAll={deselectAll}
         isPending={isBulkPending}
+        onBulkExport={(isPostType || isCategoryType) ? handleBulkExport : undefined}
       />
 
       {/* Table */}
@@ -527,26 +605,62 @@ export function CmsListView({ contentType }: Props) {
                     className="rounded border-(--border-primary)"
                   />
                 </th>
-                <th
-                  className="admin-th cursor-pointer select-none"
-                  onClick={() => toggleSort('title')}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {__('Title')}
-                    <SortIcon col="title" sortBy={sortBy} sortDir={sortDir} />
-                  </span>
-                </th>
-                <th className="admin-th w-24">{__('Status')}</th>
-                <th className="admin-th w-20">{__('Lang')}</th>
-                <th
-                  className="admin-th w-32 cursor-pointer select-none"
-                  onClick={() => toggleSort('updated_at')}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {__('Date')}
-                    <SortIcon col="updated_at" sortBy={sortBy} sortDir={sortDir} />
-                  </span>
-                </th>
+                {isColVisible('title') && (
+                  <th
+                    className="admin-th cursor-pointer select-none"
+                    onClick={() => toggleSort('title')}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {__('Title')}
+                      <SortIcon col="title" sortBy={sortBy} sortDir={sortDir} />
+                    </span>
+                  </th>
+                )}
+                {isColVisible('status') && (
+                  <th className="admin-th w-24">{__('Status')}</th>
+                )}
+                {isColVisible('lang') && (
+                  <th className="admin-th w-20">{__('Lang')}</th>
+                )}
+                {isColVisible('date') && (
+                  <th
+                    className="admin-th w-32 cursor-pointer select-none"
+                    onClick={() => toggleSort('updated_at')}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {__('Date')}
+                      <SortIcon col="updated_at" sortBy={sortBy} sortDir={sortDir} />
+                    </span>
+                  </th>
+                )}
+                {isColVisible('author') && (
+                  <th className="admin-th w-28">{__('Author')}</th>
+                )}
+                {isColVisible('slug') && (
+                  <th className="admin-th w-40">{__('Slug')}</th>
+                )}
+                {isColVisible('publishedAt') && (
+                  <th
+                    className="admin-th w-32 cursor-pointer select-none"
+                    onClick={() => toggleSort('published_at')}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {__('Published')}
+                      <SortIcon col="published_at" sortBy={sortBy} sortDir={sortDir} />
+                    </span>
+                  </th>
+                )}
+                {isColVisible('createdAt') && (
+                  <th
+                    className="admin-th w-32 cursor-pointer select-none"
+                    onClick={() => toggleSort('created_at')}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {__('Created')}
+                      <SortIcon col="created_at" sortBy={sortBy} sortDir={sortDir} />
+                    </span>
+                  </th>
+                )}
                 <th className="admin-th w-28" />
               </tr>
             </thead>
@@ -555,7 +669,7 @@ export function CmsListView({ contentType }: Props) {
                 <tr>
                   <td
                     className="admin-td py-12 text-center text-(--text-muted)"
-                    colSpan={6}
+                    colSpan={COLUMNS.filter((c) => isColVisible(c.key)).length + 2}
                   >
                     {search
                       ? __('No results found.')
@@ -573,39 +687,67 @@ export function CmsListView({ contentType }: Props) {
                         className="rounded border-(--border-primary)"
                       />
                     </td>
-                    <td className="admin-td">
-                      <Link
-                        href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
-                        className="font-medium text-(--text-primary) hover:text-blue-600"
-                      >
-                        {item.title || __('(untitled)')}
-                      </Link>
-                      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-(--text-muted)">
-                        <span>
-                          /{contentType.urlPrefix === '/' ? '' : contentType.urlPrefix}
-                          {item.slug || __('(homepage)')}
-                        </span>
-                        {contentType.canOverrideCodedRouteSEO && seoOverrideSlugs.has(item.slug) && (
-                          <span className="inline-block rounded bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-blue-700 dark:text-blue-400">
-                            {__('SEO')}
+                    {isColVisible('title') && (
+                      <td className="admin-td">
+                        <Link
+                          href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
+                          className="font-medium text-(--text-primary) hover:text-blue-600"
+                        >
+                          {item.title || __('(untitled)')}
+                        </Link>
+                        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-(--text-muted)">
+                          <span>
+                            /{contentType.urlPrefix === '/' ? '' : contentType.urlPrefix}
+                            {item.slug || __('(homepage)')}
                           </span>
-                        )}
-                      </p>
-                    </td>
-                    <td className="admin-td">
-                      <span
-                        className={cn(
-                          'inline-block rounded-full px-2 py-0.5 text-xs font-medium',
-                          STATUS_COLORS[item.status] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
-                        )}
-                      >
-                        {STATUS_LABELS[item.status] ?? 'Unknown'}
-                      </span>
-                    </td>
-                    <td className="admin-td text-xs uppercase">{item.lang}</td>
-                    <td className="admin-td text-xs text-(--text-muted)">
-                      {formatDate(item.publishedAt ?? item.updatedAt)}
-                    </td>
+                          {contentType.canOverrideCodedRouteSEO && seoOverrideSlugs.has(item.slug) && (
+                            <span className="inline-block rounded bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-blue-700 dark:text-blue-400">
+                              {__('SEO')}
+                            </span>
+                          )}
+                        </p>
+                      </td>
+                    )}
+                    {isColVisible('status') && (
+                      <td className="admin-td">
+                        <span
+                          className={cn(
+                            'inline-block rounded-full px-2 py-0.5 text-xs font-medium',
+                            STATUS_COLORS[item.status] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
+                          )}
+                        >
+                          {STATUS_LABELS[item.status] ?? 'Unknown'}
+                        </span>
+                      </td>
+                    )}
+                    {isColVisible('lang') && (
+                      <td className="admin-td text-xs uppercase">{item.lang}</td>
+                    )}
+                    {isColVisible('date') && (
+                      <td className="admin-td text-xs text-(--text-muted)">
+                        {formatDate(item.publishedAt ?? item.updatedAt)}
+                      </td>
+                    )}
+                    {isColVisible('author') && (
+                      <td className="admin-td text-xs text-(--text-muted)">
+                        {item.author ?? '—'}
+                      </td>
+                    )}
+                    {isColVisible('slug') && (
+                      <td className="admin-td text-xs text-(--text-muted)">
+                        {item.slug || '—'}
+                      </td>
+                    )}
+                    {isColVisible('publishedAt') && (
+                      <td className="admin-td text-xs text-(--text-muted)">
+                        {formatDate(item.publishedAt)}
+                      </td>
+                    )}
+                    {isColVisible('createdAt') && (
+                      <td className="admin-td text-xs text-(--text-muted)">
+                        {formatDate(item.createdAt)}
+                      </td>
+                    )}
                     <td className="admin-td">
                       <div className="flex items-center justify-end gap-1">
                         {tab === 'trash' ? (

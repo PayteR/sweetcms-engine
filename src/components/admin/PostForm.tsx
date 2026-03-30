@@ -22,6 +22,7 @@ import AutosaveIndicator from './AutosaveIndicator';
 import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
 import BrokenLinksBanner from './BrokenLinksBanner';
 import CmsFormShell from './CmsFormShell';
+import { CustomFieldsEditor, type CustomFieldsEditorHandle } from './CustomFieldsEditor';
 import { FallbackRadio } from './FallbackRadio';
 import InternalLinkDialog from './InternalLinkDialog';
 import { MediaPickerDialog } from './MediaPickerDialog';
@@ -154,10 +155,12 @@ export function PostForm({ contentType, postId }: Props) {
   const { linkPickerOpen, openLinkPicker, closeLinkPicker, handleLinkSelect, editorRef } = useLinkPicker();
   const { brokenLinks, validateLinks, dismissBrokenLinks } = useLinkValidation();
   const duplicateAsTranslation = trpc.cms.duplicateAsTranslation.useMutation();
+  const customFieldsRef = useRef<CustomFieldsEditorHandle>(null);
 
   const createPost = trpc.cms.create.useMutation({
     onSuccess: (data) => {
       clearAutosave(formData);
+      customFieldsRef.current?.save(data.id).catch(() => {});
       toast.success(__(`${contentType.label} created`));
       utils.cms.list.invalidate();
       utils.cms.counts.invalidate();
@@ -169,6 +172,7 @@ export function PostForm({ contentType, postId }: Props) {
   const updatePost = trpc.cms.update.useMutation({
     onSuccess: () => {
       clearAutosave(formData);
+      if (postId) customFieldsRef.current?.save(postId).catch(() => {});
       toast.success(__(`${contentType.label} updated`));
       utils.cms.list.invalidate();
       existingPost.refetch();
@@ -467,6 +471,13 @@ export function PostForm({ contentType, postId }: Props) {
               slug={formData.slug}
               urlPrefix={contentType.urlPrefix}
               featuredImage={formData.featuredImage || undefined}
+            />
+
+            {/* Custom Fields */}
+            <CustomFieldsEditor
+              ref={customFieldsRef}
+              contentType={contentType.id}
+              contentId={postId}
             />
 
             {/* Revision History */}

@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Activity,
+  ArrowRightLeft,
+  Calendar,
+  ClipboardList,
   FileText,
   FolderOpen,
   Hash,
@@ -28,8 +31,11 @@ const navigation = [
       { name: 'Categories', href: '/dashboard/cms/categories', icon: FolderOpen },
       { name: 'Tags', href: '/dashboard/cms/tags', icon: Hash },
       { name: 'Menus', href: '/dashboard/cms/menus', icon: Menu },
+      { name: 'Redirects', href: '/dashboard/cms/redirects', icon: ArrowRightLeft },
+      { name: 'Calendar', href: '/dashboard/cms/calendar', icon: Calendar },
     ],
   },
+  { name: 'Forms', href: '/dashboard/forms', icon: ClipboardList },
   { name: 'Media', href: '/dashboard/media', icon: Image },
   { name: 'Users', href: '/dashboard/users', icon: Users },
   { name: 'Activity', href: '/dashboard/cms/activity', icon: Activity },

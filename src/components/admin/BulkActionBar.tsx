@@ -1,6 +1,7 @@
 'use client';
 
-import { Loader2, Trash2, Undo2 } from 'lucide-react';
+import { useState } from 'react';
+import { Download, Loader2, Trash2, Undo2 } from 'lucide-react';
 
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/types/cms';
@@ -13,6 +14,7 @@ interface BulkActionBarProps {
   onBulkStatusChange: (status: number) => void;
   onDeselectAll: () => void;
   isPending: boolean;
+  onBulkExport?: (format: 'json' | 'csv') => void;
 }
 
 export default function BulkActionBar({
@@ -23,8 +25,10 @@ export default function BulkActionBar({
   onBulkStatusChange,
   onDeselectAll,
   isPending,
+  onBulkExport,
 }: BulkActionBarProps) {
   const __ = useBlankTranslations();
+  const [exportOpen, setExportOpen] = useState(false);
 
   if (selectedCount === 0) return null;
 
@@ -75,6 +79,35 @@ export default function BulkActionBar({
               <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
               <option value={ContentStatus.PUBLISHED}>{__('Published')}</option>
             </select>
+            {onBulkExport && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setExportOpen(!exportOpen)}
+                  disabled={isPending}
+                  className="admin-btn admin-btn-secondary gap-1 text-sm disabled:opacity-50"
+                >
+                  <Download size={14} />
+                  {__('Export')}
+                </button>
+                {exportOpen && (
+                  <div className="absolute right-0 bottom-full z-10 mb-1 w-28 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
+                    <button
+                      onClick={() => { onBulkExport('json'); setExportOpen(false); }}
+                      className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                    >
+                      JSON
+                    </button>
+                    <button
+                      onClick={() => { onBulkExport('csv'); setExportOpen(false); }}
+                      className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                    >
+                      CSV
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <button
               type="button"
               onClick={onBulkTrash}

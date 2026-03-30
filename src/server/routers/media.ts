@@ -95,6 +95,7 @@ export const mediaRouter = createTRPCRouter({
         height: z.number().int().min(0).optional(),
         thumbnailPath: z.string().max(1024).optional(),
         mediumPath: z.string().max(1024).optional(),
+        blurDataUrl: z.string().max(5000).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -114,6 +115,7 @@ export const mediaRouter = createTRPCRouter({
           height: input.height ?? null,
           thumbnailPath: input.thumbnailPath ?? null,
           mediumPath: input.mediumPath ?? null,
+          blurDataUrl: input.blurDataUrl ?? null,
           uploadedById: ctx.session.user.id as string,
         })
         .returning();
@@ -163,6 +165,7 @@ export const mediaRouter = createTRPCRouter({
           height: cmsMedia.height,
           thumbnailPath: cmsMedia.thumbnailPath,
           mediumPath: cmsMedia.mediumPath,
+          blurDataUrl: cmsMedia.blurDataUrl,
         })
         .from(cmsMedia)
         .where(
@@ -182,6 +185,7 @@ export const mediaRouter = createTRPCRouter({
         height: item.height,
         thumbnailUrl: item.thumbnailPath ? storage.url(item.thumbnailPath) : null,
         mediumUrl: item.mediumPath ? storage.url(item.mediumPath) : null,
+        blurDataUrl: item.blurDataUrl,
       }));
     }),
 });
