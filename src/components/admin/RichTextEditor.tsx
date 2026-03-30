@@ -40,10 +40,7 @@ import { htmlToMarkdown, markdownToHtml } from '@/lib/markdown';
 import { ShortcodeNode } from './shortcodes/ShortcodeNode';
 import { prepareForEditor, serializeForStorage } from './shortcodes/shortcode-utils';
 import { toast } from '@/store/toast-store';
-
-export interface EditorHandle {
-  replaceSelection: (text: string) => void;
-}
+import type { EditorHandle } from '@/hooks/useLinkPicker';
 
 interface Props {
   content: string;
@@ -136,6 +133,7 @@ export function RichTextEditor({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const sourceTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Clear pending debounce on unmount (editor may already be destroyed)
   useEffect(() => {
@@ -258,15 +256,14 @@ export function RichTextEditor({
     editorRef.current = {
       replaceSelection: (text: string) => {
         if (mode === 'source') {
-          const textarea = document.querySelector('.tiptap-source-textarea') as HTMLTextAreaElement | null;
+          const textarea = sourceTextareaRef.current;
           if (textarea) {
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
-            const before = sourceValue.slice(0, start);
-            const after = sourceValue.slice(end);
-            const newValue = before + text + after;
+            const val = textarea.value;
+            const newValue = val.slice(0, start) + text + val.slice(end);
             setSourceValue(newValue);
-            onChange(newValue);
+            onChangeRef.current(newValue);
             requestAnimationFrame(() => {
               textarea.selectionStart = textarea.selectionEnd = start + text.length;
               textarea.focus();
@@ -290,7 +287,7 @@ export function RichTextEditor({
     return () => {
       if (editorRef) editorRef.current = null;
     };
-  }, [editor, editorRef, mode, sourceValue, onChange]);
+  }, [editor, editorRef, mode]);
 
   const toggleMode = useCallback(() => {
     if (!editor) return;
@@ -577,6 +574,7 @@ export function RichTextEditor({
           />
         ) : (
           <textarea
+            ref={sourceTextareaRef}
             value={sourceValue}
             onChange={(e) => {
               setSourceValue(e.target.value);

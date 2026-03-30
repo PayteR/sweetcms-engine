@@ -107,7 +107,7 @@ export function CategoryForm({ categoryId }: Props) {
 
   const {
     formData, setFormData,
-    fieldErrors, handleChange,
+    fieldErrors, handleChange, handleSaveError,
   } = useCmsFormState<CategoryFormData>(initialFormData, 'info');
 
   // Sync form data when category loads
@@ -127,13 +127,14 @@ export function CategoryForm({ categoryId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.name, slugManual, isNew]);
 
-  // Auto-fill title from name (new categories only, only when title is empty)
+  // Auto-fill title from name (new categories only, until user edits title)
+  const [titleManual, setTitleManual] = useState(false);
   useEffect(() => {
-    if (isNew && !formData.title) {
+    if (isNew && !titleManual) {
       handleChange('title', formData.name);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.name, isNew, formData.title]);
+  }, [formData.name, titleManual, isNew]);
 
   // New hooks
   const { linkPickerOpen, openLinkPicker, closeLinkPicker, handleLinkSelect, editorRef } = useLinkPicker();
@@ -148,7 +149,7 @@ export function CategoryForm({ categoryId }: Props) {
       utils.categories.counts.invalidate();
       router.push(`/dashboard/cms/categories/${data.id}`);
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => handleSaveError(err, 'Failed to create category'),
   });
 
   const updateCat = trpc.categories.update.useMutation({
@@ -160,7 +161,7 @@ export function CategoryForm({ categoryId }: Props) {
       // Post-save link validation
       validateLinks(formData.text);
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => handleSaveError(err, 'Failed to update category'),
   });
 
   const isSaving = createCat.isPending || updateCat.isPending;
@@ -359,7 +360,10 @@ export function CategoryForm({ categoryId }: Props) {
                     type="text"
                     required
                     value={formData.title}
-                    onChange={(e) => handleChange('title', e.target.value)}
+                    onChange={(e) => {
+                      handleChange('title', e.target.value);
+                      setTitleManual(true);
+                    }}
                     className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder={__('Display title (can differ from name)')}
                   />

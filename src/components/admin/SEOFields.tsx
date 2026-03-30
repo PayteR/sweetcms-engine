@@ -35,13 +35,13 @@ export function SEOFields({
           maxLength={255}
           className={cn(
             'w-full rounded-lg border bg-(--surface-primary) px-4 py-2 text-(--text-primary) placeholder:text-(--text-muted) focus:outline-none',
-            fieldErrors?.seo_title
+            fieldErrors?.seoTitle
               ? 'border-red-500 focus:border-red-500'
               : ['border-(--border-primary)', focusBorderClass]
           )}
         />
-        {fieldErrors?.seo_title ? (
-          <p className="mt-1 text-sm text-red-400">{fieldErrors.seo_title[0]}</p>
+        {fieldErrors?.seoTitle ? (
+          <p className="mt-1 text-sm text-red-400">{fieldErrors.seoTitle[0]}</p>
         ) : (
           <p className="mt-1 text-xs text-(--text-muted)">{__('Falls back to Title if empty')}</p>
         )}
@@ -59,13 +59,13 @@ export function SEOFields({
           rows={3}
           className={cn(
             'w-full rounded-lg border bg-(--surface-primary) px-4 py-2 text-(--text-primary) placeholder:text-(--text-muted) focus:outline-none',
-            fieldErrors?.meta_description
+            fieldErrors?.metaDescription
               ? 'border-red-500 focus:border-red-500'
               : ['border-(--border-primary)', focusBorderClass]
           )}
         />
-        {fieldErrors?.meta_description ? (
-          <p className="mt-1 text-sm text-red-400">{fieldErrors.meta_description[0]}</p>
+        {fieldErrors?.metaDescription ? (
+          <p className="mt-1 text-sm text-red-400">{fieldErrors.metaDescription[0]}</p>
         ) : (
           <p className="mt-1 text-xs text-(--text-muted)">{metaDescription.length}/160</p>
         )}

@@ -79,16 +79,19 @@ export function PostForm({ contentType, postId }: Props) {
     { enabled: !!postId && !!session }
   );
 
+  // Derive lang for related queries (post lang if editing, default locale for new)
+  const postLang = existingPost.data?.lang ?? DEFAULT_LOCALE;
+
   // Fetch published categories for the selector
   const categoriesList = trpc.categories.listPublished.useQuery(
-    { lang: 'en', page: 1, pageSize: 100 },
+    { lang: postLang, page: 1, pageSize: 100 },
     { enabled: !!session },
   );
 
   // Page tree for parent page selector (pages only)
   const isPageType = contentType.postType === PostType.PAGE;
   const pageTree = trpc.cms.getPageTree.useQuery(
-    { lang: 'en' },
+    { lang: postLang },
     { enabled: isPageType && !!session }
   );
 
@@ -127,7 +130,7 @@ export function PostForm({ contentType, postId }: Props) {
 
   const {
     formData, setFormData,
-    fieldErrors, handleChange,
+    fieldErrors, handleChange, handleSaveError,
   } = useCmsFormState<PostFormData>(initialFormData, 'info');
 
   // Sync form data when post loads
@@ -160,7 +163,7 @@ export function PostForm({ contentType, postId }: Props) {
       utils.cms.counts.invalidate();
       router.push(`/dashboard/cms/${contentType.adminSlug}/${data.id}`);
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => handleSaveError(err, `Failed to create ${contentType.label}`),
   });
 
   const updatePost = trpc.cms.update.useMutation({
@@ -172,7 +175,7 @@ export function PostForm({ contentType, postId }: Props) {
       // Post-save link validation
       validateLinks(formData.content);
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => handleSaveError(err, `Failed to update ${contentType.label}`),
   });
 
   const isSaving = createPost.isPending || updatePost.isPending;
