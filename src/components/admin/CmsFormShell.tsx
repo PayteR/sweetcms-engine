@@ -28,12 +28,16 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
   return (
     <div className="-mx-6 -mt-6">
       <div ref={sentinelRef} className="h-0" />
+
+      {/* Reserve space — toolbar is always fixed */}
+      <div className="h-[52px]" />
+
       <div
         className={cn(
-          'sticky top-0 z-50 transition-[background-color,border-color] duration-200',
+          'fixed left-60 right-0 z-50 transition-[top,background-color,border-color] duration-200',
           isStuck
-            ? 'bg-(--surface-primary) border-b border-b-(--border-primary) border-t-2 border-t-transparent'
-            : 'border-b border-transparent'
+            ? 'top-0 bg-(--surface-primary) border-b border-b-(--border-primary)'
+            : 'top-14 bg-(--surface-secondary) border-b border-transparent'
         )}
       >
         <div className="mx-auto max-w-300 px-8 py-3 flex items-center justify-between">
