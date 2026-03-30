@@ -1,0 +1,389 @@
+@layer theme, base, components, utilities;
+
+/*
+ * SweetCMS Admin — Table, Badge, Form, and Pagination Classes
+ * Built on OKLCH tinted-neutral tokens.
+ */
+
+@layer components {
+  /* ===================== Table Rows ===================== */
+  .admin-tr {
+    transition: background-color var(--duration-fast) ease;
+  }
+
+  .admin-tr:hover {
+    background-color: var(--surface-inset);
+  }
+
+  /* ===================== Action Buttons ===================== */
+  .admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+    cursor: pointer;
+  }
+
+  .admin-action-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--surface-inset);
+  }
+
+  .admin-action-btn-danger {
+    color: var(--color-danger-600);
+  }
+
+  .admin-action-btn-danger:hover {
+    color: var(--color-danger-700);
+    background-color: var(--color-danger-50);
+  }
+
+  /* ===================== Status Badges ===================== */
+  .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    line-height: 1.5;
+  }
+
+  .admin-badge-published {
+    background-color: oklch(from var(--color-success-500) l c h / 0.1);
+    color: var(--color-success-600);
+    border-color: oklch(from var(--color-success-500) l c h / 0.2);
+  }
+
+  .admin-badge-draft {
+    background-color: var(--surface-inset);
+    color: var(--text-secondary);
+    border-color: var(--border-primary);
+  }
+
+  .admin-badge-scheduled {
+    background-color: oklch(from var(--color-brand-500) l c h / 0.1);
+    color: var(--color-brand-600);
+    border-color: oklch(from var(--color-brand-500) l c h / 0.2);
+  }
+
+  .admin-badge-trashed {
+    background-color: oklch(from var(--color-danger-500) l c h / 0.1);
+    color: var(--color-danger-600);
+    border-color: oklch(from var(--color-danger-500) l c h / 0.2);
+  }
+
+  /* ===================== Search & Filters ===================== */
+  .admin-search-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  }
+
+  .admin-search-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .admin-search-input:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px oklch(from var(--color-brand-500) l c h / 0.15);
+  }
+
+  .admin-filter-select {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color var(--duration-fast) ease;
+  }
+
+  .admin-filter-select:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px oklch(from var(--color-brand-500) l c h / 0.15);
+  }
+
+  /* ===================== Empty State ===================== */
+  .admin-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+
+  .admin-empty-state-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--surface-inset);
+    color: var(--text-muted);
+  }
+
+  .admin-empty-state-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .admin-empty-state-text {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  /* ===================== Sortable Headers ===================== */
+  .admin-sortable-th {
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .admin-sortable-th:hover {
+    color: var(--text-primary);
+  }
+
+  /* ===================== Pagination ===================== */
+  .admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-secondary);
+  }
+
+  .admin-pagination-info {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .admin-pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    background-color: var(--surface-secondary);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) ease,
+                color var(--duration-fast) ease,
+                border-color var(--duration-fast) ease;
+  }
+
+  .admin-pagination-btn:hover:not(:disabled) {
+    background-color: var(--surface-inset);
+    color: var(--text-primary);
+  }
+
+  .admin-pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .admin-pagination-btn.active {
+    background-color: var(--color-brand-600);
+    border-color: var(--color-brand-600);
+    color: var(--color-white);
+  }
+
+  /* ===================== Status Tabs ===================== */
+  .admin-status-tabs {
+    display: flex;
+    gap: 0.125rem;
+    border-bottom: 1px solid var(--border-primary);
+    padding: 0 0.5rem;
+  }
+
+  .admin-status-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  }
+
+  .admin-status-tab:hover {
+    color: var(--text-secondary);
+  }
+
+  .admin-status-tab.active {
+    color: var(--color-brand-600);
+    border-bottom-color: var(--color-brand-600);
+  }
+
+  .admin-status-tab-count {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    padding: 0 0.375rem;
+    border-radius: 9999px;
+    background-color: var(--surface-inset);
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .admin-status-tab.active .admin-status-tab-count {
+    background-color: oklch(from var(--color-brand-500) l c h / 0.1);
+    color: var(--color-brand-600);
+  }
+
+  /* ===================== Form Inputs ===================== */
+  .admin-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  }
+
+  .admin-input:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px oklch(from var(--color-brand-500) l c h / 0.15);
+  }
+
+  .admin-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .admin-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.375rem;
+  }
+
+  /* ===================== Role Badges ===================== */
+  .admin-role-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+  }
+
+  .admin-role-superadmin {
+    background-color: oklch(0.95 0.04 310);
+    color: oklch(0.50 0.18 310);
+    border-color: oklch(0.85 0.06 310);
+  }
+
+  .admin-role-admin {
+    background-color: oklch(from var(--color-brand-500) l c h / 0.1);
+    color: var(--color-brand-600);
+    border-color: oklch(from var(--color-brand-500) l c h / 0.2);
+  }
+
+  .admin-role-editor {
+    background-color: oklch(from var(--color-success-500) l c h / 0.1);
+    color: var(--color-success-600);
+    border-color: oklch(from var(--color-success-500) l c h / 0.2);
+  }
+
+  .admin-role-user {
+    background-color: var(--surface-inset);
+    color: var(--text-secondary);
+    border-color: var(--border-primary);
+  }
+}
+
+/* ===================== Dark mode overrides ===================== */
+html.dark {
+  .admin-badge-published {
+    background-color: oklch(from var(--color-success-500) l c h / 0.15);
+    color: var(--color-success-500);
+    border-color: oklch(from var(--color-success-500) l c h / 0.25);
+  }
+
+  .admin-badge-scheduled {
+    background-color: oklch(from var(--color-brand-400) l c h / 0.15);
+    color: var(--color-brand-400);
+    border-color: oklch(from var(--color-brand-400) l c h / 0.25);
+  }
+
+  .admin-badge-trashed {
+    background-color: oklch(from var(--color-danger-500) l c h / 0.15);
+    color: var(--color-danger-500);
+    border-color: oklch(from var(--color-danger-500) l c h / 0.25);
+  }
+
+  .admin-status-tab.active {
+    color: var(--color-brand-400);
+    border-bottom-color: var(--color-brand-400);
+  }
+
+  .admin-status-tab.active .admin-status-tab-count {
+    background-color: oklch(from var(--color-brand-400) l c h / 0.15);
+    color: var(--color-brand-400);
+  }
+
+  .admin-pagination-btn.active {
+    background-color: var(--color-brand-500);
+    border-color: var(--color-brand-500);
+  }
+
+  .admin-role-superadmin {
+    background-color: oklch(0.25 0.05 310);
+    color: oklch(0.80 0.15 310);
+    border-color: oklch(0.35 0.08 310);
+  }
+
+  .admin-role-admin {
+    background-color: oklch(from var(--color-brand-400) l c h / 0.15);
+    color: var(--color-brand-400);
+    border-color: oklch(from var(--color-brand-400) l c h / 0.25);
+  }
+
+  .admin-role-editor {
+    background-color: oklch(from var(--color-success-500) l c h / 0.15);
+    color: var(--color-success-500);
+    border-color: oklch(from var(--color-success-500) l c h / 0.25);
+  }
+
+  .admin-action-btn-danger:hover {
+    background-color: oklch(from var(--color-danger-500) l c h / 0.15);
+  }
+
+  .admin-search-input,
+  .admin-filter-select,
+  .admin-input {
+    background-color: var(--surface-inset);
+  }
+}
