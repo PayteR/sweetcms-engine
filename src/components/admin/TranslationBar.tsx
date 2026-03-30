@@ -56,7 +56,7 @@ export function TranslationBar({
         {translations.map((t) => (
           <Link
             key={t.lang}
-            href={`/dashboard/content/${adminSlug}/${t.id}`}
+            href={`/dashboard/cms/${adminSlug}/${t.id}`}
             className="rounded-md border border-(--border-primary) px-3 py-1 text-sm text-(--text-secondary) transition-colors hover:border-blue-500 hover:text-(--text-primary)"
           >
             {LOCALE_LABELS[t.lang as Locale] ?? t.lang}

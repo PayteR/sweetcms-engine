@@ -128,7 +128,6 @@ export function PostForm({ contentType, postId }: Props) {
   const {
     formData, setFormData, saving, setSaving,
     fieldErrors, setFieldErrors, handleChange, fieldErrorClass, handleSaveError,
-    initialData,
   } = useCmsFormState<PostFormData>(initialFormData, 'info');
 
   // Sync form data when post loads (replaces old useEffect with many setState calls)
@@ -206,7 +205,7 @@ export function PostForm({ contentType, postId }: Props) {
     contentTypeId: contentType.id,
     contentId: postId ?? null,
     formData,
-    initialData,
+    initialData: initialFormData,
     dbUpdatedAt: existingPost.data?.updatedAt ?? null,
     saving: isSaving,
     loading: !!postId && existingPost.isLoading,

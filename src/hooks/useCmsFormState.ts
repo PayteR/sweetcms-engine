@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
@@ -17,7 +17,6 @@ export function useCmsFormState<T extends Record<string, unknown>>(
   accentColor: AccentColor = 'info'
 ) {
   const __ = useBlankTranslations();
-  const initialDataRef = useRef(initialData);
   const [formData, setFormData] = useState(initialData);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -65,6 +64,5 @@ export function useCmsFormState<T extends Record<string, unknown>>(
     handleChange,
     fieldErrorClass,
     handleSaveError,
-    initialData: initialDataRef.current,
   };
 }

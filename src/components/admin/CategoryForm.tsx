@@ -108,7 +108,6 @@ export function CategoryForm({ categoryId }: Props) {
   const {
     formData, setFormData, saving, setSaving,
     fieldErrors, setFieldErrors, handleChange, fieldErrorClass, handleSaveError,
-    initialData,
   } = useCmsFormState<CategoryFormData>(initialFormData, 'info');
 
   // Sync form data when category loads
@@ -192,7 +191,7 @@ export function CategoryForm({ categoryId }: Props) {
     contentTypeId: 'category',
     contentId: categoryId ?? null,
     formData,
-    initialData,
+    initialData: initialFormData,
     dbUpdatedAt: existingCat.data?.updatedAt ?? null,
     saving: isSaving,
     loading: !!categoryId && existingCat.isLoading,
