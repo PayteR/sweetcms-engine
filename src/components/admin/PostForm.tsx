@@ -120,37 +120,20 @@ export function PostForm({ contentType, postId }: Props) {
       publishedAt: post.publishedAt ? convertUTCToLocal(post.publishedAt) : '',
       categoryIds: post.categoryIds ?? [],
       tagIds: post.tagIds ?? [],
-      parentId: (post as unknown as { parentId: string | null }).parentId ?? null,
+      parentId: post.parentId ?? null,
       fallbackToDefault: post.fallbackToDefault ?? null,
     };
   }, [post]);
 
   const {
-    formData, setFormData, saving, setSaving,
-    fieldErrors, setFieldErrors, handleChange, fieldErrorClass, handleSaveError,
+    formData, setFormData,
+    fieldErrors, handleChange,
   } = useCmsFormState<PostFormData>(initialFormData, 'info');
 
-  // Sync form data when post loads (replaces old useEffect with many setState calls)
+  // Sync form data when post loads
   useEffect(() => {
     if (post) {
-      setFormData({
-        title: post.title,
-        slug: post.slug,
-        content: post.content ?? '',
-        status: post.status,
-        lang: post.lang ?? DEFAULT_LOCALE,
-        metaDescription: post.metaDescription ?? '',
-        seoTitle: post.seoTitle ?? '',
-        featuredImage: post.featuredImage ?? '',
-        featuredImageAlt: post.featuredImageAlt ?? '',
-        jsonLd: post.jsonLd ?? '',
-        noindex: post.noindex ?? false,
-        publishedAt: post.publishedAt ? convertUTCToLocal(post.publishedAt) : '',
-        categoryIds: post.categoryIds ?? [],
-        tagIds: post.tagIds ?? [],
-        parentId: (post as unknown as { parentId: string | null }).parentId ?? null,
-        fallbackToDefault: post.fallbackToDefault ?? null,
-      });
+      setFormData(initialFormData);
       setSlugManual(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

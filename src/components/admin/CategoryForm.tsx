@@ -106,29 +106,14 @@ export function CategoryForm({ categoryId }: Props) {
   }, [cat]);
 
   const {
-    formData, setFormData, saving, setSaving,
-    fieldErrors, setFieldErrors, handleChange, fieldErrorClass, handleSaveError,
+    formData, setFormData,
+    fieldErrors, handleChange,
   } = useCmsFormState<CategoryFormData>(initialFormData, 'info');
 
   // Sync form data when category loads
   useEffect(() => {
     if (cat) {
-      setFormData({
-        name: cat.name,
-        slug: cat.slug,
-        title: cat.title,
-        text: cat.text,
-        status: cat.status,
-        lang: cat.lang ?? DEFAULT_LOCALE,
-        icon: cat.icon ?? '',
-        order: cat.order,
-        metaDescription: cat.metaDescription ?? '',
-        seoTitle: cat.seoTitle ?? '',
-        noindex: cat.noindex ?? false,
-        publishedAt: cat.publishedAt ? convertUTCToLocal(cat.publishedAt) : '',
-        tagIds: cat.tagIds ?? [],
-        fallbackToDefault: cat.fallbackToDefault ?? null,
-      });
+      setFormData(initialFormData);
       setSlugManual(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

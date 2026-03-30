@@ -132,7 +132,7 @@ export function RichTextEditor({
   const [sourceValue, setSourceValue] = useState(content);
   const lastEmittedContent = useRef(content);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => { onChangeRef.current = onChange; });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -245,6 +245,7 @@ export function RichTextEditor({
     if (!editor || editor.isDestroyed) return;
     if (content === lastEmittedContent.current) return;
     lastEmittedContent.current = content;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate external sync: parent content → source textarea
     if (mode === 'source') setSourceValue(content);
     editor.commands.setContent(prepareForEditor(markdownToHtml(content)), {
       emitUpdate: false,
