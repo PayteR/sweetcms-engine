@@ -27,10 +27,10 @@ import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SeoOverridesDialog } from '@/components/admin/SeoOverridesDialog';
 import { TaxonomyOverview } from '@/components/admin/TaxonomyOverview';
-import { useListViewState, SortIcon } from '@/hooks/useListViewState';
-import { useBulkSelection } from '@/hooks/useBulkSelection';
-import { useBulkActions } from '@/hooks/useBulkActions';
-import { useColumnVisibility } from '@/hooks/useColumnVisibility';
+import { useListViewState, SortIcon } from '@/engine/hooks/useListViewState';
+import { useBulkSelection } from '@/engine/hooks/useBulkSelection';
+import { useBulkActions } from '@/engine/hooks/useBulkActions';
+import { useColumnVisibility } from '@/engine/hooks/useColumnVisibility';
 import BulkActionBar from './BulkActionBar';
 
 const STATUS_LABELS: Record<number, string> = {

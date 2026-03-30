@@ -40,7 +40,7 @@ import { htmlToMarkdown, markdownToHtml } from '@/engine/lib/markdown';
 import { ShortcodeNode } from './shortcodes/ShortcodeNode';
 import { prepareForEditor, serializeForStorage } from './shortcodes/shortcode-utils';
 import { toast } from '@/store/toast-store';
-import type { EditorHandle } from '@/hooks/useLinkPicker';
+import type { EditorHandle } from '@/engine/hooks/useLinkPicker';
 
 interface Props {
   content: string;
