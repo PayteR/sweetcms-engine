@@ -17,9 +17,7 @@ export function useLinkValidation() {
     const links = extractInternalLinks(content);
     if (links.length > 0) {
       try {
-        const results = await (trpcUtils.cms as unknown as {
-          validateLinks: { fetch: (input: { urls: string[] }) => Promise<Array<{ url: string; valid: boolean }>> };
-        }).validateLinks.fetch({
+        const results = await trpcUtils.cms.validateLinks.fetch({
           urls: links,
         });
         const broken = results.filter((r) => !r.valid).map((r) => r.url);
