@@ -12,7 +12,7 @@ import {
   SEO_OVERRIDE_SLUGS,
 } from '@/server/utils/seo-routes';
 import { cmsPosts, cmsCategories, cmsTerms, cmsTermRelationships, cmsPostAttachments } from '@/server/db/schema';
-import { ContentStatus, PostType } from '@/types/cms';
+import { ContentStatus, PostType } from '@/engine/types/cms';
 import {
   buildAdminList,
   buildStatusCounts,

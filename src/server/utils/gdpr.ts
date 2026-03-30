@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { DbClient } from '@/server/db';
 import { user, session, account } from '@/server/db/schema/auth';
 import { cmsAuditLog } from '@/server/db/schema/audit';
-import { Policy } from '@/lib/policy';
+import { Policy } from '@/engine/policy';
 import { logAudit } from './audit';
 
 /**

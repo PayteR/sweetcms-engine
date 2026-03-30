@@ -3,7 +3,7 @@ import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { user, session } from '@/server/db/schema';
-import { ROLES, Role, isSuperAdmin } from '@/lib/policy';
+import { ROLES, Role, isSuperAdmin } from '@/engine/policy';
 import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
 import { anonymizeUser } from '@/server/utils/gdpr';
 import { createTRPCRouter, sectionProcedure, superadminProcedure } from '../trpc';

@@ -3,7 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, customSession } from 'better-auth/plugins';
 import { role } from 'better-auth/plugins/access';
 
-import { Role } from '@/lib/policy';
+import { Role } from '@/engine/policy';
 import { db } from '@/server/db';
 import { enqueueEmail } from '@/server/jobs/email';
 

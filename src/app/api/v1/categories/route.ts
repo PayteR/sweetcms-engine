@@ -3,7 +3,7 @@ import { and, asc, count as drizzleCount, eq, isNull } from 'drizzle-orm';
 
 import { db } from '@/server/db';
 import { cmsCategories } from '@/server/db/schema';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus } from '@/engine/types/cms';
 import {
   apiHeaders,
   checkRateLimit,

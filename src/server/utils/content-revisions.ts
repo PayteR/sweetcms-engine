@@ -2,7 +2,7 @@ import { desc, eq, and } from 'drizzle-orm';
 
 import type { DbClient } from '@/server/db';
 import { cmsContentRevisions } from '@/server/db/schema';
-import type { ContentSnapshot } from '@/types/cms';
+import type { ContentSnapshot } from '@/engine/types/cms';
 
 /**
  * Create a content revision snapshot.

@@ -6,7 +6,7 @@ import { Rss } from 'lucide-react';
 import { CONTENT_TYPES } from '@/config/cms';
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
-import { PostType, ContentStatus } from '@/types/cms';
+import { PostType, ContentStatus } from '@/engine/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
 import { resolveSlugRedirect } from '@/server/utils/slug-redirects';

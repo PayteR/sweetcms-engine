@@ -7,7 +7,7 @@ import { env } from '@/lib/env';
 import { createLogger } from '@/lib/logger';
 import { cmsCategories } from '@/server/db/schema';
 import { translate } from '@/server/translation/translation-service';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus } from '@/engine/types/cms';
 import {
   buildAdminList,
   buildStatusCounts,

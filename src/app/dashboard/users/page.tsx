@@ -19,7 +19,7 @@ import {
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { Role, ROLES } from '@/lib/policy';
+import { Role, ROLES } from '@/engine/policy';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';

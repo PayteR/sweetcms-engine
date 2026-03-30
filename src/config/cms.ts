@@ -1,4 +1,4 @@
-import { PostType } from '@/types/cms';
+import { PostType } from '@/engine/types/cms';
 
 /**
  * CMS Content Types Registry

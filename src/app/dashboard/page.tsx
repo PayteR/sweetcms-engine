@@ -5,7 +5,7 @@ import { FileText, Layers, FolderOpen, Users, Image, Clock } from 'lucide-react'
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { PostType } from '@/types/cms';
+import { PostType } from '@/engine/types/cms';
 import GA4Widget from '@/components/admin/GA4Widget';
 
 function StatCard({

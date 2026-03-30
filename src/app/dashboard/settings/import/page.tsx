@@ -13,7 +13,7 @@ import {
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { PostType } from '@/types/cms';
+import { PostType } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 

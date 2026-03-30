@@ -4,7 +4,7 @@ import { and, eq, isNull, desc } from 'drizzle-orm';
 import { siteConfig } from '@/config/site';
 import { db } from '@/server/db';
 import { cmsPosts, cmsCategories, cmsPortfolio, cmsTerms } from '@/server/db/schema';
-import { ContentStatus, PostType } from '@/types/cms';
+import { ContentStatus, PostType } from '@/engine/types/cms';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;

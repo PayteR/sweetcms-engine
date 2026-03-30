@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { siteConfig } from '@/config/site';
 import { db } from '@/server/db';
 import { cmsPosts } from '@/server/db/schema';
-import { ContentStatus, PostType } from '@/types/cms';
+import { ContentStatus, PostType } from '@/engine/types/cms';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 
 function escapeXml(str: string): string {

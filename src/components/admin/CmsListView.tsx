@@ -20,7 +20,7 @@ import {
 import type { ContentTypeDeclaration } from '@/config/cms';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus } from '@/engine/types/cms';
 import { LOCALES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { toast } from '@/store/toast-store';

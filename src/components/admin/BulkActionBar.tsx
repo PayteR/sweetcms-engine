@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Download, Loader2, Trash2, Undo2 } from 'lucide-react';
 
 import { useBlankTranslations } from '@/lib/translations';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus } from '@/engine/types/cms';
 
 interface BulkActionBarProps {
   selectedCount: number;

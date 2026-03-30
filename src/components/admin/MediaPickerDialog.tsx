@@ -11,7 +11,7 @@ import {
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { FileType } from '@/types/cms';
+import { FileType } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 

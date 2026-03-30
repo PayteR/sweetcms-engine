@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { ContentStatus, PostType } from '@/types/cms';
+import { ContentStatus, PostType } from '@/engine/types/cms';
 import { cn } from '@/lib/utils';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

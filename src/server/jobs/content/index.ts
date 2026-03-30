@@ -4,7 +4,7 @@ import { createQueue, createWorker } from '../queue';
 import { db } from '@/server/db';
 import { cmsPosts } from '@/server/db/schema/cms';
 import { cmsCategories } from '@/server/db/schema/categories';
-import { ContentStatus } from '@/types/cms';
+import { ContentStatus } from '@/engine/types/cms';
 import { logAudit } from '@/server/utils/audit';
 import { dispatchWebhook } from '@/server/utils/webhooks';
 

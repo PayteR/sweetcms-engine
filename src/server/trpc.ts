@@ -3,7 +3,7 @@ import superjson from 'superjson';
 import { ZodError } from 'zod';
 
 import { auth } from '@/lib/auth';
-import { type AdminSection, Policy, Role, type UserRole } from '@/lib/policy';
+import { type AdminSection, Policy, Role, type UserRole } from '@/engine/policy';
 import { db } from '@/server/db';
 
 /**

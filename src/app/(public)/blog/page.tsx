@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
-import { PostType } from '@/types/cms';
+import { PostType } from '@/engine/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
 import { db } from '@/server/db';

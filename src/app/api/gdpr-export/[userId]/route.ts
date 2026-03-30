@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/lib/auth';
-import { Policy } from '@/lib/policy';
+import { Policy } from '@/engine/policy';
 import { db } from '@/server/db';
 import { exportUserData } from '@/server/utils/gdpr';
 
