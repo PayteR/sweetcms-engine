@@ -34,7 +34,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
 
-**To rebrand:** change hue value in `src/engine/styles/tokens.css` — all colors adapt automatically.
+**To rebrand:** change `--brand-hue` in `src/engine/styles/tokens.css` (default: 270 = indigo) — all colors adapt automatically. Brand-tinted alpha variants use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere.
 
 ### tRPC Procedures & Usage
 
@@ -120,7 +120,6 @@ WordPress-style universal taxonomy with config-driven declarations.
 ```
 src/
 ├── app/
-│   ├── assets/           — content.css
 │   ├── (auth)/           — login, register, forgot-password, reset-password
 │   ├── (public)/         — public-facing content
 │   │   ├── blog/         — blog list page
@@ -161,7 +160,7 @@ src/
 │   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, etc.
 │   ├── lib/              — slug, markdown, audit, webhooks
 │   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot
-│   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css
+│   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css, content.css
 ├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, password, revision-diff, translations, trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
@@ -289,13 +288,13 @@ const __ = useBlankTranslations();
 
 Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config.
 
-**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Single brand hue (default: 270 = indigo) controls entire color scheme. Change it to rebrand. Every gray carries subtle brand tint for cohesive feel.
+**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Single `--brand-hue` variable (default: 270 = indigo) controls entire color scheme. Change it to rebrand. Every gray carries subtle brand tint for cohesive feel. Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables.
 
 **File structure:**
 - `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)
 - `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography)
 - `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes
-- `src/app/assets/content.css` — CMS content rendering classes (`.cms-content`, `.cms-title`, `.cms-post-card`)
+- `src/engine/styles/content.css` — CMS content rendering classes (`.cms-content`, `.cms-title`, `.cms-post-card`)
 - `src/app/globals.css` — imports Tailwind, typography, engine tokens, content CSS
 
 **Layer order:** `@layer theme, base, components, utilities;` — every CSS file must declare this.
