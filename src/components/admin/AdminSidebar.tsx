@@ -1,97 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  Activity,
-  ArrowRightLeft,
-  Calendar,
-  ChevronDown,
-  ClipboardList,
-  FileText,
-  FolderOpen,
-  Hash,
-  Home,
-  Image,
-  Layers,
-  Briefcase,
-  ListChecks,
-  Mail,
-  Menu,
-  Settings,
-  Upload,
-  Users,
-  Webhook,
-} from 'lucide-react';
+import { LogOut, Menu, Monitor, Moon, Search, Sun, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { useBlankTranslations } from '@/lib/translations';
+import { signOut, useSession } from '@/lib/auth-client';
 import { useSidebarStore } from '@/store/sidebar-store';
+import { useThemeStore } from '@/store/theme-store';
+import { siteConfig } from '@/config/site';
+import { navigation, isNavGroup, getActiveSectionId } from '@/config/admin-nav';
+import type { NavChild } from '@/config/admin-nav';
+import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/CommandPalette';
 
-interface NavChild {
-  name: string;
-  href: string;
-  icon: React.ElementType;
-}
+/* ── Helpers ── */
 
-interface NavLink {
-  name: string;
-  href: string;
-  icon: React.ElementType;
-}
-
-interface NavGroup {
-  name: string;
-  icon: React.ElementType;
-  children: NavChild[];
-}
-
-type NavItem = NavLink | NavGroup;
-
-function isNavGroup(item: NavItem): item is NavGroup {
-  return 'children' in item;
-}
-
-const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  {
-    name: 'Content',
-    icon: FileText,
-    children: [
-      { name: 'Pages', href: '/dashboard/cms/pages', icon: FileText },
-      { name: 'Blog', href: '/dashboard/cms/blog', icon: Layers },
-      { name: 'Portfolio', href: '/dashboard/cms/portfolio', icon: Briefcase },
-      { name: 'Categories', href: '/dashboard/cms/categories', icon: FolderOpen },
-      { name: 'Tags', href: '/dashboard/cms/tags', icon: Hash },
-      { name: 'Menus', href: '/dashboard/cms/menus', icon: Menu },
-      { name: 'Redirects', href: '/dashboard/cms/redirects', icon: ArrowRightLeft },
-      { name: 'Calendar', href: '/dashboard/cms/calendar', icon: Calendar },
-    ],
-  },
-  { name: 'Forms', href: '/dashboard/forms', icon: ClipboardList },
-  { name: 'Media', href: '/dashboard/media', icon: Image },
-  { name: 'Users', href: '/dashboard/users', icon: Users },
-  { name: 'Activity', href: '/dashboard/cms/activity', icon: Activity },
-  {
-    name: 'Settings',
-    icon: Settings,
-    children: [
-      { name: 'General', href: '/dashboard/settings', icon: Settings },
-      { name: 'Custom Fields', href: '/dashboard/settings/custom-fields', icon: Layers },
-      { name: 'Import', href: '/dashboard/settings/import', icon: Upload },
-      { name: 'Webhooks', href: '/dashboard/settings/webhooks', icon: Webhook },
-      { name: 'Job Queue', href: '/dashboard/settings/job-queue', icon: ListChecks },
-      { name: 'Email Templates', href: '/dashboard/settings/email-templates', icon: Mail },
-    ],
-  },
-];
-
-/** Check if a child link should be active, with fallback logic for group catch-alls */
-function isChildActive(
-  child: NavChild,
-  siblings: NavChild[],
-  pathname: string
-): boolean {
+function isChildActive(child: NavChild, siblings: NavChild[], pathname: string): boolean {
   if (pathname === child.href) return true;
   if (pathname.startsWith(child.href + '/')) {
     const hasBetterMatch = siblings.some(
@@ -102,142 +28,298 @@ function isChildActive(
   return false;
 }
 
-/** Check if any child in a group is active */
-function isGroupActive(children: NavChild[], pathname: string): boolean {
-  return children.some((child) => isChildActive(child, children, pathname));
+function RoleBadge({ role }: { role: string }) {
+  const classMap: Record<string, string> = {
+    superadmin: 'admin-role-badge admin-role-superadmin',
+    admin: 'admin-role-badge admin-role-admin',
+    editor: 'admin-role-badge admin-role-editor',
+    user: 'admin-role-badge admin-role-user',
+  };
+  return <span className={classMap[role] ?? classMap.user}>{role}</span>;
 }
 
+const themeOrder = ['light', 'dark', 'system'] as const;
+const themeIcons = { light: Sun, dark: Moon, system: Monitor } as const;
+const themeLabels = { light: 'Light', dark: 'Dark', system: 'System' } as const;
+
+/* ── Main Component ── */
+
 export function AdminSidebar() {
+  const __ = useBlankTranslations();
   const pathname = usePathname();
   const router = useRouter();
-  const { isOpen, closeSidebar } = useSidebarStore();
+  const { isOpen, closeSidebar, toggleSidebar } = useSidebarStore();
+  const { data: session } = useSession();
+  const { theme, setTheme, initTheme } = useThemeStore();
 
-  // Compute which groups should be initially open (those with active children)
-  const initialOpen = useMemo(() => {
-    const open: Record<string, boolean> = {};
-    for (const item of navigation) {
-      if (isNavGroup(item)) {
-        open[item.name] = isGroupActive(item.children, pathname);
+  // Command palette state
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const openPalette = useCallback(() => setCommandPaletteOpen(true), []);
+  const closePalette = useCallback(() => setCommandPaletteOpen(false), []);
+  useCommandPaletteShortcut(openPalette);
+
+  // User popover state
+  const [userPopoverOpen, setUserPopoverOpen] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const avatarBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Theme init
+  useEffect(() => {
+    return initTheme();
+  }, [initTheme]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!userPopoverOpen) return;
+    function handleMouseDown(e: MouseEvent) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        avatarBtnRef.current &&
+        !avatarBtnRef.current.contains(e.target as Node)
+      ) {
+        setUserPopoverOpen(false);
       }
     }
-    return open;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- only on mount
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, [userPopoverOpen]);
 
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    () => initialOpen
-  );
-
-  // Auto-expand groups when navigating to a child route
+  // Close popover when mobile overlay state changes (prevents stale refs)
   useEffect(() => {
-    setOpenGroups((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      for (const item of navigation) {
-        if (
-          isNavGroup(item) &&
-          isGroupActive(item.children, pathname) &&
-          !prev[item.name]
-        ) {
-          next[item.name] = true;
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [pathname]);
+    setUserPopoverOpen(false);
+  }, [isOpen]);
 
-  const toggleGroup = useCallback((name: string) => {
-    setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
-  }, []);
+  // Active section
+  const activeSectionId = getActiveSectionId(pathname);
+  const activeItem = useMemo(
+    () => navigation.find((item) => item.id === activeSectionId),
+    [activeSectionId]
+  );
+  const hasLevel2 = activeItem && isNavGroup(activeItem);
+
+  // Theme cycling
+  function cycleTheme() {
+    const idx = themeOrder.indexOf(theme);
+    const next = themeOrder[(idx + 1) % themeOrder.length];
+    setTheme(next);
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    router.push('/login');
+  }
+
+  const userRole = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
+  const ThemeIcon = themeIcons[theme];
+  const logoLetter = siteConfig.name.charAt(0).toUpperCase();
+
+  /* ── Rail content (shared between desktop and mobile) ── */
+  function renderRailNav() {
+    return navigation.map((item) => {
+      const Icon = item.icon;
+      const isActive = item.id === activeSectionId;
+
+      if (isNavGroup(item)) {
+        const firstChild = item.children[0];
+        return (
+          <button
+            key={item.id}
+            type="button"
+            title={item.name}
+            onClick={() => {
+              if (firstChild) router.push(firstChild.href);
+              closeSidebar();
+            }}
+            className={cn('admin-rail-btn', isActive && 'active')}
+          >
+            <Icon className="h-5 w-5" />
+          </button>
+        );
+      }
+
+      return (
+        <Link
+          key={item.id}
+          href={item.href}
+          title={item.name}
+          onClick={closeSidebar}
+          className={cn('admin-rail-btn', isActive && 'active')}
+        >
+          <Icon className="h-5 w-5" />
+        </Link>
+      );
+    });
+  }
+
+  function renderRailBottom() {
+    return (
+      <>
+        <button
+          type="button"
+          title={__('Search')}
+          onClick={openPalette}
+          className="admin-rail-btn"
+        >
+          <Search className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          title={`${__('Theme')}: ${themeLabels[theme]}`}
+          onClick={cycleTheme}
+          className="admin-rail-btn"
+        >
+          <ThemeIcon className="h-5 w-5" />
+        </button>
+        <div className="relative">
+          <button
+            ref={avatarBtnRef}
+            type="button"
+            title={session?.user?.name ?? __('User')}
+            onClick={() => setUserPopoverOpen((v) => !v)}
+            className="admin-rail-btn"
+          >
+            <User className="h-5 w-5" />
+          </button>
+          {userPopoverOpen && (
+            <div ref={popoverRef} className="admin-user-popover">
+              {session?.user && (
+                <div className="px-3 py-2">
+                  <div className="text-sm font-medium text-(--text-primary) truncate">
+                    {session.user.name ?? session.user.email}
+                  </div>
+                  <div className="text-xs text-(--text-muted) truncate mt-0.5">
+                    {session.user.email}
+                  </div>
+                  {userRole && (
+                    <div className="mt-1.5">
+                      <RoleBadge role={userRole} />
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="border-t border-(--border-secondary) mt-1 pt-1">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-(--text-secondary) hover:bg-(--surface-inset) hover:text-(--text-primary)"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {__('Sign Out')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  function renderLevel2() {
+    if (!activeItem || !isNavGroup(activeItem)) return null;
+    return (
+      <>
+        <div className="admin-l2-title">{activeItem.name}</div>
+        <nav className="flex flex-col gap-0.5 mt-1">
+          {activeItem.children.map((child) => {
+            const Icon = child.icon;
+            const active = isChildActive(child, activeItem.children, pathname);
+            return (
+              <Link
+                key={child.href}
+                href={child.href}
+                onClick={closeSidebar}
+                className={cn('admin-sidebar-link', active && 'active')}
+              >
+                <Icon className="h-4 w-4" />
+                {child.name}
+              </Link>
+            );
+          })}
+        </nav>
+      </>
+    );
+  }
 
   return (
-    <aside
-      className={cn(
-        'fixed bottom-0 left-0 top-14 z-[60] w-60 overflow-y-auto border-r border-(--border-primary) bg-(--surface-sidebar) transition-transform duration-300 ease-in-out xl:translate-x-0',
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      )}
-    >
-      <nav className="flex flex-col gap-1 p-3">
-        {navigation.map((item) => {
-          if (isNavGroup(item)) {
-            const groupOpen = openGroups[item.name] ?? false;
-            const GroupIcon = item.icon;
-            const firstChild = item.children[0];
+    <>
+      {/* ── Desktop Rail ── */}
+      <aside className="admin-rail hidden xl:flex">
+        <Link href="/dashboard" className="admin-rail-logo">
+          {logoLetter}
+        </Link>
+        <div className="admin-rail-nav">
+          {renderRailNav()}
+        </div>
+        <div className="admin-rail-bottom">
+          {renderRailBottom()}
+        </div>
+      </aside>
 
-            return (
-              <div key={item.name} className="mt-2">
-                {/* Group header — split button: label navigates, chevron toggles */}
-                <div className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenGroups((prev) => ({ ...prev, [item.name]: true }));
-                      if (firstChild) {
-                        router.push(firstChild.href);
-                        closeSidebar();
-                      }
-                    }}
-                    className="flex flex-1 items-center gap-2 rounded-l-md px-3 py-2 text-xs font-semibold uppercase tracking-wider text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
-                  >
-                    <GroupIcon className="h-4 w-4" />
-                    <span className="flex-1 text-left">{item.name}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleGroup(item.name)}
-                    className="rounded-r-md px-2 py-2 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
-                  >
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200',
-                        groupOpen ? 'rotate-0' : '-rotate-90'
-                      )}
-                    />
-                  </button>
-                </div>
+      {/* ── Desktop Level 2 Panel (always mounted for transition) ── */}
+      <aside
+        className={cn(
+          'admin-l2-panel hidden xl:block transition-[translate,opacity] duration-300 ease-in-out',
+          hasLevel2
+            ? 'translate-x-0 opacity-100'
+            : '-translate-x-full opacity-0 pointer-events-none'
+        )}
+      >
+        {hasLevel2 && renderLevel2()}
+      </aside>
 
-                {/* Collapsible children */}
-                {groupOpen && (
-                  <div className="ml-3 mt-1 space-y-0.5 border-l border-(--border-primary) pl-3">
-                    {item.children.map((child) => {
-                      const Icon = child.icon;
-                      const active = isChildActive(child, item.children, pathname);
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          onClick={closeSidebar}
-                          className={cn('admin-sidebar-link', active && 'active')}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {child.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
+      {/* ── Mobile Top Bar ── */}
+      <div className="admin-mobile-topbar xl:hidden">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="admin-rail-btn"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={openPalette}
+            className="admin-rail-btn"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Mobile Overlay ── */}
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-[55] bg-(--surface-overlay) xl:hidden"
+            onClick={closeSidebar}
+          />
+          <div className="fixed inset-y-0 left-0 z-[60] flex xl:hidden">
+            {/* Mobile Rail — inline layout instead of reusing .admin-rail (which is position:fixed) */}
+            <aside className="flex w-[48px] flex-col bg-(--surface-inset) border-r border-(--border-primary)">
+              <Link href="/dashboard" onClick={closeSidebar} className="admin-rail-logo">
+                {logoLetter}
+              </Link>
+              <div className="admin-rail-nav">
+                {renderRailNav()}
               </div>
-            );
-          }
+              <div className="admin-rail-bottom">
+                {renderRailBottom()}
+              </div>
+            </aside>
+            {/* Mobile Level 2 */}
+            {hasLevel2 && (
+              <aside className="w-[220px] bg-(--surface-secondary) border-r border-(--border-primary) overflow-y-auto p-4 pt-4">
+                {renderLevel2()}
+              </aside>
+            )}
+          </div>
+        </>
+      )}
 
-          const Icon = item.icon;
-          const active =
-            item.href === '/dashboard'
-              ? pathname === '/dashboard'
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={closeSidebar}
-              className={cn('admin-sidebar-link', active && 'active')}
-            >
-              <Icon className="h-4 w-4" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
+      {/* ── Command Palette ── */}
+      <CommandPalette open={commandPaletteOpen} onClose={closePalette} />
+    </>
   );
 }

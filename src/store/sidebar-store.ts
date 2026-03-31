@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 interface SidebarState {
-  isOpen: boolean;
+  isOpen: boolean;        // mobile overlay only
   toggleSidebar: () => void;
   closeSidebar: () => void;
 }

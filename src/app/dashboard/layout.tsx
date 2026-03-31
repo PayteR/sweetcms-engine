@@ -1,5 +1,5 @@
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { AdminHeader } from '@/components/admin/AdminHeader';
+import { DashboardShell } from '@/components/admin/DashboardShell';
 import { Toaster } from '@/components/ui/Toaster';
 import './assets/admin.css';
 
@@ -10,11 +10,8 @@ export default function DashboardLayout({
 }) {
   return (
     <div>
-      <AdminHeader />
       <AdminSidebar />
-      <main className="min-h-dvh pt-14 xl:ml-60">
-        <div className="bg-(--surface-secondary) p-6">{children}</div>
-      </main>
+      <DashboardShell>{children}</DashboardShell>
       <Toaster />
     </div>
   );

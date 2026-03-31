@@ -30,7 +30,7 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
       <div ref={sentinelRef} className="h-0" />
       <div
         className={cn(
-          'sticky top-0 z-50 transition-[background-color,border-color] duration-200',
+          'sticky top-12 xl:top-0 z-30 transition-[background-color,border-color] duration-200',
           isStuck
             ? 'bg-(--surface-primary) border-b border-b-(--border-primary)'
             : 'border-b border-transparent'
