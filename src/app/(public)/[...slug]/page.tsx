@@ -299,7 +299,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                 <Link
                   key={tag.slug}
                   href={`/tag/${tag.slug}`}
-                  className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20"
+                  className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400) hover:bg-(--color-brand-100) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)]"
                 >
                   {tag.name}
                 </Link>
@@ -433,7 +433,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                   {currentPage > 1 ? (
                     <Link
                       href={`${basePath}?page=${currentPage - 1}`}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                      className="text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-700)"
                     >
                       &larr; Previous
                     </Link>
@@ -446,7 +446,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                   {currentPage < totalPages ? (
                     <Link
                       href={`${basePath}?page=${currentPage + 1}`}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                      className="text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-700)"
                     >
                       Next &rarr;
                     </Link>
@@ -518,7 +518,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                 href={item.projectUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700 hover:underline"
+                className="text-(--color-brand-600) hover:text-(--color-brand-700) hover:underline"
               >
                 Visit Project
               </a>
@@ -531,7 +531,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
               {item.techStack.map((tech) => (
                 <span
                   key={tech}
-                  className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400"
+                  className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400)"
                 >
                   {tech}
                 </span>

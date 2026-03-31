@@ -415,7 +415,7 @@ export function PostForm({ contentType, postId }: Props) {
                 required
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="admin-input mt-1"
                 placeholder={__(`${contentType.label} title`)}
               />
 
@@ -429,7 +429,7 @@ export function PostForm({ contentType, postId }: Props) {
                   handleChange('slug', e.target.value);
                   setSlugManual(true);
                 }}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="admin-input mt-1 font-mono"
                 placeholder="url-slug"
               />
             </div>
@@ -503,7 +503,7 @@ export function PostForm({ contentType, postId }: Props) {
                   value={formData.jsonLd}
                   onChange={(e) => handleChange('jsonLd', e.target.value)}
                   rows={6}
-                  className="mt-3 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="admin-textarea mt-3 font-mono"
                   placeholder='{"@context": "https://schema.org", ...}'
                 />
               </div>
@@ -523,7 +523,7 @@ export function PostForm({ contentType, postId }: Props) {
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-select mt-1 w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -543,7 +543,7 @@ export function PostForm({ contentType, postId }: Props) {
                     type="datetime-local"
                     value={formData.publishedAt}
                     onChange={(e) => handleChange('publishedAt', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                   />
                 </div>
 
@@ -572,7 +572,7 @@ export function PostForm({ contentType, postId }: Props) {
                         value={formData.lang}
                         onChange={(e) => handleChange('lang', e.target.value)}
                         disabled={!isNew}
-                        className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-(--surface-secondary)"
+                        className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
                       >
                         <option value="en">English</option>
                       </select>
@@ -597,7 +597,7 @@ export function PostForm({ contentType, postId }: Props) {
                 <select
                   value={formData.parentId ?? ''}
                   onChange={(e) => handleChange('parentId', e.target.value || null)}
-                  className="mt-3 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="admin-select mt-3 w-full"
                 >
                   <option value="">{__('None (top level)')}</option>
                   {(pageTree.data ?? [])
@@ -690,7 +690,7 @@ export function PostForm({ contentType, postId }: Props) {
                       <button
                         type="button"
                         onClick={() => setShowMediaPicker(true)}
-                        className="text-xs text-blue-600 hover:text-blue-700"
+                        className="text-xs text-(--color-brand-600) hover:text-(--color-brand-700)"
                       >
                         {__('Change')}
                       </button>
@@ -705,7 +705,7 @@ export function PostForm({ contentType, postId }: Props) {
                         type="text"
                         value={formData.featuredImageAlt}
                         onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
-                        className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="admin-input mt-1"
                         placeholder={__('Describe the image')}
                       />
                     </div>

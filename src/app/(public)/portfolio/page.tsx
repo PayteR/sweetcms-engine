@@ -41,7 +41,7 @@ export default async function PortfolioListPage() {
                 />
               )}
               <div className="p-4">
-                <h2 className="text-lg font-semibold text-(--text-primary) group-hover:text-blue-600">
+                <h2 className="text-lg font-semibold text-(--text-primary) group-hover:text-(--color-brand-600)">
                   {item.title}
                 </h2>
                 {item.clientName && (
@@ -52,7 +52,7 @@ export default async function PortfolioListPage() {
                     {item.techStack.slice(0, 4).map((tech) => (
                       <span
                         key={tech}
-                        className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400"
+                        className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2 py-0.5 text-[11px] font-medium text-(--color-brand-600) dark:text-(--color-brand-400)"
                       >
                         {tech}
                       </span>

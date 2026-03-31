@@ -55,7 +55,7 @@ function ResetPasswordForm() {
         </p>
         <Link
           href="/forgot-password"
-          className="mt-4 inline-block text-sm font-medium text-blue-600 hover:text-blue-500"
+          className="mt-4 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
         >
           Request a new reset link
         </Link>
@@ -72,7 +72,7 @@ function ResetPasswordForm() {
         </p>
         <Link
           href="/login"
-          className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="admin-btn admin-btn-primary mt-4 inline-block rounded-md px-4 py-2 text-sm font-medium"
         >
           Sign In
         </Link>
@@ -108,7 +108,7 @@ function ResetPasswordForm() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input mt-1"
             placeholder="••••••••"
           />
         </div>
@@ -127,7 +127,7 @@ function ResetPasswordForm() {
             minLength={6}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input mt-1"
             placeholder="••••••••"
           />
         </div>
@@ -135,7 +135,7 @@ function ResetPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="admin-btn admin-btn-primary w-full rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-50"
         >
           {loading ? 'Resetting...' : 'Reset Password'}
         </button>

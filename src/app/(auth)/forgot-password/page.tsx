@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
         </p>
         <Link
           href="/login"
-          className="mt-6 inline-block text-sm font-medium text-blue-600 hover:text-blue-500"
+          className="mt-6 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
         >
           Back to Sign In
         </Link>
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input mt-1"
             placeholder="you@example.com"
           />
         </div>
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="admin-btn admin-btn-primary w-full rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-50"
         >
           {loading ? 'Sending...' : 'Send Reset Link'}
         </button>
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
 
       <p className="mt-6 text-center text-sm text-(--text-muted)">
         Remember your password?{' '}
-        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+        <Link href="/login" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
           Sign in
         </Link>
       </p>

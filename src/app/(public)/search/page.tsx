@@ -123,12 +123,12 @@ export default async function SearchPage({ searchParams }: Props) {
             name="q"
             defaultValue={query}
             placeholder="Search content..."
-            className="flex-1 rounded-md border border-(--border-primary) px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input flex-1 px-4 py-2.5"
             autoFocus
           />
           <button
             type="submit"
-            className="rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+            className="admin-btn admin-btn-primary rounded-md px-4 py-2.5 text-sm font-medium"
           >
             Search
           </button>
@@ -146,7 +146,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <article key={result.id}>
             <Link
               href={result.url}
-              className="text-lg font-medium text-blue-700 dark:text-blue-400 hover:underline"
+              className="text-lg font-medium text-(--color-brand-700) dark:text-(--color-brand-400) hover:underline"
             >
               {result.title}
             </Link>

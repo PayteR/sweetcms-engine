@@ -111,7 +111,7 @@ export default function MenusPage() {
                     <div className="flex items-center justify-end gap-1">
                       <Link
                         href={`/dashboard/cms/menus/${menu.id}`}
-                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                         title={__('Edit')}
                       >
                         <Pencil className="h-4 w-4" />

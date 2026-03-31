@@ -68,8 +68,8 @@
   }
 
   .admin-sidebar-link.active {
-    color: var(--color-brand-600);
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.10);
+    color: var(--color-brand-700);
+    background: linear-gradient(135deg, oklch(0.55 0.20 var(--brand-hue) / 0.12), oklch(0.62 0.17 var(--accent-hue) / 0.08));
     font-weight: 500;
   }
 
@@ -98,7 +98,7 @@
     font-size: 1rem;
     font-weight: 700;
     color: var(--color-white);
-    background-color: var(--color-brand-600);
+    background: var(--gradient-brand);
     text-decoration: none;
     flex-shrink: 0;
   }
@@ -132,8 +132,8 @@
   }
 
   .admin-rail-btn.active {
-    color: var(--color-brand-600);
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.10);
+    color: var(--color-brand-700);
+    background: linear-gradient(135deg, oklch(0.55 0.20 var(--brand-hue) / 0.12), oklch(0.62 0.17 var(--accent-hue) / 0.08));
   }
 
   .admin-rail-bottom {
@@ -234,12 +234,12 @@
   }
 
   .admin-btn-primary {
-    background-color: var(--color-brand-600);
+    background: var(--gradient-brand);
     color: var(--color-white);
   }
 
   .admin-btn-primary:hover:not(:disabled) {
-    background-color: var(--color-brand-500);
+    background: var(--gradient-brand-hover);
   }
 
   .admin-btn-secondary {
@@ -430,65 +430,102 @@
 
 /* ===================== Dark mode overrides ===================== */
 html.dark {
-  /* Cards: semi-transparent with frosted border (no backdrop-filter — cards sit on flat bg) */
+  /* Cards: gradient glass surface */
   .admin-card {
-    background-color: oklch(0.30 0.01 var(--brand-hue) / 0.7);
+    background: linear-gradient(
+      135deg,
+      oklch(0.28 0.01 var(--brand-hue) / 0.6),
+      oklch(0.22 0.012 var(--brand-hue) / 0.65)
+    );
     border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-glass-sm);
   }
 
-  /* Rail: semi-transparent with frosted border (edge-anchored, no backdrop-filter — nothing behind it) */
+  .admin-card:hover {
+    box-shadow: var(--shadow-glass-md),
+                0 0 24px oklch(0.48 0.20 var(--brand-hue) / 0.12);
+  }
+
+  /* Rail: gradient glass with blur — body gradient shows through */
   .admin-rail {
-    background-color: oklch(0.19 0.01 var(--brand-hue) / 0.85);
+    background: linear-gradient(
+      180deg,
+      oklch(0.32 0.012 var(--brand-hue) / 0.75),
+      oklch(0.28 0.015 var(--brand-hue) / 0.8)
+    );
     border-right-color: var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--shadow-glass-sm);
   }
 
-  /* L2 panel: semi-transparent with frosted border (edge-anchored, no backdrop-filter) */
+  /* L2 panel: gradient glass with blur — body gradient shows through */
   .admin-l2-panel {
-    background-color: oklch(0.23 0.012 var(--brand-hue) / 0.75);
+    background: linear-gradient(
+      135deg,
+      oklch(0.22 0.012 var(--brand-hue) / 0.5),
+      oklch(0.18 0.015 var(--brand-hue) / 0.55)
+    );
     border-right-color: var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--shadow-glass-sm);
   }
 
-  /* Command palette: floating glass */
+  /* Command palette: elevated floating glass */
   .admin-command-panel {
-    background-color: oklch(0.30 0.01 var(--brand-hue) / 0.75);
+    background: linear-gradient(
+      135deg,
+      oklch(0.28 0.01 var(--brand-hue) / 0.8),
+      oklch(0.22 0.012 var(--brand-hue) / 0.85)
+    );
     border-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--shadow-glass-lg);
   }
 
-  /* Slide-over: floating glass */
+  /* Slide-over: elevated floating glass */
   .admin-slide-over-panel {
-    background-color: oklch(0.30 0.01 var(--brand-hue) / 0.75);
+    background: linear-gradient(
+      135deg,
+      oklch(0.28 0.01 var(--brand-hue) / 0.8),
+      oklch(0.22 0.012 var(--brand-hue) / 0.85)
+    );
     border-left-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--shadow-glass-lg);
   }
 
-  /* User popover: floating glass */
+  /* User popover: elevated floating glass */
   .admin-user-popover {
-    background-color: oklch(0.35 0.01 var(--brand-hue) / 0.75);
+    background: linear-gradient(
+      135deg,
+      oklch(0.32 0.01 var(--brand-hue) / 0.75),
+      oklch(0.26 0.012 var(--brand-hue) / 0.8)
+    );
     border-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--shadow-glass-lg);
   }
 
-  /* Mobile topbar: high opacity glass (edge-anchored) */
+  /* Mobile topbar: gradient glass */
   .admin-mobile-topbar {
-    background-color: oklch(0.23 0.012 var(--brand-hue) / 0.85);
+    background: linear-gradient(
+      180deg,
+      oklch(0.22 0.012 var(--brand-hue) / 0.75),
+      oklch(0.18 0.015 var(--brand-hue) / 0.8)
+    );
     border-bottom-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--shadow-glass-sm);
   }
 
   .admin-sidebar-link.active {
-    color: var(--color-brand-400);
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.15);
+    color: var(--color-brand-200);
+    background: linear-gradient(135deg, oklch(0.45 0.22 var(--brand-hue) / 0.25), oklch(0.58 0.18 var(--accent-hue) / 0.20));
   }
 
   .admin-rail-btn.active {
-    color: var(--color-brand-400);
-    background-color: oklch(0.65 0.17 var(--brand-hue) / 0.15);
-  }
-
-  .admin-btn-primary:hover:not(:disabled) {
-    background-color: var(--color-brand-400);
+    color: var(--color-brand-200);
+    background: linear-gradient(135deg, oklch(0.45 0.22 var(--brand-hue) / 0.25), oklch(0.58 0.18 var(--accent-hue) / 0.20));
   }
 
   .admin-btn-secondary {

@@ -11,7 +11,7 @@ export default function NotFound() {
       <div className="mt-6 flex gap-3">
         <Link
           href="/"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="admin-btn admin-btn-primary"
         >
           Go Home
         </Link>

@@ -8,7 +8,7 @@ import { toast } from '@/store/toast-store';
 type AccentColor = 'info' | 'warning';
 
 const BORDER_CLASSES: Record<AccentColor, string> = {
-  info: 'border-(--border-primary) focus:border-blue-500',
+  info: 'border-(--border-primary) focus:border-(--color-accent-500)',
   warning: 'border-(--border-primary) focus:border-yellow-500',
 };
 

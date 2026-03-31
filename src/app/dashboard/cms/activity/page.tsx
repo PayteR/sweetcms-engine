@@ -51,7 +51,7 @@ export default function ActivityPage() {
         <select
           value={entityType}
           onChange={(e) => { setEntityType(e.target.value); setPage(1); }}
-          className="rounded-md border border-(--border-primary) px-3 py-2 text-sm"
+          className="admin-select"
         >
           <option value="">{__('All types')}</option>
           {ENTITY_TYPES.slice(1).map((t) => (
@@ -61,7 +61,7 @@ export default function ActivityPage() {
         <select
           value={action}
           onChange={(e) => { setAction(e.target.value); setPage(1); }}
-          className="rounded-md border border-(--border-primary) px-3 py-2 text-sm"
+          className="admin-select"
         >
           <option value="">{__('All actions')}</option>
           {ACTIONS.slice(1).map((a) => (
@@ -78,7 +78,7 @@ export default function ActivityPage() {
               value={userSearchInput}
               onChange={(e) => setUserSearchInput(e.target.value)}
               placeholder={__('Filter by user...')}
-              className="rounded-md border border-(--border-primary) py-2 pl-8 pr-7 text-sm w-48 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input w-48 pl-8 pr-7"
             />
             {userSearch && (
               <button

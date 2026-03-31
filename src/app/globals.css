@@ -11,6 +11,18 @@
     font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   }
 
+  html.dark body {
+    background: linear-gradient(
+      145deg,
+      oklch(0.19 0.04 calc(var(--brand-hue) - 30)) 0%,
+      oklch(0.23 0.03 calc(var(--brand-hue) - 5)) 25%,
+      oklch(0.18 0.05 calc(var(--brand-hue) + 25)) 50%,
+      oklch(0.23 0.03 calc(var(--brand-hue) - 5)) 75%,
+      oklch(0.19 0.04 calc(var(--brand-hue) + 45)) 100%
+    );
+    background-attachment: fixed;
+  }
+
   /* Focus ring utility */
   *:focus-visible {
     outline: 2px solid var(--color-brand-500);

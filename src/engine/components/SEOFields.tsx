@@ -17,7 +17,7 @@ interface SEOFieldsProps {
 export function SEOFields({
   seoTitle, metaDescription, noindex,
   onSeoTitleChange, onMetaDescriptionChange, onNoindexChange,
-  fieldErrors, focusBorderClass = 'focus:border-blue-500',
+  fieldErrors, focusBorderClass = 'focus:border-(--color-accent-500)',
 }: SEOFieldsProps) {
   const __ = useBlankTranslations();
 

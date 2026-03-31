@@ -152,7 +152,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                             onClick={() => setSelectedIndex(idx)}
                             className={`w-full rounded-md px-3 py-2 text-left transition-colors ${
                               selectedIndex === idx
-                                ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                                ? 'bg-[oklch(0.55_0.20_var(--brand-hue)_/_0.12)] text-(--color-brand-600) dark:text-(--color-brand-400)'
                                 : 'text-(--text-secondary) hover:bg-(--surface-secondary)'
                             }`}
                           >

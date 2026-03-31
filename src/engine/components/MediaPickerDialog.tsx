@@ -147,7 +147,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
                     className={cn(
                       'group relative aspect-square overflow-hidden rounded-lg border-2 transition-colors',
                       selectedId === item.id
-                        ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-500/30'
+                        ? 'border-(--color-brand-500) ring-2 ring-(--color-brand-200) dark:ring-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]'
                         : 'border-transparent hover:border-(--border-primary)'
                     )}
                   >
@@ -157,8 +157,8 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
                       className="h-full w-full object-cover"
                     />
                     {selectedId === item.id && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-blue-500/20">
-                        <div className="rounded-full bg-blue-500 p-1">
+                      <div className="absolute inset-0 flex items-center justify-center bg-(--color-brand-500)/20">
+                        <div className="rounded-full bg-(--color-brand-500) p-1">
                           <Check className="h-4 w-4 text-white" />
                         </div>
                       </div>

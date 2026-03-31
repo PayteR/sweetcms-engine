@@ -366,7 +366,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     required
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder={__('Project name')}
                   />
                 </div>
@@ -382,7 +382,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                       handleChange('slug', e.target.value);
                       setSlugManual(true);
                     }}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1 font-mono"
                   />
                 </div>
                 <div>
@@ -397,7 +397,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                       handleChange('title', e.target.value);
                       setTitleManual(true);
                     }}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder={__('Display title')}
                   />
                 </div>
@@ -416,7 +416,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="text"
                     value={formData.clientName}
                     onChange={(e) => handleChange('clientName', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder={__('Client or company name')}
                   />
                 </div>
@@ -428,7 +428,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="url"
                     value={formData.projectUrl}
                     onChange={(e) => handleChange('projectUrl', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder="https://example.com"
                   />
                 </div>
@@ -440,13 +440,13 @@ export function PortfolioForm({ portfolioId }: Props) {
                     {formData.techStack.map((tech, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400"
+                        className="inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
                       >
                         {tech}
                         <button
                           type="button"
                           onClick={() => removeTechItem(i)}
-                          className="ml-0.5 rounded-full p-0.5 hover:bg-blue-100 dark:hover:bg-blue-500/20"
+                          className="ml-0.5 rounded-full p-0.5 hover:bg-(--color-brand-100) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)]"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -464,7 +464,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                       }
                     }}
                     onBlur={() => { if (techInput.trim()) addTechItem(techInput); }}
-                    className="mt-2 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-2"
                     placeholder={__('Type and press Enter or comma to add')}
                   />
                 </div>
@@ -476,7 +476,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="datetime-local"
                     value={formData.completedAt}
                     onChange={(e) => handleChange('completedAt', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                   />
                 </div>
               </div>
@@ -562,7 +562,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                       type="text"
                       value={formData.featuredImageAlt}
                       onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
-                      className="mt-2 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="admin-input mt-2"
                       placeholder={__('Alt text')}
                     />
                   </div>
@@ -597,7 +597,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
-                    className="block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-select w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -630,7 +630,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                         value={formData.lang}
                         disabled={!isNew}
                         onChange={(e) => handleChange('lang', e.target.value)}
-                        className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm disabled:bg-(--surface-secondary)"
+                        className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
                       >
                         <option value="en">English</option>
                       </select>
@@ -654,7 +654,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="datetime-local"
                     value={formData.publishedAt}
                     onChange={(e) => handleChange('publishedAt', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                   />
                 </div>
               </div>

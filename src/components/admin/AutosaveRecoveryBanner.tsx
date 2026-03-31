@@ -30,23 +30,23 @@ function AutosaveRecoveryBanner({
   const __ = useBlankTranslations();
 
   return (
-    <div className="rounded-lg border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-4 py-3">
+    <div className="rounded-lg border border-(--color-brand-200) dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)] bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.08)] px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-blue-700 dark:text-blue-300">
+        <span className="text-sm text-(--color-brand-700) dark:text-(--color-brand-300)">
           {__('Unsaved changes recovered from')} {timeAgo(savedAt)}.
         </span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onRestore}
-            className="rounded bg-blue-600 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-700"
+            className="admin-btn admin-btn-primary text-sm"
           >
             {__('Restore')}
           </button>
           <button
             type="button"
             onClick={onDismiss}
-            className="text-blue-400 transition-colors hover:text-blue-300"
+            className="text-(--color-brand-400) transition-colors hover:text-(--color-brand-300)"
           >
             <X size={16} />
           </button>

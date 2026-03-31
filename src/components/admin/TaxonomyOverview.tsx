@@ -16,7 +16,7 @@ export function TaxonomyOverview() {
       label: __('Total Tags'),
       value: data.totalTags,
       icon: Hash,
-      color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15',
+      color: 'text-(--color-brand-600) dark:text-(--color-brand-400) bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)]',
     },
     {
       label: __('Published'),

@@ -147,7 +147,7 @@ export function TermForm({ tagId }: Props) {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder={__('Tag name')}
                   />
                 </div>
@@ -163,7 +163,7 @@ export function TermForm({ tagId }: Props) {
                       setSlug(e.target.value);
                       setSlugManual(true);
                     }}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1 font-mono"
                     placeholder="url-slug"
                   />
                 </div>
@@ -179,7 +179,7 @@ export function TermForm({ tagId }: Props) {
                   <select
                     value={status}
                     onChange={(e) => setStatus(Number(e.target.value))}
-                    className="block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-select w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -195,7 +195,7 @@ export function TermForm({ tagId }: Props) {
                     type="number"
                     value={order}
                     onChange={(e) => setOrder(Number(e.target.value))}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                   />
                 </div>
                 <div>
@@ -206,7 +206,7 @@ export function TermForm({ tagId }: Props) {
                     value={lang}
                     disabled={!isNew}
                     onChange={(e) => setLang(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm disabled:bg-(--surface-secondary)"
+                    className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
                   >
                     <option value="en">English</option>
                   </select>

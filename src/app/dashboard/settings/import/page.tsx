@@ -309,7 +309,7 @@ export default function ImportPage() {
               className={cn(
                 'text-sm font-medium',
                 i === currentStepIndex
-                  ? 'text-blue-600'
+                  ? 'text-(--color-brand-600)'
                   : i < currentStepIndex
                     ? 'text-(--text-primary)'
                     : 'text-(--text-muted)'
@@ -342,7 +342,7 @@ export default function ImportPage() {
                   className={cn(
                     'rounded-lg border p-4 text-left transition-colors',
                     format === opt.value
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-(--color-brand-500) bg-(--color-brand-50)'
                       : 'border-(--border-primary) hover:border-(--border-primary) hover:bg-(--surface-secondary)'
                   )}
                 >
@@ -376,11 +376,11 @@ export default function ImportPage() {
               />
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-blue-400 hover:bg-(--surface-secondary)"
+                className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-(--color-brand-400) hover:bg-(--surface-secondary)"
               >
                 {fileName ? (
                   <>
-                    <FileText className="h-10 w-10 text-blue-500" />
+                    <FileText className="h-10 w-10 text-(--color-brand-500)" />
                     <p className="mt-2 text-sm font-medium text-(--text-primary)">
                       {fileName}
                     </p>
@@ -411,7 +411,7 @@ export default function ImportPage() {
                 <select
                   value={postType}
                   onChange={(e) => setPostType(Number(e.target.value))}
-                  className="mt-1 block w-48 rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="admin-select mt-1 w-48"
                 >
                   <option value={PostType.BLOG}>{__('Blog Post')}</option>
                   <option value={PostType.PAGE}>{__('Page')}</option>
@@ -428,7 +428,7 @@ export default function ImportPage() {
                       e.target.value as 'draft' | 'published' | ''
                     )
                   }
-                  className="mt-1 block w-48 rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="admin-select mt-1 w-48"
                 >
                   <option value="">{__('Keep original status')}</option>
                   <option value="draft">{__('Import all as Draft')}</option>
@@ -489,7 +489,7 @@ export default function ImportPage() {
                         return next;
                       });
                     }}
-                    className="block w-64 rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-select w-64"
                   >
                     <option value="">{__('-- Skip --')}</option>
                     {csvHeaders.map((h) => (
@@ -560,7 +560,7 @@ export default function ImportPage() {
               <button
                 type="button"
                 onClick={toggleAll}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-(--color-brand-600) hover:underline"
               >
                 {selectedIndices.size === previewItems.length
                   ? __('Deselect all')

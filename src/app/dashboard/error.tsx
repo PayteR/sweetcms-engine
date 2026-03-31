@@ -26,7 +26,7 @@ export default function AdminError({ error, reset }: Props) {
         )}
         <button
           onClick={reset}
-          className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="admin-btn admin-btn-primary mt-6"
         >
           Try Again
         </button>

@@ -143,7 +143,7 @@ export default function RedirectsPage() {
                 }
                 placeholder={__('e.g. old-page-slug')}
                 required
-                className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="admin-input"
               />
             </div>
             <div>
@@ -158,7 +158,7 @@ export default function RedirectsPage() {
                     contentType: e.target.value,
                   }))
                 }
-                className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="admin-select w-full"
               >
                 {CONTENT_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -179,7 +179,7 @@ export default function RedirectsPage() {
                 }
                 placeholder={__('UUID of target content')}
                 required
-                className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="admin-input"
               />
             </div>
             <div>
@@ -193,7 +193,7 @@ export default function RedirectsPage() {
                   setNewRedirect((r) => ({ ...r, urlPrefix: e.target.value }))
                 }
                 placeholder={__('e.g. / or /blog')}
-                className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="admin-input"
               />
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function RedirectsPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__('Search by slug or content type...')}
-            className="w-full rounded-md border border-(--border-primary) py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input pl-9 pr-3"
           />
           {search && (
             <button

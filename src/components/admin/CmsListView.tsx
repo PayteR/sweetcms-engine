@@ -42,7 +42,7 @@ const STATUS_LABELS: Record<number, string> = {
 const STATUS_COLORS: Record<number, string> = {
   [ContentStatus.DRAFT]: 'bg-(--surface-secondary) text-(--text-secondary)',
   [ContentStatus.PUBLISHED]: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400',
-  [ContentStatus.SCHEDULED]: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  [ContentStatus.SCHEDULED]: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
 };
 
 const COLUMNS = [
@@ -580,7 +580,7 @@ export function CmsListView({ contentType }: Props) {
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               tab === t.key
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-(--color-brand-600) text-(--color-brand-600)'
                 : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
@@ -601,7 +601,7 @@ export function CmsListView({ contentType }: Props) {
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={__(`Search ${contentType.labelPlural.toLowerCase()}...`)}
-            className="w-full rounded-md border border-(--border-primary) py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input py-2 pl-9 pr-3"
           />
           {searchQuery && (
             <button
@@ -616,7 +616,7 @@ export function CmsListView({ contentType }: Props) {
         <select
           value={selectedLang}
           onChange={(e) => handleLangChange(e.target.value)}
-          className="rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="admin-select"
         >
           <option value="all">{__('All langs')}</option>
           {LOCALES.map((loc) => (
@@ -743,7 +743,7 @@ export function CmsListView({ contentType }: Props) {
                       <td className="admin-td">
                         <Link
                           href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
-                          className="font-medium text-(--text-primary) hover:text-blue-600"
+                          className="font-medium text-(--text-primary) hover:text-(--color-brand-600)"
                         >
                           {item.title || __('(untitled)')}
                         </Link>
@@ -753,7 +753,7 @@ export function CmsListView({ contentType }: Props) {
                             {item.slug || __('(homepage)')}
                           </span>
                           {contentType.canOverrideCodedRouteSEO && seoOverrideSlugs.has(item.slug) && (
-                            <span className="inline-block rounded bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-blue-700 dark:text-blue-400">
+                            <span className="inline-block rounded bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-(--color-brand-700) dark:text-(--color-brand-400)">
                               {__('SEO')}
                             </span>
                           )}
@@ -832,7 +832,7 @@ export function CmsListView({ contentType }: Props) {
                             )}
                             <Link
                               href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
-                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                               title={__('Edit')}
                             >
                               <Pencil className="h-4 w-4" />

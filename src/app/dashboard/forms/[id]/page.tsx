@@ -252,7 +252,7 @@ export default function FormBuilderPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={__('e.g. Contact Form')}
-              className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input"
             />
           </div>
           <div>
@@ -264,7 +264,7 @@ export default function FormBuilderPage() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder={__('Auto-generated from name')}
-              className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input"
             />
           </div>
           <div>
@@ -276,7 +276,7 @@ export default function FormBuilderPage() {
               value={recipientEmail}
               onChange={(e) => setRecipientEmail(e.target.value)}
               placeholder={__('Notifications sent to this email')}
-              className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input"
             />
           </div>
           <div>
@@ -288,7 +288,7 @@ export default function FormBuilderPage() {
               value={successMessage}
               onChange={(e) => setSuccessMessage(e.target.value)}
               placeholder={__('Thank you!')}
-              className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input"
             />
           </div>
           <div>
@@ -300,7 +300,7 @@ export default function FormBuilderPage() {
               value={honeypotField}
               onChange={(e) => setHoneypotField(e.target.value)}
               placeholder={__('e.g. website (leave empty to disable)')}
-              className="w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input"
             />
             <p className="mt-1 text-xs text-(--text-muted)">
               {__('Hidden field to catch bots. Submissions with this field filled are rejected.')}
@@ -385,7 +385,7 @@ export default function FormBuilderPage() {
                         onChange={(e) =>
                           updateField(index, { type: e.target.value as FieldType })
                         }
-                        className="w-full rounded-md border border-(--border-primary) px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="admin-select w-full py-1.5"
                       >
                         {FIELD_TYPES.map((ft) => (
                           <option key={ft.value} value={ft.value}>
@@ -405,7 +405,7 @@ export default function FormBuilderPage() {
                           updateField(index, { label: e.target.value })
                         }
                         placeholder={__('Field label')}
-                        className="w-full rounded-md border border-(--border-primary) px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="admin-input py-1.5"
                       />
                     </div>
                     <div>
@@ -419,7 +419,7 @@ export default function FormBuilderPage() {
                           updateField(index, { placeholder: e.target.value })
                         }
                         placeholder={__('Placeholder text')}
-                        className="w-full rounded-md border border-(--border-primary) px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="admin-input py-1.5"
                       />
                     </div>
                   </div>
@@ -437,7 +437,7 @@ export default function FormBuilderPage() {
                           updateField(index, { options: e.target.value })
                         }
                         placeholder={__('Option 1, Option 2, Option 3')}
-                        className="w-full rounded-md border border-(--border-primary) px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="admin-input py-1.5"
                       />
                     </div>
                   )}

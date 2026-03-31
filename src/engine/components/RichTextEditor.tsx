@@ -91,7 +91,7 @@ function ToolbarButton({
       className={cn(
         'rounded p-1.5 transition-colors',
         active
-          ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
+          ? 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)'
           : 'text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary)',
         disabled && 'cursor-not-allowed opacity-30'
       )}
@@ -336,7 +336,7 @@ export function RichTextEditor({
     <div
       ref={wrapperRef}
       style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
-      className="flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+      className="flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)"
     >
       {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
       <div className={cn(
@@ -594,7 +594,7 @@ export function RichTextEditor({
           className={cn(
             '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
             mode === 'wysiwyg'
-              ? 'border-blue-500 text-blue-500 dark:border-blue-400 dark:text-blue-400 bg-(--surface-primary)'
+              ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
               : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
           )}
           onClick={() => mode !== 'wysiwyg' && toggleMode()}
@@ -606,7 +606,7 @@ export function RichTextEditor({
           className={cn(
             '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
             mode === 'source'
-              ? 'border-blue-500 text-blue-500 dark:border-blue-400 dark:text-blue-400 bg-(--surface-primary)'
+              ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
               : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
           )}
           onClick={() => mode !== 'source' && toggleMode()}

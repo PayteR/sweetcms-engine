@@ -17,7 +17,7 @@ type JobStatus = 'waiting' | 'active' | 'completed' | 'failed' | 'delayed';
 
 const STATUS_COLORS: Record<JobStatus, string> = {
   waiting: 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
-  active: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  active: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
   completed: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400',
   failed: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
   delayed: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
@@ -102,7 +102,7 @@ export default function JobQueuePage() {
                   onClick={() => setSelectedQueue(name)}
                   className={cn(
                     'admin-card p-4 text-left transition-shadow',
-                    isSelected && 'ring-2 ring-blue-500'
+                    isSelected && 'ring-2 ring-(--color-brand-500)'
                   )}
                 >
                   <h3 className="font-semibold text-(--text-primary)">{name}</h3>
@@ -143,7 +143,7 @@ export default function JobQueuePage() {
                     className={cn(
                       'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
                       selectedStatus === status
-                        ? 'border-blue-600 text-blue-600'
+                        ? 'border-(--color-brand-600) text-(--color-brand-600)'
                         : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
                     )}
                   >
@@ -200,7 +200,7 @@ export default function JobQueuePage() {
                                         jobId: String(job.id),
                                       })
                                     }
-                                    className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                                    className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                                     title={__('Retry')}
                                   >
                                     <RotateCcw className="h-4 w-4" />

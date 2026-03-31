@@ -34,7 +34,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
 
-**To rebrand:** find-replace `330` with your hue in `src/engine/styles/tokens.css` (default: 330 = magenta) — all brand colors, tinted grays, and dark surfaces adapt. The `--brand-hue` variable in `:root` must match (powers alpha tints in admin CSS).
+**To rebrand:** find-replace `295` with your hue in `src/engine/styles/tokens.css` (default: 295 = purple) — all brand colors, tinted grays, and dark surfaces adapt. The `--brand-hue` variable in `:root` must match (powers alpha tints in admin CSS). Also update `--accent-hue` and the accent scale (default: 310 = warm violet) to your secondary color, and update the gradient tokens (`--gradient-brand*`) to use your new hues.
 
 ### tRPC Procedures & Usage
 
@@ -263,6 +263,9 @@ AdminHeader displays user name + role badge. Role badges use CSS classes: `.admi
 | `.admin-search-input` | Search fields |
 | `.admin-filter-select` | Filter dropdowns |
 | `.admin-input` / `.admin-label` | Form fields |
+| `.admin-select` | Select dropdowns (form context) |
+| `.admin-textarea` | Textarea fields |
+| `.admin-highlight` / `.admin-highlight-strong` | Brand-tinted highlight backgrounds |
 | `.admin-status-tabs` / `.admin-status-tab` | Status tab navigation |
 | `.admin-pagination` | Pagination controls |
 | `.admin-empty-state` | Empty state containers |
@@ -288,7 +291,7 @@ const __ = useBlankTranslations();
 
 Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config.
 
-**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Find-replace `310` (fuchsia) with your hue to rebrand — all brand colors, tinted grays, and dark surfaces adapt. Every gray carries subtle brand tint for cohesive feel. Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables.
+**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Find-replace `295` (purple) with your hue to rebrand — all brand colors, tinted grays, and dark surfaces adapt. Every gray carries subtle brand tint for cohesive feel. Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables. Also update `--accent-hue`, accent scale (310 = warm violet), and `--gradient-brand*` tokens for your secondary color.
 
 **File structure:**
 - `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)

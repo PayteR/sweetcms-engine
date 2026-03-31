@@ -137,8 +137,9 @@ export const CustomFieldsEditor = forwardRef<
   );
 });
 
-const INPUT_CLASS =
-  'mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500';
+const INPUT_CLASS = 'admin-input mt-1';
+const TEXTAREA_CLASS = 'admin-textarea mt-1';
+const SELECT_CLASS = 'admin-select mt-1 w-full';
 
 function renderInput(
   fieldType: string,
@@ -165,7 +166,7 @@ function renderInput(
           value={(value as string) ?? ''}
           onChange={(e) => onChange(slug, e.target.value)}
           rows={3}
-          className={INPUT_CLASS}
+          className={TEXTAREA_CLASS}
         />
       );
 
@@ -200,7 +201,7 @@ function renderInput(
         <select
           value={(value as string) ?? ''}
           onChange={(e) => onChange(slug, e.target.value || null)}
-          className={INPUT_CLASS}
+          className={SELECT_CLASS}
         >
           <option value="">{__('-- Select --')}</option>
           {choices.map((choice) => (

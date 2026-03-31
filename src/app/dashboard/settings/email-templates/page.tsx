@@ -159,7 +159,7 @@ export default function EmailTemplatesPage() {
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input mt-1"
               placeholder={__('Email subject line')}
             />
           </div>
@@ -172,7 +172,7 @@ export default function EmailTemplatesPage() {
               value={html}
               onChange={(e) => setHtml(e.target.value)}
               rows={16}
-              className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-textarea mt-1 font-mono text-xs"
               placeholder="<html>...</html>"
             />
           </div>
@@ -237,7 +237,7 @@ export default function EmailTemplatesPage() {
             <button
               key={t.name}
               onClick={() => setEditing(t.name)}
-              className="admin-card p-4 text-left transition-shadow hover:ring-1 hover:ring-blue-400"
+              className="admin-card p-4 text-left transition-shadow hover:ring-1 hover:ring-(--color-brand-400)"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-(--text-primary)">
@@ -247,7 +247,7 @@ export default function EmailTemplatesPage() {
                   className={cn(
                     'rounded-full px-2 py-0.5 text-xs font-medium',
                     hasOverride
-                      ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                      ? 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)'
                       : 'bg-(--surface-secondary) text-(--text-muted)'
                   )}
                 >

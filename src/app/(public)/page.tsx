@@ -57,7 +57,7 @@ export default async function HomePage() {
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/blog"
-              className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+              className="admin-btn admin-btn-primary rounded-lg px-6 py-3 text-sm font-medium shadow-sm"
             >
               Read the Blog
             </Link>
@@ -79,7 +79,7 @@ export default async function HomePage() {
               <h2 className="text-2xl font-bold text-(--text-primary)">Recent Posts</h2>
               <Link
                 href="/blog"
-                className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-500"
+                className="flex items-center gap-1 text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
               >
                 View all
                 <ArrowRight className="h-4 w-4" />
@@ -113,7 +113,7 @@ export default async function HomePage() {
           </h2>
           <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
             <div className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] text-(--color-brand-600) dark:text-(--color-brand-400)">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>

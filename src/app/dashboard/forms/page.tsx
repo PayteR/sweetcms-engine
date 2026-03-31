@@ -86,7 +86,7 @@ export default function FormsPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__('Search forms...')}
-            className="w-full rounded-md border border-(--border-primary) py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input pl-9 pr-3"
           />
           {search && (
             <button
@@ -140,7 +140,7 @@ export default function FormsPage() {
                     <td className="admin-td">
                       <Link
                         href={`/dashboard/forms/${form.id}`}
-                        className="font-medium text-(--text-primary) hover:text-blue-600"
+                        className="font-medium text-(--text-primary) hover:text-(--color-brand-600)"
                       >
                         {form.name}
                       </Link>
@@ -169,7 +169,7 @@ export default function FormsPage() {
                     <td className="admin-td">
                       <Link
                         href={`/dashboard/forms/${form.id}/submissions`}
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-(--color-brand-600) hover:underline"
                       >
                         {form.submissionCount}
                       </Link>
@@ -181,7 +181,7 @@ export default function FormsPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`/dashboard/forms/${form.id}`}
-                          className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                          className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                           title={__('Edit form')}
                         >
                           <Pencil className="h-4 w-4" />

@@ -111,8 +111,7 @@ export default function SettingsPage() {
   // ─── Render field by type ──────────────────────────────────────────────────
   function renderField(item: OptionItem) {
     const value = getValue(item);
-    const inputClass =
-      'mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500';
+    const inputClass = 'admin-input mt-1';
 
     switch (item.type) {
       case 'boolean':
@@ -135,7 +134,7 @@ export default function SettingsPage() {
             max={100}
             value={value as number}
             onChange={(e) => setValue(item.key, Number(e.target.value))}
-            className="mt-1 block w-32 rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input mt-1 w-32"
           />
         );
       case 'textarea':
@@ -144,7 +143,7 @@ export default function SettingsPage() {
             value={(value as string) ?? ''}
             onChange={(e) => setValue(item.key, e.target.value)}
             rows={3}
-            className={inputClass}
+            className="admin-textarea mt-1"
           />
         );
       case 'json':
@@ -153,7 +152,7 @@ export default function SettingsPage() {
             value={(value as string) ?? ''}
             onChange={(e) => setValue(item.key, e.target.value)}
             rows={4}
-            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-textarea mt-1 font-mono text-xs"
             placeholder='{"type":"service_account",...}'
           />
         );
@@ -247,7 +246,7 @@ export default function SettingsPage() {
                           {__(item.label)}
                         </label>
                         {item.isCustom && (
-                          <span className="rounded bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-400">
+                          <span className="rounded bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] px-1.5 py-0.5 text-[10px] font-medium text-(--color-brand-700) dark:text-(--color-brand-400)">
                             {__('Modified')}
                           </span>
                         )}

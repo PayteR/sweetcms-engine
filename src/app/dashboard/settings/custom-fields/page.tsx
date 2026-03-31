@@ -342,7 +342,7 @@ export default function CustomFieldsPage() {
                       {(def.contentTypes as string[]).map((ct) => (
                         <span
                           key={ct}
-                          className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400"
+                          className="inline-flex items-center rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
                         >
                           {ct}
                         </span>
@@ -356,7 +356,7 @@ export default function CustomFieldsPage() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => startEdit(def)}
-                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                         title={__('Edit')}
                       >
                         <Pencil className="h-4 w-4" />

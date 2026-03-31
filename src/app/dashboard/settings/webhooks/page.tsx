@@ -215,14 +215,14 @@ export default function WebhooksPage() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => testWebhook.mutate({ id: hook.id })}
-                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                         title={__('Test')}
                       >
                         <Zap className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => startEdit(hook)}
-                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                         title={__('Edit')}
                       >
                         <Pencil className="h-4 w-4" />

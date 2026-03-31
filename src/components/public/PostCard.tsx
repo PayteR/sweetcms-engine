@@ -37,7 +37,7 @@ export function PostCard({
         href={href}
         className="group rounded-lg border border-(--border-primary) bg-(--surface-primary) p-6 shadow-sm transition-shadow hover:shadow-md"
       >
-        <h3 className="text-lg font-semibold text-(--text-primary) group-hover:text-blue-600">
+        <h3 className="text-lg font-semibold text-(--text-primary) group-hover:text-(--color-brand-600)">
           {title}
         </h3>
         {metaDescription && (
@@ -50,7 +50,7 @@ export function PostCard({
             {tags.map((tag) => (
               <span
                 key={tag.slug}
-                className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400"
+                className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400)"
               >
                 {tag.name}
               </span>
@@ -68,7 +68,7 @@ export function PostCard({
     <article className="border-b border-(--border-secondary) pb-6">
       <Link
         href={href}
-        className="text-xl font-semibold text-(--text-primary) hover:text-blue-600"
+        className="text-xl font-semibold text-(--text-primary) hover:text-(--color-brand-600)"
       >
         {title}
       </Link>
@@ -81,7 +81,7 @@ export function PostCard({
             <Link
               key={tag.slug}
               href={`/tag/${tag.slug}`}
-              className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20"
+              className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400) hover:bg-(--color-brand-100) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)]"
             >
               {tag.name}
             </Link>

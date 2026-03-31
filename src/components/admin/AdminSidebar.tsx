@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, Menu, Monitor, Moon, Search, Sun, User } from 'lucide-react';
+import { ExternalLink, LogOut, Menu, Monitor, Moon, Search, Sun, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
@@ -248,6 +248,15 @@ export function AdminSidebar() {
         <Link href="/dashboard" className="admin-rail-logo">
           {logoLetter}
         </Link>
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="admin-rail-btn mx-auto mt-1"
+          title={__('View site')}
+        >
+          <ExternalLink size={16} />
+        </a>
         <div className="admin-rail-nav">
           {renderRailNav()}
         </div>
@@ -301,6 +310,15 @@ export function AdminSidebar() {
               <Link href="/dashboard" onClick={closeSidebar} className="admin-rail-logo">
                 {logoLetter}
               </Link>
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="admin-rail-btn mx-auto mt-1"
+                title={__('View site')}
+              >
+                <ExternalLink size={16} />
+              </a>
               <div className="admin-rail-nav">
                 {renderRailNav()}
               </div>

@@ -26,7 +26,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const ROLE_COLORS: Record<string, string> = {
   [Role.USER]: 'bg-(--surface-secondary) text-(--text-secondary)',
-  [Role.EDITOR]: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  [Role.EDITOR]: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
   [Role.ADMIN]: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
   [Role.SUPERADMIN]: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
 };
@@ -167,7 +167,7 @@ export default function UsersPage() {
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               roleFilter === t.key
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-(--color-brand-600) text-(--color-brand-600)'
                 : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
@@ -188,7 +188,7 @@ export default function UsersPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__('Search by name or email...')}
-            className="w-full rounded-md border border-(--border-primary) py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="admin-input pl-9 pr-3"
           />
           {search && (
             <button
@@ -254,7 +254,7 @@ export default function UsersPage() {
                           <div>
                             <Link
                               href={`/dashboard/users/${u.id}`}
-                              className="font-medium text-(--text-primary) hover:text-blue-600 hover:underline"
+                              className="font-medium text-(--text-primary) hover:text-(--color-brand-600) hover:underline"
                             >
                               {u.name}
                             </Link>
@@ -298,7 +298,7 @@ export default function UsersPage() {
                               });
                               setSelectedRole(u.role);
                             }}
-                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                             title={__('Change role')}
                           >
                             <ShieldCheck className="h-4 w-4" />
@@ -329,7 +329,7 @@ export default function UsersPage() {
                             href={`/api/gdpr-export/${u.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                             title={__('Export data (GDPR)')}
                           >
                             <Download className="h-4 w-4" />
@@ -399,7 +399,7 @@ export default function UsersPage() {
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="mt-4 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-select mt-4 w-full"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>

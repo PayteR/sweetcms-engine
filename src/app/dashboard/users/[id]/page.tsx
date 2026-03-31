@@ -26,7 +26,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const ROLE_COLORS: Record<string, string> = {
   [Role.USER]: 'bg-(--surface-secondary) text-(--text-secondary)',
-  [Role.EDITOR]: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  [Role.EDITOR]: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
   [Role.ADMIN]: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
   [Role.SUPERADMIN]: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
 };
@@ -265,7 +265,7 @@ export default function UserDetailPage() {
               type="text"
               value={name}
               onChange={(e) => setEditName(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input mt-1"
             />
           </div>
           <div>
@@ -276,7 +276,7 @@ export default function UserDetailPage() {
               type="email"
               value={email}
               onChange={(e) => setEditEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input mt-1"
             />
           </div>
           <div>
@@ -286,7 +286,7 @@ export default function UserDetailPage() {
             <select
               value={role}
               onChange={(e) => setEditRole(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-select mt-1 w-full"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>

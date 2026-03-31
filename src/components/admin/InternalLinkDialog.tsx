@@ -9,7 +9,7 @@ import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
 
 const TYPE_CONFIG: Record<string, { label: string; icon: typeof FileText; color: string }> = {
-  page: { label: 'Page', icon: FileText, color: 'bg-blue-600' },
+  page: { label: 'Page', icon: FileText, color: 'bg-(--color-brand-600)' },
   blog: { label: 'Blog', icon: FileText, color: 'bg-purple-600' },
   category: { label: 'Category', icon: FolderOpen, color: 'bg-yellow-600' },
   tag: { label: 'Tag', icon: Tag, color: 'bg-green-600' },
@@ -63,14 +63,14 @@ function DialogContent({ onClose, onSelect }: Omit<InternalLinkDialogProps, 'isO
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={__('Search pages, blog posts, categories...')}
-          className="w-full rounded-lg border border-(--border-primary) bg-(--surface-secondary) py-2 pl-10 pr-4 text-(--text-primary) placeholder:text-(--text-muted) focus:border-blue-500 focus:outline-none"
+          className="admin-input rounded-lg py-2 pl-10 pr-4"
         />
       </div>
 
       <div className="mt-4 max-h-80 min-h-[120px] overflow-y-auto">
         {isLoading && debouncedQuery.length >= 2 && (
           <div className="flex items-center justify-center py-8 text-(--text-muted)">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--border-primary) border-t-blue-400" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--border-primary) border-t-(--color-brand-400)" />
             <span className="ml-2">{__('Searching...')}</span>
           </div>
         )}

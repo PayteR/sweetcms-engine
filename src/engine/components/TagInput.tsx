@@ -156,13 +156,13 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
           {selectedTags.map((tag) => (
             <span
               key={tag.id}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400"
+              className="inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
             >
               {tag.name}
               <button
                 type="button"
                 onClick={() => removeTag(tag.id)}
-                className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-500/30"
+                className="ml-0.5 rounded-full p-0.5 hover:bg-(--color-brand-200) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -184,7 +184,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
           onFocus={() => inputValue.length >= 1 && setShowDropdown(true)}
           onKeyDown={handleKeyDown}
           placeholder={__('Type to add tags...')}
-          className="block w-full rounded-md border border-(--border-primary) px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="admin-input py-1.5"
         />
         {getOrCreate.isPending && (
           <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-(--text-muted)" />
@@ -212,7 +212,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
                 }
                 className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm ${
                   index === highlightedIndex
-                    ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400'
+                    ? 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] text-(--color-brand-700) dark:text-(--color-brand-400)'
                     : 'hover:bg-(--surface-secondary)'
                 }`}
               >

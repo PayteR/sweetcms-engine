@@ -197,7 +197,7 @@ export function PostAttachments({ postId }: Props) {
                     onClick={() =>
                       setEditingAlt({ id: att.id, altText: att.altText ?? '' })
                     }
-                    className="rounded p-1 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                    className="rounded p-1 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                     title={__('Edit alt text')}
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -241,7 +241,7 @@ export function PostAttachments({ postId }: Props) {
                 setEditingAlt({ ...editingAlt, altText: e.target.value })
               }
               placeholder={__('Describe this file...')}
-              className="mt-3 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="admin-input mt-3"
             />
             <div className="mt-4 flex justify-end gap-2">
               <button

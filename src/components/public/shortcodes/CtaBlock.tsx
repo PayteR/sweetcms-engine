@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 
 const BUTTON_STYLES: Record<string, string> = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700',
+  primary: 'bg-(--color-brand-600) text-white hover:bg-(--color-brand-700)',
   secondary: 'bg-(--surface-secondary) text-(--text-primary) hover:bg-(--surface-secondary)/80',
-  outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10',
+  outline: 'border-2 border-(--color-brand-600) text-(--color-brand-600) hover:bg-(--color-brand-50) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.10)]',
 };
 
 interface Props {

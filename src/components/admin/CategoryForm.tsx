@@ -338,7 +338,7 @@ export function CategoryForm({ categoryId }: Props) {
                     required
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder={__('Category name')}
                   />
                 </div>
@@ -354,7 +354,7 @@ export function CategoryForm({ categoryId }: Props) {
                       handleChange('slug', e.target.value);
                       setSlugManual(true);
                     }}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1 font-mono"
                   />
                 </div>
                 <div>
@@ -369,7 +369,7 @@ export function CategoryForm({ categoryId }: Props) {
                       handleChange('title', e.target.value);
                       setTitleManual(true);
                     }}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder={__('Display title (can differ from name)')}
                   />
                 </div>
@@ -381,7 +381,7 @@ export function CategoryForm({ categoryId }: Props) {
                     type="text"
                     value={formData.icon}
                     onChange={(e) => handleChange('icon', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                     placeholder={__('Icon name or URL')}
                   />
                 </div>
@@ -464,7 +464,7 @@ export function CategoryForm({ categoryId }: Props) {
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
-                    className="block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-select w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -480,7 +480,7 @@ export function CategoryForm({ categoryId }: Props) {
                     type="number"
                     value={formData.order}
                     onChange={(e) => handleChange('order', Number(e.target.value))}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                   />
                 </div>
                 <div>
@@ -508,7 +508,7 @@ export function CategoryForm({ categoryId }: Props) {
                         value={formData.lang}
                         disabled={!isNew}
                         onChange={(e) => handleChange('lang', e.target.value)}
-                        className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm disabled:bg-(--surface-secondary)"
+                        className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
                       >
                         <option value="en">English</option>
                       </select>
@@ -532,7 +532,7 @@ export function CategoryForm({ categoryId }: Props) {
                     type="datetime-local"
                     value={formData.publishedAt}
                     onChange={(e) => handleChange('publishedAt', e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="admin-input mt-1"
                   />
                 </div>
               </div>

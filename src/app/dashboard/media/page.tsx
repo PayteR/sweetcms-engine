@@ -200,7 +200,7 @@ export default function MediaPage() {
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               filterType === t.key
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-(--color-brand-600) text-(--color-brand-600)'
                 : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >

@@ -71,7 +71,7 @@ export function TranslationBar({
         {__('Language')}
       </label>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-md bg-blue-600 px-3 py-1 text-sm font-medium text-white">
+        <span className="rounded-md bg-(--color-brand-600) px-3 py-1 text-sm font-medium text-white">
           {LOCALE_LABELS[currentLang as Locale] ?? currentLang}
         </span>
 
@@ -79,7 +79,7 @@ export function TranslationBar({
           <Link
             key={t.lang}
             href={`/dashboard/cms/${adminSlug}/${t.id}`}
-            className="rounded-md border border-(--border-primary) px-3 py-1 text-sm text-(--text-secondary) transition-colors hover:border-blue-500 hover:text-(--text-primary)"
+            className="rounded-md border border-(--border-primary) px-3 py-1 text-sm text-(--text-secondary) transition-colors hover:border-(--color-brand-500) hover:text-(--text-primary)"
           >
             {LOCALE_LABELS[t.lang as Locale] ?? t.lang}
           </Link>
@@ -103,7 +103,7 @@ export function TranslationBar({
                 'flex items-center gap-1 rounded-md border border-dashed border-(--border-primary) px-3 py-1 text-sm text-(--text-muted) transition-colors',
                 duplicating === lang
                   ? 'cursor-wait'
-                  : 'hover:border-blue-500 hover:text-(--text-secondary)'
+                  : 'hover:border-(--color-brand-500) hover:text-(--text-secondary)'
               )}
             >
               {duplicating === lang ? (
