@@ -99,13 +99,13 @@ html.dark {
   color-scheme: dark;
 
   /* Surfaces — layered dark with brand undertone
-   * sidebar (0.14) < inset (0.16) < primary (0.19) < secondary (0.25) < elevated (0.31)
-   * Clear 0.06 lightness steps between each level for visible separation */
-  --surface-sidebar:   oklch(0.14 0.025 270);
+   * inset (0.16) < sidebar (0.20) < primary (0.22) < secondary (0.27) < elevated (0.32)
+   * Sidebar is slightly darker than content for subtle distinction */
   --surface-inset:     oklch(0.16 0.02 270);
-  --surface-primary:   oklch(0.19 0.018 270);
-  --surface-secondary: oklch(0.25 0.018 270);
-  --surface-elevated:  oklch(0.31 0.018 270);
+  --surface-sidebar:   oklch(0.20 0.022 270);
+  --surface-primary:   oklch(0.22 0.018 270);
+  --surface-secondary: oklch(0.27 0.018 270);
+  --surface-elevated:  oklch(0.32 0.018 270);
   --surface-overlay:   oklch(0 0 0 / 0.7);
 
   /* Text */
