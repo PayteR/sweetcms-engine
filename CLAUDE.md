@@ -34,7 +34,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
 
-**To rebrand:** change `--brand-hue` in `src/engine/styles/tokens.css` (default: 270 = indigo) — all colors adapt automatically. Brand-tinted alpha variants use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere.
+**To rebrand:** find-replace `270` with your hue in `src/engine/styles/tokens.css` (default: 270 = indigo) — all brand colors, tinted grays, and dark surfaces adapt. The `--brand-hue` variable in `:root` must match (powers alpha tints in admin CSS).
 
 ### tRPC Procedures & Usage
 
@@ -288,7 +288,7 @@ const __ = useBlankTranslations();
 
 Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config.
 
-**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Single `--brand-hue` variable (default: 270 = indigo) controls entire color scheme. Change it to rebrand. Every gray carries subtle brand tint for cohesive feel. Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables.
+**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Find-replace `270` (indigo) with your hue to rebrand — all brand colors, tinted grays, and dark surfaces adapt. Every gray carries subtle brand tint for cohesive feel. Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables.
 
 **File structure:**
 - `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)

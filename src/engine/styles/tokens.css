@@ -3,10 +3,12 @@
 /*
  * SweetCMS Design Tokens — OKLCH Tinted-Neutral System
  *
- * To rebrand: change the hue value (270 = indigo).
- * All surfaces, borders, shadows, and accents adapt automatically.
+ * TO REBRAND: find-replace "270" with your hue in this file (all occurrences).
+ * Every brand color, tinted gray, and dark-mode surface adapts automatically.
+ * The --brand-hue variable (in :root) powers semi-transparent alpha tints
+ * in admin.css — it MUST match the hue used in @theme.
  *
- * Examples: Blue=220, Emerald=155, Rose=10, Orange=55, Violet=290
+ * Hue examples: Blue=220, Teal=180, Emerald=155, Rose=10, Orange=55, Violet=290
  */
 
 @theme {
@@ -55,7 +57,7 @@
 }
 
 :root {
-  /* Brand hue — change this single value to rebrand the entire admin UI */
+  /* Brand hue — must match the hue in @theme above (used by admin.css alpha tints) */
   --brand-hue: 270;
 
   /* Surfaces */
