@@ -7,18 +7,114 @@
  * Brand-tinted alpha variants use decomposed oklch(L C var(--brand-hue) / alpha)
  * so rebranding only requires changing --brand-hue in tokens.css.
  * L/C values must match the brand scale in @theme:
- *   brand-500 = L:0.55 C:0.20   brand-400 = L:0.65 C:0.17
+ *   brand-500 = L:0.65 C:0.24   brand-400 = L:0.72 C:0.19
  * Success/danger are fixed-hue and use literal oklch values.
  */
 
 @layer components {
+  /* ===================== Table Wrapper ===================== */
+  .admin-table-wrap {
+    overflow-x: auto;
+    background-color: var(--surface-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-primary);
+  }
+
   /* ===================== Table Rows ===================== */
   .admin-tr {
     transition: background-color var(--duration-fast) ease;
   }
 
+  .admin-tr:nth-child(even) {
+    background-color: oklch(0 0 0 / 0.02);
+  }
+
   .admin-tr:hover {
+    background-color: oklch(0 0 0 / 0.04);
+  }
+
+  /* ===================== Translation Rows ===================== */
+  .admin-tr-translation {
+    background-color: oklch(0 0 0 / 0.02);
+  }
+
+  .admin-tr-translation:hover {
+    background-color: oklch(0 0 0 / 0.05);
+  }
+
+  .admin-translation-arrow {
+    display: inline-block;
+    margin-right: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .admin-tr-translation .admin-td-actions {
+    background-color: var(--surface-secondary);
+  }
+
+  .admin-tr-translation:hover .admin-td-actions {
+    background-color: oklch(0 0 0 / 0.05);
+  }
+
+  /* ===================== Primary Table Cell ===================== */
+  .admin-td-primary {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-bottom: 1px solid oklch(0.93 0.005 260 / 0.4);
+  }
+
+  /* ===================== Sticky Actions Column ===================== */
+  .admin-th-actions {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    padding: 0.5rem 1rem;
+    text-align: right;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     background-color: var(--surface-inset);
+    border-left: 1px solid var(--border-primary);
+  }
+
+  .admin-td-actions {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    text-align: right;
+    background-color: var(--surface-secondary);
+    border-bottom: 1px solid oklch(0.93 0.005 260 / 0.4);
+    border-left: 1px solid var(--border-primary);
+    transition: background-color var(--duration-fast) ease;
+  }
+
+  /* Sticky action cells must be SOLID (not transparent) so overlapped content doesn't show through.
+     These approximate the transparent row tints resolved on a white card background. */
+  .admin-tr:hover .admin-td-actions {
+    background-color: var(--color-gray-100);
+  }
+
+  .admin-tr:nth-child(even) .admin-td-actions {
+    background-color: var(--color-gray-50);
+  }
+
+  .admin-tr:nth-child(even):hover .admin-td-actions {
+    background-color: var(--color-gray-100);
+  }
+
+  /* ===================== Checkbox Column ===================== */
+  .admin-th-checkbox,
+  .admin-td-checkbox {
+    width: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    text-align: center;
   }
 
   /* ===================== Action Buttons ===================== */
@@ -73,15 +169,26 @@
   }
 
   .admin-badge-scheduled {
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.10);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.10);
     color: var(--color-brand-600);
-    border-color: oklch(0.55 0.20 var(--brand-hue) / 0.20);
+    border-color: oklch(0.65 0.24 var(--brand-hue) / 0.20);
   }
 
   .admin-badge-trashed {
     background-color: oklch(0.60 0.19 25 / 0.10);
     color: var(--color-danger-600);
     border-color: oklch(0.60 0.19 25 / 0.20);
+  }
+
+  .admin-badge-lang {
+    display: inline-block;
+    border-radius: var(--radius-md);
+    padding: 0.125rem 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    background-color: var(--surface-inset);
+    color: var(--text-muted);
   }
 
   /* ===================== Search & Filters ===================== */
@@ -103,7 +210,7 @@
   .admin-search-input:focus {
     outline: none;
     border-color: var(--color-accent-500);
-    box-shadow: 0 0 0 3px oklch(0.62 0.17 var(--accent-hue) / 0.25);
+    box-shadow: 0 0 0 3px oklch(0.55 0.27 var(--accent-hue) / 0.25);
   }
 
   .admin-filter-select {
@@ -120,7 +227,7 @@
   .admin-filter-select:focus {
     outline: none;
     border-color: var(--color-accent-500);
-    box-shadow: 0 0 0 3px oklch(0.62 0.17 var(--accent-hue) / 0.25);
+    box-shadow: 0 0 0 3px oklch(0.55 0.27 var(--accent-hue) / 0.25);
   }
 
   /* ===================== Empty State ===================== */
@@ -247,6 +354,16 @@
     border-bottom-color: var(--color-brand-600);
   }
 
+  .admin-status-tab.active-danger {
+    color: var(--color-danger-600);
+    border-bottom-color: var(--color-danger-600);
+  }
+
+  .admin-status-tab.active-danger .admin-status-tab-count {
+    background-color: oklch(0.60 0.19 25 / 0.12);
+    color: var(--color-danger-600);
+  }
+
   .admin-status-tab-count {
     font-size: 0.6875rem;
     font-weight: 500;
@@ -258,7 +375,7 @@
   }
 
   .admin-status-tab.active .admin-status-tab-count {
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.12);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.12);
     color: var(--color-brand-600);
   }
 
@@ -277,7 +394,7 @@
   .admin-input:focus {
     outline: none;
     border-color: var(--color-accent-500);
-    box-shadow: 0 0 0 3px oklch(0.62 0.17 var(--accent-hue) / 0.25);
+    box-shadow: 0 0 0 3px oklch(0.55 0.27 var(--accent-hue) / 0.25);
   }
 
   .admin-input::placeholder {
@@ -307,7 +424,7 @@
   .admin-select:focus {
     outline: none;
     border-color: var(--color-accent-500);
-    box-shadow: 0 0 0 3px oklch(0.62 0.17 var(--accent-hue) / 0.25);
+    box-shadow: 0 0 0 3px oklch(0.55 0.27 var(--accent-hue) / 0.25);
   }
 
   /* ===================== Textarea Inputs ===================== */
@@ -326,17 +443,50 @@
   .admin-textarea:focus {
     outline: none;
     border-color: var(--color-accent-500);
-    box-shadow: 0 0 0 3px oklch(0.62 0.17 var(--accent-hue) / 0.25);
+    box-shadow: 0 0 0 3px oklch(0.55 0.27 var(--accent-hue) / 0.25);
   }
   .admin-textarea::placeholder { color: var(--text-muted); }
 
+  /* ===================== Input Variants ===================== */
+  .admin-input-sm {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  }
+
+  .admin-input-sm:focus {
+    outline: none;
+    border-color: var(--color-accent-500);
+    box-shadow: 0 0 0 3px oklch(0.55 0.27 var(--accent-hue) / 0.25);
+  }
+
+  .admin-filter-input {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color var(--duration-fast) ease;
+  }
+
+  .admin-filter-input:focus {
+    border-color: var(--color-accent-500);
+  }
+
   /* ===================== Brand Highlights ===================== */
   .admin-highlight {
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.08);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.08);
     color: var(--color-brand-600);
   }
   .admin-highlight-strong {
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.12);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.12);
     color: var(--color-brand-700);
   }
 
@@ -360,9 +510,9 @@
   }
 
   .admin-role-admin {
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.10);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.10);
     color: var(--color-brand-600);
-    border-color: oklch(0.55 0.20 var(--brand-hue) / 0.20);
+    border-color: oklch(0.65 0.24 var(--brand-hue) / 0.20);
   }
 
   .admin-role-editor {
@@ -381,22 +531,39 @@
 /* ===================== Dark mode overrides ===================== */
 html.dark {
 
+  /* Badges: solid colors, white text (flirtcam-inspired) */
   .admin-badge-published {
-    background-color: oklch(0.60 0.16 150 / 0.15);
-    color: var(--color-success-500);
-    border-color: oklch(0.60 0.16 150 / 0.25);
+    background-color: var(--color-success-500);
+    color: var(--color-white);
+    border-color: transparent;
+  }
+
+  .admin-badge-draft {
+    background-color: var(--color-gray-600);
+    color: var(--color-white);
+    border-color: transparent;
   }
 
   .admin-badge-scheduled {
-    background-color: oklch(0.65 0.17 var(--brand-hue) / 0.15);
-    color: var(--color-brand-400);
-    border-color: oklch(0.65 0.17 var(--brand-hue) / 0.25);
+    background-color: var(--color-brand-500);
+    color: var(--color-white);
+    border-color: transparent;
   }
 
   .admin-badge-trashed {
-    background-color: oklch(0.60 0.19 25 / 0.15);
-    color: var(--color-danger-500);
-    border-color: oklch(0.60 0.19 25 / 0.25);
+    background-color: var(--color-danger-500);
+    color: var(--color-white);
+    border-color: transparent;
+  }
+
+  .admin-table-wrap {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+
+  .admin-badge-lang {
+    background-color: oklch(1 0 0 / 0.06);
+    color: var(--color-gray-400);
   }
 
   .admin-status-tab.active {
@@ -405,8 +572,35 @@ html.dark {
   }
 
   .admin-status-tab.active .admin-status-tab-count {
-    background-color: oklch(0.65 0.17 var(--brand-hue) / 0.15);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.15);
     color: var(--color-brand-400);
+  }
+
+  .admin-status-tab.active-danger {
+    color: var(--color-danger-500);
+    border-bottom-color: var(--color-danger-500);
+  }
+
+  .admin-status-tab.active-danger .admin-status-tab-count {
+    background-color: oklch(0.60 0.19 25 / 0.15);
+    color: var(--color-danger-500);
+  }
+
+  /* Translation rows */
+  .admin-tr-translation {
+    background-color: oklch(1 0 0 / 0.02);
+  }
+
+  .admin-tr-translation:hover {
+    background-color: oklch(1 0 0 / 0.05);
+  }
+
+  .admin-tr-translation .admin-td-actions {
+    background-color: oklch(1 0 0 / 0.02);
+  }
+
+  .admin-tr-translation:hover .admin-td-actions {
+    background-color: oklch(1 0 0 / 0.05);
   }
 
   .admin-pagination-btn.active {
@@ -421,9 +615,9 @@ html.dark {
   }
 
   .admin-role-admin {
-    background-color: oklch(0.65 0.17 var(--brand-hue) / 0.15);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.15);
     color: var(--color-brand-400);
-    border-color: oklch(0.65 0.17 var(--brand-hue) / 0.25);
+    border-color: oklch(0.65 0.24 var(--brand-hue) / 0.25);
   }
 
   .admin-role-editor {
@@ -432,24 +626,97 @@ html.dark {
     border-color: oklch(0.60 0.16 150 / 0.25);
   }
 
+  /* Solid hovers (not transparent — sticky actions must be opaque) */
+  .admin-tr:hover {
+    background-color: oklch(0.24 0.02 260);
+  }
+
+  .admin-action-btn:hover {
+    background-color: oklch(1 0 0 / 0.08);
+  }
+
   .admin-action-btn-danger:hover {
     background-color: oklch(0.60 0.19 25 / 0.15);
   }
 
+  .admin-pagination-btn:hover:not(:disabled) {
+    background-color: oklch(1 0 0 / 0.08);
+  }
+
+  .admin-td,
+  .admin-td-primary {
+    border-bottom-color: oklch(1 0 0 / 0.06);
+  }
+
+  /* Sticky actions: solid bg so content doesn't show through */
+  .admin-th-actions {
+    background-color: var(--surface-inset);
+    border-left: 1px solid oklch(1 0 0 / 0.06);
+  }
+
+  .admin-td-actions {
+    background-color: var(--color-gray-800);
+    border-bottom-color: oklch(1 0 0 / 0.06);
+    border-left: 1px solid oklch(1 0 0 / 0.06);
+  }
+
+  /* Odd rows hover */
+  .admin-tr:hover .admin-td-actions {
+    background-color: oklch(0.24 0.02 260);
+  }
+
+  /* Even row striping — solid colors so sticky actions stay opaque */
+  .admin-tr:nth-child(even) {
+    background-color: oklch(0.23 0.02 260);
+  }
+
+  .admin-tr:nth-child(even) .admin-td-actions {
+    background-color: oklch(0.23 0.02 260);
+  }
+
+  .admin-tr:nth-child(even):hover {
+    background-color: oklch(0.24 0.02 260);
+  }
+
+  .admin-tr:nth-child(even):hover .admin-td-actions {
+    background-color: oklch(0.24 0.02 260);
+  }
+
+  /* Form inputs: lighter than cards (matched to flirtcam) */
   .admin-search-input,
-  .admin-filter-select,
+  .admin-filter-select {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+
   .admin-input,
   .admin-select,
   .admin-textarea {
-    background-color: var(--surface-primary);
+    background-color: var(--color-gray-600);
+    border-color: var(--color-gray-500);
+  }
+
+  .admin-input-sm {
+    background-color: var(--color-gray-700);
+    border-color: var(--color-gray-600);
+  }
+
+  .admin-filter-input {
+    background-color: var(--color-gray-700);
+    border-color: var(--color-gray-600);
+    color-scheme: dark;
+  }
+
+  .admin-filter-input:focus {
+    border-color: var(--color-brand-500);
   }
 
   .admin-highlight {
-    background-color: oklch(0.65 0.17 var(--brand-hue) / 0.12);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.12);
     color: var(--color-brand-400);
   }
   .admin-highlight-strong {
-    background-color: oklch(0.65 0.17 var(--brand-hue) / 0.18);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.18);
     color: var(--color-brand-400);
   }
 }

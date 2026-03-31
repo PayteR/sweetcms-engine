@@ -168,12 +168,14 @@ export default function GA4Widget() {
   // Not configured state
   if (data && !data.configured) {
     return (
-      <div className="admin-card p-6">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-(--text-muted)" />
-          <h2 className="admin-h2">{__('Google Analytics')}</h2>
+      <div className="admin-card flex flex-col overflow-hidden">
+        <div className="admin-widget-header">
+          <h2 className="admin-h2 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-(--text-muted)" />
+            {__('Google Analytics')}
+          </h2>
         </div>
-        <div className="mt-6 flex flex-col items-center gap-3 py-8 text-center">
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
           <BarChart3 className="h-10 w-10 text-(--text-muted)" />
           <p className="text-sm text-(--text-secondary)">
             {__('Connect Google Analytics to see page views, sessions, and top pages.')}
@@ -191,13 +193,13 @@ export default function GA4Widget() {
   }
 
   return (
-    <div className="admin-card p-6">
+    <div className="admin-card flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="admin-widget-header">
+        <h2 className="admin-h2 flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-(--text-muted)" />
-          <h2 className="admin-h2">{__('Google Analytics')}</h2>
-        </div>
+          {__('Google Analytics')}
+        </h2>
 
         {/* Period toggle */}
         <div className="flex gap-1 rounded-md bg-(--surface-secondary) p-0.5">
@@ -227,16 +229,16 @@ export default function GA4Widget() {
 
       {/* Error */}
       {error && !isLoading && (
-        <div className="mt-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
+        <div className="m-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
           {__('Failed to load analytics data. Check your GA4 configuration in Settings.')}
         </div>
       )}
 
       {/* Data */}
       {data && data.configured && (
-        <>
+        <div className="p-4">
           {/* Stat cards */}
-          <div className="mt-5 grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg bg-(--surface-secondary) p-4">
               <div className="flex items-center gap-2 text-sm text-(--text-muted)">
                 <Eye className="h-4 w-4" />
@@ -258,7 +260,7 @@ export default function GA4Widget() {
           </div>
 
           {/* Chart */}
-          <div className="mt-5">
+          <div className="mt-4">
             <h3 className="text-sm font-medium text-(--text-secondary)">
               {__('Daily Page Views')}
             </h3>
@@ -269,7 +271,7 @@ export default function GA4Widget() {
 
           {/* Top pages table */}
           {data.topPages.length > 0 && (
-            <div className="mt-5">
+            <div className="mt-4">
               <h3 className="text-sm font-medium text-(--text-secondary)">
                 {__('Top Pages')}
               </h3>
@@ -300,7 +302,7 @@ export default function GA4Widget() {
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

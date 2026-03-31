@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Plus,
   Search,
@@ -68,6 +69,7 @@ interface Props {
 
 export function CmsListView({ contentType }: Props) {
   const __ = useBlankTranslations();
+  const router = useRouter();
   const utils = trpc.useUtils();
   const { toggle: toggleColumn, isVisible: isColVisible } = useColumnVisibility(contentType.id);
   const [colMenuOpen, setColMenuOpen] = useState(false);
@@ -487,11 +489,11 @@ export function CmsListView({ contentType }: Props) {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Column visibility dropdown */}
           <div className="relative">
             <button
@@ -500,7 +502,7 @@ export function CmsListView({ contentType }: Props) {
               title={__('Toggle columns')}
             >
               <Settings2 className="h-4 w-4" />
-              {__('Columns')}
+              <span className="hidden sm:inline">{__('Columns')}</span>
             </button>
             {colMenuOpen && (
               <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
@@ -529,7 +531,7 @@ export function CmsListView({ contentType }: Props) {
                 className="admin-btn admin-btn-secondary"
               >
                 <Download className="h-4 w-4" />
-                {__('Export')}
+                <span className="hidden sm:inline">{__('Export')}</span>
               </button>
               {exportMenuOpen && (
                 <div className="absolute right-0 top-full z-10 mt-1 w-32 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
@@ -553,9 +555,10 @@ export function CmsListView({ contentType }: Props) {
             <button
               onClick={() => setSeoDialogOpen(true)}
               className="admin-btn admin-btn-secondary"
+              title={__('SEO Overrides')}
             >
               <Plus className="h-4 w-4" />
-              {__('SEO Overrides')}
+              <span className="hidden sm:inline">{__('SEO Overrides')}</span>
             </button>
           )}
           <Link
@@ -594,14 +597,14 @@ export function CmsListView({ contentType }: Props) {
 
       {/* Search + language filter */}
       <div className="mt-4 flex gap-2">
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={__(`Search ${contentType.labelPlural.toLowerCase()}...`)}
-            className="admin-input py-2 pl-9 pr-3"
+            className="admin-search-input py-2 pl-9 pr-8"
           />
           {searchQuery && (
             <button
@@ -616,7 +619,7 @@ export function CmsListView({ contentType }: Props) {
         <select
           value={selectedLang}
           onChange={(e) => handleLangChange(e.target.value)}
-          className="admin-select"
+          className="admin-filter-select w-auto shrink-0"
         >
           <option value="all">{__('All langs')}</option>
           {LOCALES.map((loc) => (
@@ -640,13 +643,13 @@ export function CmsListView({ contentType }: Props) {
       />
 
       {/* Table */}
-      <div className="admin-card mt-4 overflow-hidden">
+      <div className="admin-card mt-4 overflow-x-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full min-w-[640px]">
             <thead className="admin-thead">
               <tr>
                 <th className="admin-th w-10">
@@ -713,7 +716,7 @@ export function CmsListView({ contentType }: Props) {
                     </span>
                   </th>
                 )}
-                <th className="admin-th w-28" />
+                <th className="admin-th-actions w-28" />
               </tr>
             </thead>
             <tbody>
@@ -730,7 +733,15 @@ export function CmsListView({ contentType }: Props) {
                 </tr>
               ) : (
                 items.map((item) => (
-                  <tr key={item.id} className="hover:bg-(--surface-secondary)">
+                  <tr
+                    key={item.id}
+                    className="admin-tr cursor-pointer"
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest('a, button, input')) return;
+                      router.push(`/dashboard/cms/${contentType.adminSlug}/${item.id}`);
+                    }}
+                  >
                     <td className="admin-td">
                       <input
                         type="checkbox"
@@ -800,7 +811,7 @@ export function CmsListView({ contentType }: Props) {
                         {formatDate(item.createdAt)}
                       </td>
                     )}
-                    <td className="admin-td">
+                    <td className="admin-td-actions">
                       <div className="flex items-center justify-end gap-1">
                         {tab === 'trash' ? (
                           <>

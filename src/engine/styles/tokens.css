@@ -3,64 +3,66 @@
 /*
  * SweetCMS Design Tokens — OKLCH Tinted-Neutral System
  *
- * TO REBRAND: find-replace "295" with your hue in this file (all occurrences).
- * Every brand color, tinted gray, and dark-mode surface adapts automatically.
- * The --brand-hue variable (in :root) powers semi-transparent alpha tints
- * in admin.css — it MUST match the hue used in @theme.
+ * TO REBRAND:
+ *   1. Replace "350" with your brand hue (brand scale, --brand-hue var)
+ *   2. Replace "303" with your accent hue (accent scale, --accent-hue var)
+ *   3. Grays use hue 260 (cool blue-violet, same as flirtcam) — change to match
+ *      your brand if desired, but 260 works well as a universal neutral.
+ *   4. Dark surfaces use hue 260 — update if you changed gray hue.
  *
  * Hue examples: Blue=220, Teal=180, Emerald=155, Rose=10, Orange=55, Violet=290
  */
 
 @theme {
-  /* Brand accent scale — vibrant, saturated */
-  --color-brand-50:  oklch(0.97 0.025 295);
-  --color-brand-100: oklch(0.93 0.05 295);
-  --color-brand-200: oklch(0.87 0.08 295);
-  --color-brand-300: oklch(0.76 0.12 295);
-  --color-brand-400: oklch(0.65 0.17 295);
-  --color-brand-500: oklch(0.55 0.20 295);
-  --color-brand-600: oklch(0.48 0.20 295);
-  --color-brand-700: oklch(0.40 0.18 295);
-  --color-brand-800: oklch(0.33 0.14 295);
-  --color-brand-900: oklch(0.27 0.12 295);
+  /* Brand scale — pink/coral (hue 350, matched to flirtcam brand-primary) */
+  --color-brand-50:  oklch(0.97 0.025 350);
+  --color-brand-100: oklch(0.93 0.05 350);
+  --color-brand-200: oklch(0.87 0.08 350);
+  --color-brand-300: oklch(0.79 0.15 350);
+  --color-brand-400: oklch(0.72 0.19 350);
+  --color-brand-500: oklch(0.65 0.24 350);
+  --color-brand-600: oklch(0.56 0.24 350);
+  --color-brand-700: oklch(0.48 0.22 350);
+  --color-brand-800: oklch(0.40 0.18 350);
+  --color-brand-900: oklch(0.33 0.14 350);
 
-  /* Accent scale — warm violet (hue 310, analogous to brand 295) */
-  --color-accent-50:  oklch(0.97 0.025 310);
-  --color-accent-100: oklch(0.93 0.05 310);
-  --color-accent-200: oklch(0.87 0.08 310);
-  --color-accent-300: oklch(0.78 0.12 310);
-  --color-accent-400: oklch(0.70 0.15 310);
-  --color-accent-500: oklch(0.62 0.17 310);
-  --color-accent-600: oklch(0.52 0.17 310);
-  --color-accent-700: oklch(0.43 0.15 310);
+  /* Accent scale — purple (hue 303, matched to flirtcam brand-secondary) */
+  --color-accent-50:  oklch(0.97 0.025 303);
+  --color-accent-100: oklch(0.93 0.05 303);
+  --color-accent-200: oklch(0.87 0.08 303);
+  --color-accent-300: oklch(0.78 0.15 303);
+  --color-accent-400: oklch(0.65 0.24 303);
+  --color-accent-500: oklch(0.55 0.27 303);
+  --color-accent-600: oklch(0.47 0.27 303);
+  --color-accent-700: oklch(0.40 0.25 303);
 
-  /* Tinted gray scale — very subtle brand hue so neutrals stay neutral */
-  --color-gray-50:  oklch(0.985 0.003 295);
-  --color-gray-100: oklch(0.96 0.003 295);
-  --color-gray-200: oklch(0.91 0.004 295);
-  --color-gray-300: oklch(0.84 0.004 295);
-  --color-gray-400: oklch(0.66 0.005 295);
-  --color-gray-500: oklch(0.55 0.006 295);
-  --color-gray-600: oklch(0.45 0.006 295);
-  --color-gray-700: oklch(0.37 0.008 295);
-  --color-gray-800: oklch(0.30 0.009 295);
-  --color-gray-900: oklch(0.23 0.009 295);
-  --color-gray-950: oklch(0.17 0.01  295);
+  /* Tinted gray scale — cool blue-violet neutrals (hue 260, same as flirtcam) */
+  --color-gray-50:  oklch(0.98 0.002 265);
+  --color-gray-100: oklch(0.96 0.003 265);
+  --color-gray-200: oklch(0.93 0.005 265);
+  --color-gray-300: oklch(0.87 0.005 265);
+  --color-gray-400: oklch(0.71 0.01 265);
+  --color-gray-500: oklch(0.55 0.015 265);
+  --color-gray-600: oklch(0.45 0.015 260);
+  --color-gray-700: oklch(0.37 0.015 260);
+  --color-gray-800: oklch(0.27 0.02 260);
+  --color-gray-900: oklch(0.21 0.02 260);
+  --color-gray-950: oklch(0.16 0.02 260);
 
-  /* Semantic colors (fixed, not brand-derived) */
-  --color-success-50:  oklch(0.96 0.03 150);
-  --color-success-500: oklch(0.60 0.16 150);
-  --color-success-600: oklch(0.53 0.15 150);
-  --color-success-700: oklch(0.46 0.13 150);
+  /* Semantic colors (matched to flirtcam) */
+  --color-success-50:  oklch(0.97 0.02 145);
+  --color-success-500: oklch(0.65 0.20 145);
+  --color-success-600: oklch(0.58 0.19 145);
+  --color-success-700: oklch(0.50 0.16 145);
 
-  --color-warning-50:  oklch(0.97 0.03 80);
-  --color-warning-500: oklch(0.75 0.16 65);
-  --color-warning-600: oklch(0.65 0.16 55);
+  --color-warning-50:  oklch(0.98 0.02 70);
+  --color-warning-500: oklch(0.75 0.18 70);
+  --color-warning-600: oklch(0.65 0.19 55);
 
-  --color-danger-50:  oklch(0.97 0.02 25);
-  --color-danger-500: oklch(0.60 0.19 25);
-  --color-danger-600: oklch(0.55 0.19 25);
-  --color-danger-700: oklch(0.48 0.17 25);
+  --color-danger-50:  oklch(0.97 0.01 25);
+  --color-danger-500: oklch(0.60 0.22 25);
+  --color-danger-600: oklch(0.55 0.22 25);
+  --color-danger-700: oklch(0.47 0.20 25);
 
   --color-white: #ffffff;
   --color-black: #000000;
@@ -68,8 +70,8 @@
 
 :root {
   /* Brand hue — must match the hue in @theme above (used by admin.css alpha tints) */
-  --brand-hue: 295;
-  --accent-hue: 310;
+  --brand-hue: 350;
+  --accent-hue: 303;
 
   /* Surfaces */
   --surface-primary:   var(--color-gray-50);
@@ -86,8 +88,8 @@
   --text-inverse:   var(--color-white);
 
   /* Borders — soft, low-chroma for elevation-first design */
-  --border-primary:   oklch(0.91 0.004 295 / 0.7);
-  --border-secondary: oklch(0.95 0.003 295 / 0.5);
+  --border-primary:   oklch(0.93 0.005 265 / 0.7);
+  --border-secondary: oklch(0.96 0.003 265 / 0.5);
 
   /* Shadows — light mode: slightly lifted for border-free cards */
   --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.05), 0 1px 2px oklch(0 0 0 / 0.03);
@@ -110,23 +112,22 @@
   --glass-saturate: 1.8;
   --glass-border: oklch(1 0 0 / 0.10);
 
-  /* Brand gradient — brand→accent diagonal (wide L contrast for visible gradient) */
-  --gradient-brand: linear-gradient(135deg, oklch(0.42 0.22 var(--brand-hue)), oklch(0.62 0.17 var(--accent-hue)));
-  --gradient-brand-hover: linear-gradient(135deg, oklch(0.50 0.22 var(--brand-hue)), oklch(0.68 0.17 var(--accent-hue)));
-  --gradient-brand-subtle: linear-gradient(135deg, oklch(0.42 0.22 var(--brand-hue) / 0.15), oklch(0.62 0.17 var(--accent-hue) / 0.15));
+  /* Brand gradient — pink→purple diagonal (matched to flirtcam brand-primary→brand-secondary) */
+  --gradient-brand: linear-gradient(in oklch 135deg, oklch(0.65 0.24 var(--brand-hue)), oklch(0.55 0.27 var(--accent-hue)));
+  --gradient-brand-hover: linear-gradient(in oklch 135deg, oklch(0.56 0.24 var(--brand-hue)), oklch(0.47 0.27 var(--accent-hue)));
+  --gradient-brand-subtle: linear-gradient(in oklch 135deg, oklch(0.65 0.24 var(--brand-hue) / 0.15), oklch(0.55 0.27 var(--accent-hue) / 0.15));
 }
 
 html.dark {
   color-scheme: dark;
 
-  /* Surfaces — layered dark with brand undertone
-   * inset (0.19) < sidebar (0.23) < primary (0.25) < secondary (0.30) < elevated (0.35)
-   * Sidebar is slightly darker than content for subtle distinction */
-  --surface-inset:     oklch(0.19 0.01 295);
-  --surface-sidebar:   oklch(0.23 0.012 295);
-  --surface-primary:   oklch(0.25 0.01 295);
-  --surface-secondary: oklch(0.30 0.01 295);
-  --surface-elevated:  oklch(0.35 0.01 295);
+  /* Surfaces — layered dark (hue 260, matched to flirtcam)
+   * inset (0.20) < sidebar (0.20) < primary (0.21 = gray-900) < secondary (0.27) < elevated (0.32) */
+  --surface-inset:     oklch(0.20 0.02 260);
+  --surface-sidebar:   oklch(0.20 0.02 260);
+  --surface-primary:   oklch(0.21 0.02 260);
+  --surface-secondary: oklch(0.27 0.02 260);
+  --surface-elevated:  oklch(0.32 0.015 260);
   --surface-overlay:   oklch(0 0 0 / 0.7);
 
   /* Text */
@@ -135,9 +136,9 @@ html.dark {
   --text-muted:     var(--color-gray-500);
   --text-inverse:   var(--color-gray-900);
 
-  /* Borders — subtler in dark mode, let surface contrast do the work */
-  --border-primary:   oklch(0.33 0.006 295 / 0.8);
-  --border-secondary: oklch(0.28 0.006 295 / 0.5);
+  /* Borders — subtle in dark mode */
+  --border-primary:   oklch(0.35 0.01 260 / 0.8);
+  --border-secondary: oklch(0.30 0.01 260 / 0.5);
 
   /* Shadows — dark mode: deeper for glass layering */
   --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 0 0 1px oklch(1 0 0 / 0.03);

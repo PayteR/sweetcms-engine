@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ExternalLink, LogOut, Menu, Monitor, Moon, Search, Sun, User } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, ExternalLink, LogOut, Menu, Monitor, Moon, Search, Sun, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
@@ -48,7 +48,7 @@ export function AdminSidebar() {
   const __ = useBlankTranslations();
   const pathname = usePathname();
   const router = useRouter();
-  const { isOpen, closeSidebar, toggleSidebar } = useSidebarStore();
+  const { isOpen, closeSidebar, toggleSidebar, isL2Collapsed, toggleL2Collapsed } = useSidebarStore();
   const { data: session } = useSession();
   const { theme, setTheme, initTheme } = useThemeStore();
 
@@ -217,10 +217,23 @@ export function AdminSidebar() {
 
   function renderLevel2() {
     if (!activeItem || !isNavGroup(activeItem)) return null;
+    const CollapseIcon = isL2Collapsed ? ChevronsRight : ChevronsLeft;
     return (
       <>
-        <div className="admin-l2-title">{activeItem.name}</div>
-        <nav className="flex flex-col gap-0.5 mt-1">
+        <div className="flex items-center justify-between mb-1">
+          <div className={cn('admin-l2-title', isL2Collapsed && 'sr-only')}>
+            {activeItem.name}
+          </div>
+          <button
+            type="button"
+            onClick={toggleL2Collapsed}
+            className="admin-rail-btn !w-7 !h-7"
+            title={isL2Collapsed ? __('Expand panel') : __('Collapse panel')}
+          >
+            <CollapseIcon className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <nav className="flex flex-col gap-0.5">
           {activeItem.children.map((child) => {
             const Icon = child.icon;
             const active = isChildActive(child, activeItem.children, pathname);
@@ -229,10 +242,11 @@ export function AdminSidebar() {
                 key={child.href}
                 href={child.href}
                 onClick={closeSidebar}
+                title={isL2Collapsed ? child.name : undefined}
                 className={cn('admin-sidebar-link', active && 'active')}
               >
-                <Icon className="h-4 w-4" />
-                {child.name}
+                <Icon className="h-4 w-4 shrink-0" />
+                {!isL2Collapsed && <span>{child.name}</span>}
               </Link>
             );
           })}
@@ -248,19 +262,19 @@ export function AdminSidebar() {
         <Link href="/dashboard" className="admin-rail-logo">
           {logoLetter}
         </Link>
-        <a
-          href="/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="admin-rail-btn mx-auto mt-1"
-          title={__('View site')}
-        >
-          <ExternalLink size={16} />
-        </a>
         <div className="admin-rail-nav">
           {renderRailNav()}
         </div>
         <div className="admin-rail-bottom">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="admin-rail-btn"
+            title={__('View site')}
+          >
+            <ExternalLink size={16} />
+          </a>
           {renderRailBottom()}
         </div>
       </aside>
@@ -268,10 +282,11 @@ export function AdminSidebar() {
       {/* ── Desktop Level 2 Panel (always mounted for transition) ── */}
       <aside
         className={cn(
-          'admin-l2-panel hidden xl:block transition-[translate,opacity] duration-300 ease-in-out',
+          'admin-l2-panel hidden xl:block transition-[translate,opacity,width] duration-300 ease-in-out',
           hasLevel2
             ? 'translate-x-0 opacity-100'
-            : '-translate-x-full opacity-0 pointer-events-none'
+            : '-translate-x-full opacity-0 pointer-events-none',
+          hasLevel2 && isL2Collapsed && 'admin-l2-collapsed'
         )}
       >
         {hasLevel2 && renderLevel2()}
@@ -306,23 +321,23 @@ export function AdminSidebar() {
           />
           <div className="fixed inset-y-0 left-0 z-[60] flex xl:hidden">
             {/* Mobile Rail — inline layout instead of reusing .admin-rail (which is position:fixed) */}
-            <aside className="flex w-[48px] flex-col bg-(--surface-inset) border-r border-(--border-primary)">
+            <aside className="admin-mobile-rail">
               <Link href="/dashboard" onClick={closeSidebar} className="admin-rail-logo">
                 {logoLetter}
               </Link>
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="admin-rail-btn mx-auto mt-1"
-                title={__('View site')}
-              >
-                <ExternalLink size={16} />
-              </a>
               <div className="admin-rail-nav">
                 {renderRailNav()}
               </div>
               <div className="admin-rail-bottom">
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="admin-rail-btn"
+                  title={__('View site')}
+                >
+                  <ExternalLink size={16} />
+                </a>
                 {renderRailBottom()}
               </div>
             </aside>

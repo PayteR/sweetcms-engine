@@ -6,8 +6,29 @@ import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');
+const dashboardProcedure = sectionProcedure('dashboard');
 
 export const auditRouter = createTRPCRouter({
+  /** Last N audit entries for dashboard widget */
+  recent: dashboardProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(20).default(10) }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select({
+          id: cmsAuditLog.id,
+          action: cmsAuditLog.action,
+          entityType: cmsAuditLog.entityType,
+          entityId: cmsAuditLog.entityId,
+          entityTitle: cmsAuditLog.entityTitle,
+          createdAt: cmsAuditLog.createdAt,
+          userName: user.name,
+        })
+        .from(cmsAuditLog)
+        .leftJoin(user, eq(cmsAuditLog.userId, user.id))
+        .orderBy(desc(cmsAuditLog.createdAt))
+        .limit(input.limit);
+    }),
+
   /** Paginated audit log with filters */
   list: settingsProcedure
     .input(

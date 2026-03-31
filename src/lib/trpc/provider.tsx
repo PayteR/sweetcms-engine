@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { httpBatchStreamLink } from '@trpc/client';
 import superjson from 'superjson';
 
@@ -13,6 +18,15 @@ function getBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 }
 
+/** Redirect to /login on UNAUTHORIZED — prevents infinite loading spinner */
+function handleAuthError(error: unknown) {
+  if (typeof window === 'undefined') return;
+  const trpcError = error as { data?: { code?: string } } | undefined;
+  if (trpcError?.data?.code === 'UNAUTHORIZED') {
+    window.location.href = '/login';
+  }
+}
+
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -21,8 +35,28 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 30 * 1000,
             refetchOnWindowFocus: false,
+            retry(failureCount, error) {
+              const trpcError = error as { data?: { code?: string } } | undefined;
+              // Don't retry auth errors — redirect instead
+              if (trpcError?.data?.code === 'UNAUTHORIZED') return false;
+              if (trpcError?.data?.code === 'FORBIDDEN') return false;
+              return failureCount < 2;
+            },
+          },
+          mutations: {
+            retry: false,
           },
         },
+        queryCache: new QueryCache({
+          onError: (error) => {
+            handleAuthError(error);
+          },
+        }),
+        mutationCache: new MutationCache({
+          onError: (error) => {
+            handleAuthError(error);
+          },
+        }),
       })
   );
 

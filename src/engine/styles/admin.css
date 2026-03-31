@@ -8,6 +8,28 @@
  * All classes use design tokens from tokens.css.
  */
 
+:root {
+  /* Admin chart colors */
+  --admin-chart-info: #2196f3;
+  --admin-chart-success: #4caf50;
+  --admin-chart-warning: #ff9800;
+  --admin-chart-danger: #ef4444;
+  --admin-chart-grid: oklch(0.35 0.008 260);
+  --admin-chart-axis: oklch(0.75 0.005 260);
+  --admin-chart-tooltip-bg: oklch(0.22 0.01 260);
+  --admin-chart-tooltip-border: oklch(0.35 0.008 260);
+
+  /* Multi-series palette */
+  --admin-chart-series-1: #3b82f6;
+  --admin-chart-series-2: #10b981;
+  --admin-chart-series-3: #f59e0b;
+  --admin-chart-series-4: #8b5cf6;
+  --admin-chart-series-5: #ef4444;
+  --admin-chart-series-6: #06b6d4;
+  --admin-chart-series-7: #84cc16;
+  --admin-chart-series-8: #f97316;
+}
+
 @layer components {
   /* ===================== Cards ===================== */
   .admin-card {
@@ -18,12 +40,85 @@
     transition: box-shadow var(--duration-fast) ease;
   }
 
+  /* ===================== Widget Header & Stats ===================== */
+  .admin-widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-secondary);
+    background-color: var(--surface-inset);
+  }
+
+  .admin-stat-grid {
+    display: grid;
+    gap: 0;
+  }
+
+  .admin-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  .admin-stat-row:last-child {
+    border-bottom: none;
+  }
+
+  .admin-stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  .admin-stat-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ===================== Checkbox ===================== */
+  .admin-checkbox {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 3px;
+    border: 1.5px solid var(--text-muted);
+    background-color: transparent;
+    cursor: pointer;
+    appearance: none;
+    display: grid;
+    place-content: center;
+    transition: background-color var(--duration-fast) ease,
+                border-color var(--duration-fast) ease;
+  }
+
+  .admin-checkbox:checked {
+    background-color: var(--color-brand-500);
+    border-color: var(--color-brand-500);
+  }
+
+  .admin-checkbox:checked::after {
+    content: '';
+    width: 0.375rem;
+    height: 0.25rem;
+    border-left: 2px solid var(--color-white);
+    border-bottom: 2px solid var(--color-white);
+    transform: rotate(-45deg) translateY(-0.5px);
+  }
+
   /* ===================== Typography ===================== */
   .admin-h2 {
     font-size: 1.0625rem;
     font-weight: 600;
     color: var(--text-primary);
     letter-spacing: -0.02em;
+  }
+
+  .admin-widget-header .admin-h2 {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
   }
 
   /* ===================== Tables ===================== */
@@ -46,7 +141,7 @@
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
     color: var(--text-primary);
-    border-bottom: 1px solid oklch(0.91 0.003 var(--brand-hue) / 0.4);
+    border-bottom: 1px solid oklch(0.93 0.005 260 / 0.4);
   }
 
   /* ===================== Sidebar ===================== */
@@ -69,7 +164,7 @@
 
   .admin-sidebar-link.active {
     color: var(--color-brand-700);
-    background: linear-gradient(135deg, oklch(0.55 0.20 var(--brand-hue) / 0.12), oklch(0.62 0.17 var(--accent-hue) / 0.08));
+    background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.12), oklch(0.55 0.27 var(--accent-hue) / 0.08));
     font-weight: 500;
   }
 
@@ -85,6 +180,7 @@
     background-color: var(--surface-inset);
     border-right: 1px solid var(--border-primary);
     z-index: 60;
+    overflow-x: hidden;
   }
 
   .admin-rail-logo {
@@ -133,7 +229,7 @@
 
   .admin-rail-btn.active {
     color: var(--color-brand-700);
-    background: linear-gradient(135deg, oklch(0.55 0.20 var(--brand-hue) / 0.12), oklch(0.62 0.17 var(--accent-hue) / 0.08));
+    background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.12), oklch(0.55 0.27 var(--accent-hue) / 0.08));
   }
 
   .admin-rail-bottom {
@@ -158,6 +254,16 @@
     padding: 1rem 0.75rem;
   }
 
+  .admin-l2-panel.admin-l2-collapsed {
+    width: 48px;
+    padding: 1rem 0.375rem;
+  }
+
+  .admin-l2-collapsed .admin-sidebar-link {
+    justify-content: center;
+    padding: 0.375rem;
+  }
+
   .admin-l2-title {
     font-size: 0.6875rem;
     font-weight: 600;
@@ -179,6 +285,17 @@
     box-shadow: var(--shadow-lg);
     z-index: 70;
     padding: 0.5rem;
+  }
+
+  /* ===================== Mobile Top Bar ===================== */
+  /* ===================== Mobile Rail (overlay, not fixed) ===================== */
+  .admin-mobile-rail {
+    display: flex;
+    width: 48px;
+    flex-direction: column;
+    background-color: var(--surface-inset);
+    border-right: 1px solid var(--border-primary);
+    overflow-x: hidden;
   }
 
   /* ===================== Mobile Top Bar ===================== */
@@ -380,7 +497,7 @@
   }
 
   .admin-command-result.active {
-    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.08);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.08);
   }
 
   .admin-command-empty {
@@ -430,115 +547,104 @@
 
 /* ===================== Dark mode overrides ===================== */
 html.dark {
-  /* Cards: gradient glass surface */
+  /* Cards: solid dark surface (flirtcam-inspired) */
   .admin-card {
-    background: linear-gradient(
-      135deg,
-      oklch(0.28 0.01 var(--brand-hue) / 0.6),
-      oklch(0.22 0.012 var(--brand-hue) / 0.65)
-    );
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-glass-sm);
+    background-color: var(--color-gray-800);
+    border: 1px solid var(--color-gray-700);
+    box-shadow: 0 2px 8px oklch(0 0 0 / 0.25), 0 0 0 1px oklch(1 0 0 / 0.03);
   }
 
   .admin-card:hover {
-    box-shadow: var(--shadow-glass-md),
-                0 0 24px oklch(0.48 0.20 var(--brand-hue) / 0.12);
+    box-shadow: 0 4px 12px oklch(0 0 0 / 0.3), 0 0 0 1px oklch(1 0 0 / 0.05);
   }
 
-  /* Rail: gradient glass with blur — body gradient shows through */
+  .admin-widget-header {
+    background-color: oklch(0.20 0.02 260);
+    border-bottom-color: oklch(1 0 0 / 0.08);
+  }
+
+  .admin-stat-row {
+    border-bottom-color: oklch(1 0 0 / 0.05);
+  }
+
+  /* Rail: surface-inset in dark = oklch(0.20), border = white tint (matched to flirtcam) */
   .admin-rail {
-    background: linear-gradient(
-      180deg,
-      oklch(0.32 0.012 var(--brand-hue) / 0.75),
-      oklch(0.28 0.015 var(--brand-hue) / 0.8)
-    );
-    border-right-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    box-shadow: var(--shadow-glass-sm);
+    background: var(--surface-inset);
+    border-right-color: oklch(1 0 0 / 0.08);
   }
 
-  /* L2 panel: gradient glass with blur — body gradient shows through */
+  /* L2 panel: solid dark (oklch 0.26 matched to flirtcam) */
   .admin-l2-panel {
-    background: linear-gradient(
-      135deg,
-      oklch(0.22 0.012 var(--brand-hue) / 0.5),
-      oklch(0.18 0.015 var(--brand-hue) / 0.55)
-    );
-    border-right-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    box-shadow: var(--shadow-glass-sm);
+    background: oklch(0.26 0.02 260);
+    border-right-color: oklch(1 0 0 / 0.08);
+    box-shadow: 1px 0 8px oklch(0 0 0 / 0.15);
   }
 
-  /* Command palette: elevated floating glass */
+  /* Command palette: solid elevated */
   .admin-command-panel {
-    background: linear-gradient(
-      135deg,
-      oklch(0.28 0.01 var(--brand-hue) / 0.8),
-      oklch(0.22 0.012 var(--brand-hue) / 0.85)
-    );
-    border-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    box-shadow: var(--shadow-glass-lg);
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+    box-shadow: 0 8px 24px oklch(0 0 0 / 0.4);
   }
 
-  /* Slide-over: elevated floating glass */
+  /* Slide-over: solid elevated */
   .admin-slide-over-panel {
-    background: linear-gradient(
-      135deg,
-      oklch(0.28 0.01 var(--brand-hue) / 0.8),
-      oklch(0.22 0.012 var(--brand-hue) / 0.85)
-    );
-    border-left-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    box-shadow: var(--shadow-glass-lg);
+    background-color: var(--color-gray-800);
+    border-left-color: var(--color-gray-700);
+    box-shadow: -8px 0 24px oklch(0 0 0 / 0.4);
   }
 
-  /* User popover: elevated floating glass */
+  /* User popover: solid elevated */
   .admin-user-popover {
-    background: linear-gradient(
-      135deg,
-      oklch(0.32 0.01 var(--brand-hue) / 0.75),
-      oklch(0.26 0.012 var(--brand-hue) / 0.8)
-    );
-    border-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    box-shadow: var(--shadow-glass-lg);
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+    box-shadow: 0 8px 24px oklch(0 0 0 / 0.4);
   }
 
-  /* Mobile topbar: gradient glass */
+  /* Mobile rail + topbar: solid dark with white-tint borders */
+  .admin-mobile-rail {
+    background: var(--surface-inset);
+    border-right-color: oklch(1 0 0 / 0.08);
+  }
+
   .admin-mobile-topbar {
-    background: linear-gradient(
-      180deg,
-      oklch(0.22 0.012 var(--brand-hue) / 0.75),
-      oklch(0.18 0.015 var(--brand-hue) / 0.8)
-    );
-    border-bottom-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    box-shadow: var(--shadow-glass-sm);
+    background: var(--surface-inset);
+    border-bottom-color: oklch(1 0 0 / 0.08);
   }
 
   .admin-sidebar-link.active {
-    color: var(--color-brand-200);
-    background: linear-gradient(135deg, oklch(0.45 0.22 var(--brand-hue) / 0.25), oklch(0.58 0.18 var(--accent-hue) / 0.20));
+    color: var(--color-brand-300);
+    background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.22), oklch(0.55 0.27 var(--accent-hue) / 0.22));
   }
 
   .admin-rail-btn.active {
-    color: var(--color-brand-200);
-    background: linear-gradient(135deg, oklch(0.45 0.22 var(--brand-hue) / 0.25), oklch(0.58 0.18 var(--accent-hue) / 0.20));
+    color: var(--color-brand-300);
+    background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.22), oklch(0.55 0.27 var(--accent-hue) / 0.22));
+  }
+
+  /* White-tint hovers */
+  .admin-sidebar-link:hover {
+    background-color: oklch(1 0 0 / 0.06);
+  }
+
+  .admin-rail-btn:hover {
+    background-color: oklch(1 0 0 / 0.08);
+  }
+
+  .admin-command-result:hover {
+    background-color: oklch(1 0 0 / 0.06);
   }
 
   .admin-btn-secondary {
-    background-color: var(--surface-secondary);
-    border-color: var(--border-primary);
-  }
-
-  .admin-btn-secondary:hover:not(:disabled) {
-    background-color: var(--surface-elevated);
+    background-color: var(--color-gray-700);
     border-color: var(--color-gray-600);
   }
 
+  .admin-btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-gray-600);
+  }
+
   .admin-command-result.active {
-    background-color: oklch(0.65 0.17 var(--brand-hue) / 0.12);
+    background-color: oklch(0.65 0.24 var(--brand-hue) / 0.12);
   }
 }

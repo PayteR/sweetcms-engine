@@ -28,13 +28,13 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 `src/engine/` contains reusable CMS infrastructure — do not modify per-project.
 `src/config/`, `src/server/`, `src/app/`, `src/components/admin/` (forms) are project-specific — customize freely.
 
-**Engine provides:** config interfaces + factory helpers, types (PostType, ContentStatus), RBAC policy, CRUD utils (admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects), lib utils (slug, markdown, audit, webhooks), hooks (form state, list state, autosave, bulk actions), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar), styles (tokens, admin CSS).
+**Engine provides:** config interfaces + factory helpers, types (PostType, ContentStatus), RBAC policy, CRUD utils (admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects), lib utils (slug, markdown, audit, webhooks), hooks (form state, list state, autosave, bulk actions), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver), styles (tokens, admin CSS).
 
 **Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), routes, public UI.
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
 
-**To rebrand:** find-replace `295` with your hue in `src/engine/styles/tokens.css` (default: 295 = purple) — all brand colors, tinted grays, and dark surfaces adapt. The `--brand-hue` variable in `:root` must match (powers alpha tints in admin CSS). Also update `--accent-hue` and the accent scale (default: 310 = warm violet) to your secondary color, and update the gradient tokens (`--gradient-brand*`) to use your new hues.
+**To rebrand:** find-replace `350` with your brand hue and `303` with your accent hue in `src/engine/styles/tokens.css` (default: 350 = pink/coral brand, 303 = purple accent, matched to flirtcam). The `--brand-hue` and `--accent-hue` variables in `:root` must match (powers alpha tints in admin CSS). Update the gradient tokens (`--gradient-brand*`) L/C values to match your new brand scale.
 
 ### tRPC Procedures & Usage
 
@@ -148,7 +148,7 @@ src/
 │   │   └── users/        — user management
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminHeader, AdminSidebar, TranslationBar, shortcodes/
+│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardShell, StatCard, RecentActivity, GA4Widget, TranslationBar, shortcodes/
 │   ├── public/           — ContactForm, DynamicNav, PostCard, ShortcodeRenderer, TagCloud, shortcodes/
 │   └── ui/               — ConfirmDialog, Toaster
 ├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), site.ts (site config)
@@ -157,7 +157,7 @@ src/
 │   ├── crud/             — admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects
 │   ├── hooks/            — useCmsFormState, useCmsAutosave, useListViewState, useBulkActions, etc.
 │   ├── policy/           — Role, Policy, Capability, isSuperAdmin
-│   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, etc.
+│   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CommandPalette, SlideOver, etc.
 │   ├── lib/              — slug, markdown, audit, webhooks
 │   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot
 │   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css, content.css
@@ -214,6 +214,7 @@ Always use these instead of manual alternatives:
 - **Slug redirects** (`src/engine/crud/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
 - **GDPR** (`src/server/utils/gdpr.ts`): Use `anonymizeUser()` for user data deletion
 - **Markdown** (`src/engine/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
+- **Relative time** (`src/lib/datetime.ts`): Use `formatRelativeTime(date, locale?)` — locale-aware via `Intl.RelativeTimeFormat`. Also: `convertUTCToLocal()`, `convertLocalToUTC()`
 
 ### Rich Text Editor
 
@@ -235,9 +236,9 @@ Content is stored as **markdown** in `cms_posts.content` / `cms_categories.text`
 
 Section-based RBAC — each sidebar group maps to a `section.*` capability. tRPC routers use `sectionProcedure(section)`.
 
-Dashboard shows stat cards (pages, posts, categories, users, media), content status breakdown, and quick action links.
+Dashboard (`max-w-320`, centered) shows: 5 stat cards (pages, posts, categories, users, media) without widget headers, then Content Status + Quick Actions side-by-side with `.admin-widget-header`, GA4Widget (analytics chart + top pages), and Recent Activity feed from `audit.recent` query (last 10 audit log entries with "View all" link to `/dashboard/cms/activity`). Components: `StatCard` (`src/components/admin/StatCard.tsx`), `RecentActivity` (`src/components/admin/RecentActivity.tsx`), `GA4Widget` (`src/components/admin/GA4Widget.tsx`).
 
-AdminHeader displays user name + role badge. Role badges use CSS classes: `.admin-role-superadmin`, `.admin-role-admin`, `.admin-role-editor`, `.admin-role-user`.
+AdminSidebar: two-level layout — 48px rail (L1) + collapsible 220px panel (L2). Role badges use CSS classes: `.admin-role-superadmin`, `.admin-role-admin`, `.admin-role-editor`, `.admin-role-user`.
 
 **Admin CSS classes** (`src/engine/styles/admin.css` + `src/engine/styles/admin-table.css`):
 | Class | Usage |
@@ -254,7 +255,11 @@ AdminHeader displays user name + role badge. Role badges use CSS classes: `.admi
 | `.admin-btn-danger` | Danger/delete button |
 | `.admin-btn-success` | Success/confirm button |
 | `.admin-btn-sm` | Small button variant |
-| `.admin-sidebar-link` | Sidebar nav links |
+| `.admin-rail` | Sidebar rail container |
+| `.admin-rail-logo` | Rail logo area |
+| `.admin-rail-nav` | Rail navigation container |
+| `.admin-rail-btn` | Rail icon buttons (cursor: pointer) |
+| `.admin-sidebar-link` | Sidebar L2 panel nav links |
 | `.admin-badge` | Status badges base |
 | `.admin-badge-published` | Published status |
 | `.admin-badge-draft` | Draft status |
@@ -270,6 +275,11 @@ AdminHeader displays user name + role badge. Role badges use CSS classes: `.admi
 | `.admin-pagination` | Pagination controls |
 | `.admin-empty-state` | Empty state containers |
 | `.admin-sortable-th` | Sortable column headers |
+| `.admin-widget-header` | Widget header bar (title + controls, border-bottom, inset bg) |
+| `.admin-stat-grid` | Grid container for stat rows |
+| `.admin-stat-row` | Label + value row (space-between, border-bottom) |
+| `.admin-stat-label` | Stat row label text |
+| `.admin-stat-value` | Stat row value (bold, tabular-nums) |
 | `.admin-role-badge` | Role badges (superadmin/admin/editor/user) |
 
 Always use these instead of inline Tailwind equivalents.
@@ -291,7 +301,7 @@ const __ = useBlankTranslations();
 
 Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config.
 
-**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Find-replace `295` (purple) with your hue to rebrand — all brand colors, tinted grays, and dark surfaces adapt. Every gray carries subtle brand tint for cohesive feel. Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables. Also update `--accent-hue`, accent scale (310 = warm violet), and `--gradient-brand*` tokens for your secondary color.
+**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Find-replace `350` (brand hue, pink/coral) and `303` (accent hue, purple) with your hues to rebrand — all brand colors adapt. Grays use hue 260 (cool blue-violet, independent of brand). Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables. Update `--brand-hue`, `--accent-hue`, and `--gradient-brand*` L/C values to match your new scales.
 
 **File structure:**
 - `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)
