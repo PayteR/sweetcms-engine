@@ -63,7 +63,8 @@ export default function GlobalError({ error, reset }: Props) {
         <div className="mt-6 flex justify-center gap-3">
           <button
             onClick={reset}
-            className="btn btn-primary"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium text-white"
+            style={{ background: 'var(--gradient-brand)' }}
           >
             Try Again
           </button>

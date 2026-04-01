@@ -1,5 +1,6 @@
 @layer theme, base, components, utilities;
 
+@import "./tokens-admin.css";
 @import "./admin-table.css";
 
 /*

@@ -37,7 +37,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Engine stores:** `src/engine/store/preferences-store.ts` (Zustand preferences with typed keys from `@/engine/types/preferences`).
 
-**To rebrand:** In `src/engine/styles/tokens.css`: (1) find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; (2) update `--brand-hue` and `--accent-hue` in `:root` to match; (3) optionally change gray hue `260`/`265` to match your brand (260 = cool blue-violet, works well as universal neutral); (4) update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds); (5) update `--gradient-brand` L/C values to match your new brand scale.
+**To rebrand:** (1) In `tokens.css`: find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; update `--brand-hue` and `--accent-hue` in `:root`; optionally change gray hue `260`/`265`; update `--gradient-brand` L/C values. (2) In `tokens-public.css`: edit semantic tokens (surfaces, text, borders, shadows) for the public frontend. (3) `tokens-admin.css` can diverge independently for the admin panel. (4) Update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds).
 
 ### tRPC Procedures & Usage
 
@@ -304,14 +304,16 @@ const __ = useBlankTranslations();
 
 Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config.
 
-**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Three independent hues: brand `350` (pink/coral), accent `303` (purple), gray `260`/`265` (cool blue-violet). To rebrand: replace brand/accent hues in their scales + `--brand-hue`/`--accent-hue` vars; optionally change gray hue (260 is a good universal neutral); update hardcoded `260` in dark surface tokens and `admin.css` (rail, L2). Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` — NOT `color-mix()` or `oklch(from ...)`, which don't work with CSS variables in Lightning CSS.
+**Design token system:** OKLCH tinted-neutral palette split into 3 files. Three independent hues: brand `350` (pink/coral), accent `303` (purple), gray `260`/`265` (cool blue-violet). Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` — NOT `color-mix()` or `oklch(from ...)`, which don't work with CSS variables in Lightning CSS.
 
 **File structure:**
-- `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)
-- `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography)
-- `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes
-- `src/engine/styles/content.css` — CMS content rendering classes (`.content`, `.title`, `.post-card`)
-- `src/app/globals.css` — imports Tailwind, typography, engine tokens, content CSS
+- `src/engine/styles/tokens.css` — `@theme` color scales + `:root` primitives (hues, radius, motion, gradient, overlay)
+- `src/engine/styles/tokens-public.css` — `:root` semantic tokens (surfaces, text, borders, shadows) + `html.dark` overrides — edit per project for frontend look
+- `src/engine/styles/tokens-admin.css` — `[data-admin]` semantic tokens + `html.dark [data-admin]` overrides — rarely needs editing
+- `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography); imports tokens-admin.css
+- `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes + admin autofill
+- `src/engine/styles/content.css` — public component classes (header, footer, buttons, forms, content) + public autofill; loaded in `(public)/layout.tsx` and `(auth)/layout.tsx`, NOT globally
+- `src/app/globals.css` — imports Tailwind, typography, tokens.css, tokens-public.css, overlay.css
 
 **Layer order:** `@layer theme, base, components, utilities;` — every CSS file must declare this.
 

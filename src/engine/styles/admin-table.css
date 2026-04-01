@@ -632,4 +632,23 @@ html.dark [data-admin] {
     background-color: oklch(0.65 0.24 var(--brand-hue) / 0.18);
     color: var(--color-brand-400);
   }
+
+  /* Autofill override — masks browser/1Password autofill backgrounds */
+  .input:-webkit-autofill,
+  .input:-webkit-autofill:hover,
+  .input:-webkit-autofill:focus,
+  input.input[data-com-onepassword-filled],
+  .input-sm:-webkit-autofill,
+  .input-sm:-webkit-autofill:hover,
+  .input-sm:-webkit-autofill:focus,
+  input.input-sm[data-com-onepassword-filled],
+  .search-input:-webkit-autofill,
+  .search-input:-webkit-autofill:hover,
+  .search-input:-webkit-autofill:focus,
+  input.search-input[data-com-onepassword-filled] {
+    box-shadow: inset 0 0 0 9999px var(--color-gray-700) !important;
+    -webkit-text-fill-color: var(--color-white) !important;
+    caret-color: var(--color-white);
+    filter: none !important;
+  }
 }

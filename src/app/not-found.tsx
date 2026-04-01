@@ -11,7 +11,8 @@ export default function NotFound() {
       <div className="mt-6 flex gap-3">
         <Link
           href="/"
-          className="btn btn-primary"
+          className="inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium text-white"
+          style={{ background: 'var(--gradient-brand)' }}
         >
           Go Home
         </Link>

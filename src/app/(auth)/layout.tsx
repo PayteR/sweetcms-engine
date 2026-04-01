@@ -1,3 +1,5 @@
+import '@/engine/styles/content.css';
+
 export default function AuthLayout({
   children,
 }: {
