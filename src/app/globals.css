@@ -90,24 +90,3 @@ html.dark input.admin-search-input[data-com-onepassword-filled] {
     scroll-behavior: auto !important;
   }
 }
-
-/* ═══ Utilities ═══ */
-@utility scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-@utility text-shadow-sm {
-  text-shadow: 0 1px 2px oklch(0 0 0 / 0.5);
-}
-
-@utility text-shadow {
-  text-shadow: 0 2px 4px oklch(0 0 0 / 0.5);
-}
-
-@utility text-shadow-lg {
-  text-shadow: 0 4px 8px oklch(0 0 0 / 0.5);
-}

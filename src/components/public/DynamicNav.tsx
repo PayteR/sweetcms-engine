@@ -39,7 +39,7 @@ function buildTree(items: NavItem[]): NavItem[] {
 
 function NavItemLink({ item }: { item: NavItem }) {
   return (
-    <li>
+    <li className="cms-nav-item">
       <a
         href={item.url ?? '#'}
         target={item.openInNewTab ? '_blank' : undefined}
@@ -90,8 +90,8 @@ export async function DynamicNav({ menuSlug, fallback }: Props) {
   if (tree.length === 0) return null;
 
   return (
-    <nav>
-      <ul className="flex flex-wrap items-center gap-4">
+    <nav className="cms-dynamic-nav">
+      <ul className="cms-nav-list flex flex-wrap items-center gap-4">
         {tree.map((item) => (
           <NavItemLink key={item.id} item={item} />
         ))}

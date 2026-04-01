@@ -154,9 +154,9 @@ export default function CustomFieldsPage() {
   const isPending = createField.isPending || updateField.isPending;
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="admin-custom-fields-page">
+      <div className="admin-page-header flex items-center justify-between">
+        <div className="admin-page-header-left flex items-center gap-3">
           <Link
             href="/dashboard/settings"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
@@ -182,7 +182,7 @@ export default function CustomFieldsPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mt-4 admin-card p-6 space-y-4"
+          className="admin-custom-field-form mt-4 admin-card p-6 space-y-4"
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
@@ -353,7 +353,7 @@ export default function CustomFieldsPage() {
                     {def.sortOrder}
                   </td>
                   <td className="admin-td">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="admin-row-actions flex items-center justify-end gap-1">
                       <button
                         onClick={() => startEdit(def)}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

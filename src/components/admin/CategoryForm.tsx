@@ -325,11 +325,11 @@ export function CategoryForm({ categoryId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="category-form" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="admin-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="admin-form-main space-y-6 lg:col-span-2">
             <div className="admin-card p-6">
-              <div className="space-y-4">
-                <div>
+              <div className="admin-field-stack space-y-4">
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
                   </label>
@@ -342,7 +342,7 @@ export function CategoryForm({ categoryId }: Props) {
                     placeholder={__('Category name')}
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Slug')}
                   </label>
@@ -357,7 +357,7 @@ export function CategoryForm({ categoryId }: Props) {
                     className="admin-input mt-1 font-mono"
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Title')}
                   </label>
@@ -373,7 +373,7 @@ export function CategoryForm({ categoryId }: Props) {
                     placeholder={__('Display title (can differ from name)')}
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Icon')}
                   </label>
@@ -444,7 +444,7 @@ export function CategoryForm({ categoryId }: Props) {
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className="admin-form-sidebar space-y-6">
             {/* Tags */}
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Tags')}</h3>
@@ -460,7 +460,7 @@ export function CategoryForm({ categoryId }: Props) {
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">
-                <div>
+                <div className="admin-field-group">
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
@@ -472,7 +472,7 @@ export function CategoryForm({ categoryId }: Props) {
                     </option>
                   </select>
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Order')}
                   </label>
@@ -483,7 +483,7 @@ export function CategoryForm({ categoryId }: Props) {
                     className="admin-input mt-1"
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   {cat && translationSiblings.data ? (
                     <TranslationBar
                       currentLang={formData.lang}
@@ -524,7 +524,7 @@ export function CategoryForm({ categoryId }: Props) {
                   />
                 )}
 
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>

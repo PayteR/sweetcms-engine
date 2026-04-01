@@ -90,7 +90,7 @@ export default function DashboardPage() {
           <div className="admin-widget-header">
             <h2 className="admin-h2">{__('Quick Actions')}</h2>
           </div>
-          <div className="p-4 grid grid-cols-2 gap-2">
+          <div className="admin-quick-actions-grid p-4 grid grid-cols-2 gap-2">
             <Link href="/dashboard/cms/pages/new" className="admin-btn admin-btn-secondary justify-center">
               <FileText className="h-4 w-4" />
               {__('New Page')}

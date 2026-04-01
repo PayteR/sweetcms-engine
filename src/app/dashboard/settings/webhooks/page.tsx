@@ -100,9 +100,9 @@ export default function WebhooksPage() {
   const isPending = createWebhook.isPending || updateWebhook.isPending;
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="admin-webhooks-page">
+      <div className="admin-page-header flex items-center justify-between">
+        <div className="admin-page-header-left flex items-center gap-3">
           <Link
             href="/dashboard/settings"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
@@ -118,7 +118,7 @@ export default function WebhooksPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mt-4 admin-card p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="admin-webhook-form mt-4 admin-card p-6 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-(--text-secondary)">{__('Name')}</label>
@@ -212,7 +212,7 @@ export default function WebhooksPage() {
                     </span>
                   </td>
                   <td className="admin-td">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="admin-row-actions flex items-center justify-end gap-1">
                       <button
                         onClick={() => testWebhook.mutate({ id: hook.id })}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

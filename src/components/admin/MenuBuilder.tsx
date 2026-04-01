@@ -78,7 +78,7 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="admin-card flex items-center gap-2 p-3"
+      className="admin-menu-item admin-card flex items-center gap-2 p-3"
     >
       <button
         type="button"
@@ -296,14 +296,14 @@ export function MenuBuilder({ menuId }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="admin-menu-builder space-y-4">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">
+          <div className="admin-menu-items-list space-y-2">
             {items.map((item) => (
               <SortableItem
                 key={item.id}
@@ -326,7 +326,7 @@ export function MenuBuilder({ menuId }: Props) {
         </p>
       )}
 
-      <div className="flex gap-2">
+      <div className="admin-menu-builder-actions flex gap-2">
         <button type="button" onClick={addItem} className="admin-btn admin-btn-secondary">
           <Plus className="h-4 w-4" />
           {__('Add Item')}

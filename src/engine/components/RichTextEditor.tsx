@@ -340,7 +340,7 @@ export function RichTextEditor({
     >
       {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
       <div className={cn(
-        'flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) px-2 py-1.5 shrink-0',
+        'admin-editor-toolbar flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) px-2 py-1.5 shrink-0',
         mode === 'source' && 'pointer-events-none opacity-40',
       )}>
         <ToolbarButton
@@ -485,7 +485,7 @@ export function RichTextEditor({
         <ToolbarDivider />
 
         {/* Shortcode insert dropdown */}
-        <div className="relative">
+        <div className="admin-editor-toolbar-menu relative">
           <ToolbarButton
             onClick={() => setShortcodeMenuOpen(!shortcodeMenuOpen)}
             title={__('Insert Block')}
@@ -493,7 +493,7 @@ export function RichTextEditor({
             <Blocks className={iconSize} />
           </ToolbarButton>
           {shortcodeMenuOpen && (
-            <div className="absolute left-0 top-full z-10 mt-1 w-40 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
+            <div className="admin-editor-shortcode-menu absolute left-0 top-full z-10 mt-1 w-40 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
               {SHORTCODE_REGISTRY.map((sc) => (
                 <button
                   key={sc.name}
@@ -566,7 +566,7 @@ export function RichTextEditor({
       />
 
       {/* Editor / Source */}
-      <div className="flex-1 overflow-auto">
+      <div className="admin-editor-content flex-1 overflow-auto">
         {mode === 'wysiwyg' ? (
           <EditorContent
             editor={editor}
@@ -588,7 +588,7 @@ export function RichTextEditor({
       </div>
 
       {/* Mode tabs (bottom) */}
-      <div className="flex justify-end border-t border-(--border-primary) shrink-0">
+      <div className="admin-editor-mode-tabs flex justify-end border-t border-(--border-primary) shrink-0">
         <button
           type="button"
           className={cn(

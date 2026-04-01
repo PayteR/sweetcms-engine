@@ -161,10 +161,10 @@ export default function MediaPage() {
   ];
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
+    <div className="admin-media-page">
+      <div className="admin-page-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Media Library')}</h1>
-        <div>
+        <div className="admin-upload-action">
           <input
             ref={fileInputRef}
             type="file"
@@ -228,7 +228,7 @@ export default function MediaPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="admin-media-grid grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {(data?.results ?? []).map((item) => {
               const FileIcon = FILE_TYPE_ICONS[item.fileType] ?? File;
               const isImage = item.fileType === FileType.IMAGE;
@@ -254,20 +254,20 @@ export default function MediaPage() {
                   </div>
 
                   {/* Info */}
-                  <div className="p-2">
+                  <div className="admin-media-card-info p-2">
                     <p
-                      className="truncate text-xs font-medium text-(--text-secondary)"
+                      className="admin-media-filename truncate text-xs font-medium text-(--text-secondary)"
                       title={item.filename}
                     >
                       {item.filename}
                     </p>
-                    <p className="text-xs text-(--text-muted)">
+                    <p className="admin-media-meta text-xs text-(--text-muted)">
                       {formatSize(item.fileSize)} · {formatDate(item.createdAt)}
                     </p>
                   </div>
 
                   {/* Actions overlay */}
-                  <div className="absolute inset-x-0 top-0 flex justify-end gap-1 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="admin-media-card-overlay-actions absolute inset-x-0 top-0 flex justify-end gap-1 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={() =>
                         handleCopyUrl(
@@ -306,12 +306,12 @@ export default function MediaPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-(--text-muted)">
+        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+          <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="flex gap-1">
+          <div className="admin-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}

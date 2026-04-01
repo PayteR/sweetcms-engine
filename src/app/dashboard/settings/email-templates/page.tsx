@@ -112,8 +112,8 @@ export default function EmailTemplatesPage() {
   if (editing) {
     const template = TEMPLATES.find((t) => t.name === editing)!;
     return (
-      <div>
-        <div className="flex items-center justify-between">
+      <div className="admin-email-editor-page">
+        <div className="admin-page-header flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setEditing(null)}
@@ -222,7 +222,7 @@ export default function EmailTemplatesPage() {
   }
 
   return (
-    <div>
+    <div className="admin-email-templates-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">
         {__('Email Templates')}
       </h1>
@@ -230,7 +230,7 @@ export default function EmailTemplatesPage() {
         {__('Customize email templates. Overrides are stored in the database; unmodified templates use the default file.')}
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="admin-template-cards mt-6 grid gap-4 sm:grid-cols-2">
         {TEMPLATES.map((t) => {
           const hasOverride = getOverrideStatus(t.name);
           return (

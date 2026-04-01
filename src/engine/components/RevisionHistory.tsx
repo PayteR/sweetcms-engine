@@ -97,10 +97,10 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
           onClose={closeDialog}
           className="fixed inset-0 z-50 m-auto h-[85vh] w-full max-w-5xl rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
         >
-          <div className="flex h-full flex-col">
+          <div className="admin-revision-dialog-layout flex h-full flex-col">
             {/* Header */}
-            <div className="border-b border-(--border-primary) p-4">
-              <div className="flex items-center justify-between">
+            <div className="admin-revision-header border-b border-(--border-primary) p-4">
+              <div className="admin-revision-header-row flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-(--text-primary)">
                   {__('Revision History')}
                 </h3>
@@ -113,7 +113,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                 </button>
               </div>
               {revisions.data && revisions.data.length > 1 && (
-                <div className="mt-3">
+                <div className="admin-revision-timeline mt-3">
                   <input
                     type="range"
                     min={0}
@@ -124,9 +124,9 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                     }
                     className="w-full"
                   />
-                  <div className="flex justify-between text-xs text-(--text-muted)">
-                    <span>{__('Oldest')}</span>
-                    <span>{__('Newest')}</span>
+                  <div className="admin-revision-timeline-labels flex justify-between text-xs text-(--text-muted)">
+                    <span className="admin-revision-timeline-label">{__('Oldest')}</span>
+                    <span className="admin-revision-timeline-label">{__('Newest')}</span>
                   </div>
                 </div>
               )}
@@ -139,9 +139,9 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
             ) : (
               <div className="flex min-h-0 flex-1">
                 {/* Left panel -- revision list + slider */}
-                <div className="flex w-[35%] flex-col border-r border-(--border-primary)">
-                  <div className="flex-1 overflow-y-auto p-3">
-                    <div className="space-y-1">
+                <div className="admin-revision-list-panel flex w-[35%] flex-col border-r border-(--border-primary)">
+                  <div className="admin-revision-list-scroll flex-1 overflow-y-auto p-3">
+                    <div className="admin-revision-list space-y-1">
                       {revisions.data.map((rev, idx) => {
                         const snap = rev.snapshot as Record<string, unknown>;
                         const title = (snap.title as string) || (snap.name as string) || __('(untitled)');
@@ -156,8 +156,8 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                                 : 'text-(--text-secondary) hover:bg-(--surface-secondary)'
                             }`}
                           >
-                            <div className="truncate text-sm font-medium">{title}</div>
-                            <div className="text-xs text-(--text-muted)">
+                            <div className="admin-revision-item-title truncate text-sm font-medium">{title}</div>
+                            <div className="admin-revision-item-date text-xs text-(--text-muted)">
                               {new Date(rev.createdAt).toLocaleString()}
                             </div>
                           </button>
@@ -169,8 +169,8 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                 </div>
 
                 {/* Right panel -- field diffs */}
-                <div className="flex w-[65%] flex-col">
-                  <div className="flex-1 overflow-y-auto p-4">
+                <div className="admin-revision-diff-panel flex w-[65%] flex-col">
+                  <div className="admin-revision-diff-scroll flex-1 overflow-y-auto p-4">
                     {diffs.length === 0 ? (
                       <div className="py-8 text-center text-(--text-muted)">
                         {__('No changes in this revision')}
@@ -178,8 +178,8 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                     ) : (
                       <div className="space-y-4">
                         {diffs.map((diff) => (
-                          <div key={diff.key}>
-                            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-(--text-muted)">
+                          <div key={diff.key} className="admin-diff-entry">
+                            <div className="admin-diff-field-label mb-1 text-xs font-semibold uppercase tracking-wide text-(--text-muted)">
                               {diff.label}
                             </div>
                             {diff.type === 'long' && diff.lines ? (
@@ -201,7 +201,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                                 ))}
                               </div>
                             ) : (
-                              <div className="text-sm">
+                              <div className="admin-diff-inline text-sm">
                                 <del className="text-red-600 dark:text-red-400">{String(diff.oldValue ?? '')}</del>
                                 <span className="mx-2 text-(--text-muted)">&rarr;</span>
                                 <ins className="text-green-600 no-underline dark:text-green-400">{String(diff.newValue ?? '')}</ins>
@@ -214,7 +214,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                   </div>
 
                   {selectedRevision && (
-                    <div className="border-t border-(--border-primary) p-4">
+                    <div className="admin-revision-restore-bar border-t border-(--border-primary) p-4">
                       <button
                         type="button"
                         onClick={() => setRestoreTarget(selectedRevision.id)}

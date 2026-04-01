@@ -23,14 +23,14 @@ export function Toaster() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+    <div className="ui-toast-container fixed bottom-4 right-4 z-50 flex flex-col gap-2">
       {toasts.map((t) => {
         const Icon = icons[t.type];
         return (
           <div
             key={t.id}
             className={cn(
-              'flex items-center gap-2 rounded-lg border px-4 py-3 text-sm shadow-md',
+              'ui-toast flex items-center gap-2 rounded-lg border px-4 py-3 text-sm shadow-md',
               styles[t.type]
             )}
           >

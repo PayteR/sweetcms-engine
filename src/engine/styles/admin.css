@@ -177,10 +177,10 @@
     width: 48px;
     display: flex;
     flex-direction: column;
+    align-items: center;
     background-color: var(--surface-inset);
     border-right: 1px solid var(--border-primary);
     z-index: 60;
-    overflow-x: hidden;
   }
 
   .admin-rail-logo {
@@ -202,10 +202,10 @@
   .admin-rail-nav {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2px;
     flex: 1;
-    padding: 8px 6px;
-    overflow-x: hidden;
+    padding: 8px 0;
     overflow-y: auto;
   }
 
@@ -236,10 +236,10 @@
   .admin-rail-bottom {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2px;
-    padding: 8px 6px;
+    padding: 8px 0;
     border-top: 1px solid var(--border-secondary);
-    overflow: hidden;
   }
 
   /* ===================== Level 2 Panel ===================== */
@@ -295,9 +295,9 @@
     display: flex;
     width: 48px;
     flex-direction: column;
+    align-items: center;
     background-color: var(--surface-inset);
     border-right: 1px solid var(--border-primary);
-    overflow-x: hidden;
   }
 
   /* ===================== Mobile Top Bar ===================== */
@@ -353,29 +353,13 @@
   }
 
   .admin-btn-primary {
-    position: relative;
     background: var(--gradient-brand);
     color: var(--color-white);
-    overflow: hidden;
+    transition: filter var(--duration-normal) ease;
   }
 
-  .admin-btn-primary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--gradient-brand-hover);
-    opacity: 0;
-    transition: opacity var(--duration-normal) ease;
-  }
-
-  .admin-btn-primary:hover:not(:disabled)::before {
-    opacity: 1;
-  }
-
-  .admin-btn-primary > * {
-    position: relative;
-    z-index: 1;
+  .admin-btn-primary:hover:not(:disabled) {
+    filter: brightness(0.88);
   }
 
   .admin-btn-secondary {

@@ -34,7 +34,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
 
-**To rebrand:** find-replace `350` with your brand hue and `303` with your accent hue in `src/engine/styles/tokens.css` (default: 350 = pink/coral brand, 303 = purple accent, matched to flirtcam). The `--brand-hue` and `--accent-hue` variables in `:root` must match (powers alpha tints in admin CSS). Update the gradient tokens (`--gradient-brand*`) L/C values to match your new brand scale.
+**To rebrand:** In `src/engine/styles/tokens.css`: (1) find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; (2) update `--brand-hue` and `--accent-hue` in `:root` to match; (3) optionally change gray hue `260`/`265` to match your brand (260 = cool blue-violet, works well as universal neutral); (4) update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds); (5) update `--gradient-brand` L/C values to match your new brand scale.
 
 ### tRPC Procedures & Usage
 
@@ -301,7 +301,7 @@ const __ = useBlankTranslations();
 
 Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config.
 
-**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Find-replace `350` (brand hue, pink/coral) and `303` (accent hue, purple) with your hues to rebrand — all brand colors adapt. Grays use hue 260 (cool blue-violet, independent of brand). Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` so the hue propagates everywhere — NOT `color-mix()` or relative color syntax (`oklch(from ...)`), which don't work correctly with CSS variables. Update `--brand-hue`, `--accent-hue`, and `--gradient-brand*` L/C values to match your new scales.
+**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Three independent hues: brand `350` (pink/coral), accent `303` (purple), gray `260`/`265` (cool blue-violet). To rebrand: replace brand/accent hues in their scales + `--brand-hue`/`--accent-hue` vars; optionally change gray hue (260 is a good universal neutral); update hardcoded `260` in dark surface tokens and `admin.css` (rail, L2). Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` — NOT `color-mix()` or `oklch(from ...)`, which don't work with CSS variables in Lightning CSS.
 
 **File structure:**
 - `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)

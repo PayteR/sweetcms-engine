@@ -74,11 +74,11 @@ export function ContentCalendar() {
     day === now.getDate() && month === now.getMonth() + 1 && year === now.getFullYear();
 
   return (
-    <div>
+    <div className="admin-calendar-page">
       {/* Month navigation */}
-      <div className="flex items-center justify-between">
+      <div className="admin-page-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Calendar')}</h1>
-        <div className="flex items-center gap-3">
+        <div className="admin-calendar-nav flex items-center gap-3">
           <button onClick={prevMonth} className="admin-btn admin-btn-secondary">
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -100,7 +100,7 @@ export function ContentCalendar() {
         ) : (
           <>
             {/* Day headers */}
-            <div className="grid grid-cols-7 border-b border-(--border-primary)">
+            <div className="admin-calendar-day-headers grid grid-cols-7 border-b border-(--border-primary)">
               {DAYS.map(day => (
                 <div key={day} className="px-2 py-2 text-center text-xs font-semibold text-(--text-muted)">
                   {__(day)}
@@ -108,7 +108,7 @@ export function ContentCalendar() {
               ))}
             </div>
             {/* Day cells */}
-            <div className="grid grid-cols-7">
+            <div className="admin-calendar-grid grid grid-cols-7">
               {cells.map((day, i) => (
                 <div
                   key={i}

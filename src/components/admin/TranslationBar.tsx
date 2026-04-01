@@ -66,11 +66,11 @@ export function TranslationBar({
   };
 
   return (
-    <div>
+    <div className="admin-translation-bar">
       <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
         {__('Language')}
       </label>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="admin-translation-chips flex flex-wrap items-center gap-2">
         <span className="rounded-md bg-(--color-brand-600) px-3 py-1 text-sm font-medium text-white">
           {LOCALE_LABELS[currentLang as Locale] ?? currentLang}
         </span>

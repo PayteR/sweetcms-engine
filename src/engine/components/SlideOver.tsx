@@ -56,7 +56,7 @@ export function SlideOver({
     >
       <div className={cn('admin-slide-over-panel', widthClasses[width])}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-(--border-secondary) px-5 py-4">
+        <div className="admin-slide-over-header flex items-center justify-between border-b border-(--border-secondary) px-5 py-4">
           <h2 className="admin-h2">{title}</h2>
           <button
             type="button"
@@ -69,7 +69,7 @@ export function SlideOver({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="admin-slide-over-body flex-1 overflow-y-auto p-5">
           {children}
         </div>
       </div>

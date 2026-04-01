@@ -188,8 +188,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
+    <div className="admin-settings-page">
+      <div className="admin-page-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
         <button
           type="submit"
@@ -206,7 +206,7 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <form id="settings-form" onSubmit={handleSave} className="mt-6 space-y-6">
+      <form id="settings-form" onSubmit={handleSave} className="admin-settings-form mt-6 space-y-6">
         {groupOrder.map((groupKey) => {
           const groupItems = grouped[groupKey];
           if (!groupItems?.length) return null;
@@ -223,7 +223,7 @@ export default function SettingsPage() {
                 {groupItems.map((item) => {
                   if (item.type === 'boolean') {
                     return (
-                      <div key={item.key} className="flex items-center justify-between">
+                      <div key={item.key} className="admin-field-row flex items-center justify-between">
                         {renderField(item)}
                         {item.isCustom && (
                           <button
@@ -241,7 +241,7 @@ export default function SettingsPage() {
 
                   return (
                     <div key={item.key}>
-                      <div className="flex items-center gap-2">
+                      <div className="admin-field-header flex items-center gap-2">
                         <label className="block text-sm font-medium text-(--text-secondary)">
                           {__(item.label)}
                         </label>
@@ -297,7 +297,7 @@ export default function SettingsPage() {
         })}
 
         {/* SEO Overrides — non-registry section */}
-        <div className="admin-card p-6">
+        <div className="admin-settings-seo-section admin-card p-6">
           <h2 className="admin-h2">{__('SEO Overrides')}</h2>
           <p className="mt-1 text-sm text-(--text-muted)">
             {__('Create CMS pages to override SEO metadata for coded routes (homepage, login, etc.).')}

@@ -67,10 +67,10 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
 
       {/* Google tab */}
       {activeTab === 'google' && (
-        <div className="mt-4 rounded-md border border-(--border-primary) bg-(--surface-primary) p-4">
-          <p className="text-sm text-(--color-brand-700) dark:text-(--color-brand-400) truncate">{displayTitle}</p>
-          <p className="text-xs text-green-700 dark:text-green-400">{displayUrl}</p>
-          <p className="mt-1 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
+        <div className="admin-seo-preview-google mt-4 rounded-md border border-(--border-primary) bg-(--surface-primary) p-4">
+          <p className="admin-seo-preview-title text-sm text-(--color-brand-700) dark:text-(--color-brand-400) truncate">{displayTitle}</p>
+          <p className="admin-seo-preview-url text-xs text-green-700 dark:text-green-400">{displayUrl}</p>
+          <p className="admin-seo-preview-description mt-1 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
         </div>
       )}
 
@@ -86,12 +86,12 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
             )}
           </div>
           {/* Meta below image */}
-          <div className="bg-(--surface-primary) p-3">
-            <p className="text-[10px] uppercase tracking-wide text-(--text-muted)">
+          <div className="admin-seo-preview-social-meta bg-(--surface-primary) p-3">
+            <p className="admin-seo-preview-domain text-[10px] uppercase tracking-wide text-(--text-muted)">
               {displayUrl.split('/')[0]}
             </p>
-            <p className="mt-1 text-sm font-bold text-(--text-primary) truncate">{displayTitle}</p>
-            <p className="mt-0.5 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
+            <p className="admin-seo-preview-title mt-1 text-sm font-bold text-(--text-primary) truncate">{displayTitle}</p>
+            <p className="admin-seo-preview-description mt-0.5 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
           </div>
         </div>
       )}
@@ -108,20 +108,20 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
             )}
           </div>
           {/* Meta below image */}
-          <div className="bg-(--surface-primary) p-3">
-            <p className="text-sm font-medium text-(--text-primary) truncate">{displayTitle}</p>
-            <p className="mt-0.5 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
-            <p className="mt-1 text-[10px] text-(--text-muted)">{displayUrl.split('/')[0]}</p>
+          <div className="admin-seo-preview-social-meta bg-(--surface-primary) p-3">
+            <p className="admin-seo-preview-title text-sm font-medium text-(--text-primary) truncate">{displayTitle}</p>
+            <p className="admin-seo-preview-description mt-0.5 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
+            <p className="admin-seo-preview-domain mt-1 text-[10px] text-(--text-muted)">{displayUrl.split('/')[0]}</p>
           </div>
         </div>
       )}
 
       {/* Character counters (always visible) */}
-      <div className="mt-3 flex gap-4 text-xs">
-        <span className={cn(charColor(title.length, 50, 60))}>
+      <div className="admin-seo-char-counters mt-3 flex gap-4 text-xs">
+        <span className={cn('admin-seo-char-count', charColor(title.length, 50, 60))}>
           {__('Title')}: {title.length}/60
         </span>
-        <span className={cn(charColor(description.length, 140, 160))}>
+        <span className={cn('admin-seo-char-count', charColor(description.length, 140, 160))}>
           {__('Description')}: {description.length}/160
         </span>
       </div>

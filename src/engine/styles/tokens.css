@@ -106,25 +106,9 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
-  --duration-slower: 500ms;
-
-  /* Blur scale */
-  --blur-xs: 4px;
-  --blur-sm: 8px;
-  --blur-md: 12px;
-  --blur-lg: 16px;
-  --blur-xl: 20px;
-  --blur-2xl: 24px;
-
-  /* Glass */
-  --glass-blur: 20px;
-  --glass-saturate: 1.8;
-  --glass-border: oklch(1 0 0 / 0.10);
 
   /* Brand gradient — pink→purple diagonal (matched to flirtcam brand-primary→brand-secondary) */
   --gradient-brand: linear-gradient(in oklch 135deg, oklch(0.65 0.24 var(--brand-hue)), oklch(0.55 0.27 var(--accent-hue)));
-  --gradient-brand-hover: linear-gradient(in oklch 135deg, oklch(0.56 0.24 var(--brand-hue)), oklch(0.47 0.27 var(--accent-hue)));
-  --gradient-brand-subtle: linear-gradient(in oklch 135deg, oklch(0.65 0.24 var(--brand-hue) / 0.15), oklch(0.55 0.27 var(--accent-hue) / 0.15));
 }
 
 html.dark {
@@ -149,36 +133,8 @@ html.dark {
   --border-primary:   oklch(0.35 0.01 260 / 0.8);
   --border-secondary: oklch(0.30 0.01 260 / 0.5);
 
-  /* Shadows — dark mode: deeper for glass layering */
+  /* Shadows — dark mode */
   --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 0 0 1px oklch(1 0 0 / 0.03);
   --shadow-md: 0 3px 10px oklch(0 0 0 / 0.3), 0 0 0 1px oklch(1 0 0 / 0.03);
   --shadow-lg: 0 8px 30px oklch(0 0 0 / 0.35), 0 0 0 1px oklch(1 0 0 / 0.03);
-
-  /* Glass shadows — with inset white edge for frosted glass look */
-  --shadow-glass-sm:  0 4px 12px oklch(0 0 0 / 0.15), inset 0 1px 0 oklch(1 0 0 / 0.06);
-  --shadow-glass-md:  0 8px 24px oklch(0 0 0 / 0.25), inset 0 1px 0 oklch(1 0 0 / 0.08);
-  --shadow-glass-lg:  0 20px 60px oklch(0 0 0 / 0.4), 0 8px 32px oklch(0 0 0 / 0.2), inset 0 1px 0 oklch(1 0 0 / 0.12);
-
-  /* Glass */
-  --glass-border: oklch(1 0 0 / 0.12);
-}
-
-/* Animations */
-:root {
-  --animate-slide-down: slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-fade-in: fade-in 0.15s ease-out;
-  --animate-fade-out: fade-out 0.1s ease-in;
-}
-
-@keyframes slide-down {
-  from { transform: translate(-50%, -20px); opacity: 0; }
-  to { transform: translate(-50%, 0); opacity: 1; }
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
 }

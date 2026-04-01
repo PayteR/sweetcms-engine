@@ -26,22 +26,22 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
   }, []);
 
   return (
-    <div className="-mx-6 -mt-6">
-      <div ref={sentinelRef} className="h-0" />
+    <div className="admin-form-shell -mx-6 -mt-6">
+      <div ref={sentinelRef} className="admin-sticky-sentinel h-0" />
       <div
         className={cn(
-          'sticky top-12 xl:top-0 z-30 transition-[background-color,border-color] duration-200',
+          'admin-form-toolbar sticky top-12 xl:top-0 z-30 transition-[background-color,border-color] duration-200',
           isStuck
             ? 'bg-(--surface-primary) border-b border-b-(--border-primary)'
             : 'border-b border-transparent'
         )}
       >
-        <div className="mx-auto max-w-300 px-8 h-14 flex items-center justify-between">
+        <div className="admin-form-toolbar-inner mx-auto max-w-300 px-8 h-14 flex items-center justify-between">
           {toolbar}
         </div>
       </div>
 
-      <div className="mx-auto max-w-300 px-8 pb-8 pt-6 space-y-6">
+      <div className="admin-form-body mx-auto max-w-300 px-8 pb-8 pt-6 space-y-6">
         {children}
       </div>
     </div>

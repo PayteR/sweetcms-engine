@@ -105,9 +105,9 @@ export function TermForm({ tagId }: Props) {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="admin-term-form-page">
+      <div className="admin-page-header flex items-center justify-between">
+        <div className="admin-page-header-left flex items-center gap-3">
           <Link
             href="/dashboard/cms/tags"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
@@ -134,8 +134,8 @@ export function TermForm({ tagId }: Props) {
       </div>
 
       <form id="term-form" onSubmit={handleSubmit} className="mt-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="admin-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="admin-form-main space-y-6 lg:col-span-2">
             <div className="admin-card p-6">
               <div className="space-y-4">
                 <div>
@@ -171,7 +171,7 @@ export function TermForm({ tagId }: Props) {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="admin-form-sidebar space-y-6">
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">

@@ -353,11 +353,11 @@ export function PortfolioForm({ portfolioId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="portfolio-form" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="admin-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="admin-form-main space-y-6 lg:col-span-2">
             <div className="admin-card p-6">
-              <div className="space-y-4">
-                <div>
+              <div className="admin-field-stack space-y-4">
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
                   </label>
@@ -370,7 +370,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     placeholder={__('Project name')}
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Slug')}
                   </label>
@@ -385,7 +385,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     className="admin-input mt-1 font-mono"
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Title')}
                   </label>
@@ -408,7 +408,7 @@ export function PortfolioForm({ portfolioId }: Props) {
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Project Details')}</h3>
               <div className="mt-4 space-y-4">
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Client Name')}
                   </label>
@@ -420,7 +420,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     placeholder={__('Client or company name')}
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Project URL')}
                   </label>
@@ -432,15 +432,15 @@ export function PortfolioForm({ portfolioId }: Props) {
                     placeholder="https://example.com"
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Tech Stack')}
                   </label>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
+                  <div className="admin-tag-chips mt-1 flex flex-wrap gap-1.5">
                     {formData.techStack.map((tech, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
+                        className="admin-tag-chip inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
                       >
                         {tech}
                         <button
@@ -468,7 +468,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     placeholder={__('Type and press Enter or comma to add')}
                   />
                 </div>
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Completion Date')}
                   </label>
@@ -535,7 +535,7 @@ export function PortfolioForm({ portfolioId }: Props) {
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className="admin-form-sidebar space-y-6">
             {/* Featured Image */}
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Featured Image')}</h3>
@@ -593,7 +593,7 @@ export function PortfolioForm({ portfolioId }: Props) {
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">
-                <div>
+                <div className="admin-field-group">
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
@@ -605,7 +605,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     </option>
                   </select>
                 </div>
-                <div>
+                <div className="admin-field-group">
                   {item && translationSiblings.data ? (
                     <TranslationBar
                       currentLang={formData.lang}
@@ -646,7 +646,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                   />
                 )}
 
-                <div>
+                <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>

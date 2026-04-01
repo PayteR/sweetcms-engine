@@ -12,14 +12,6 @@
  */
 
 @layer components {
-  /* ===================== Table Wrapper ===================== */
-  .admin-table-wrap {
-    overflow-x: auto;
-    background-color: var(--surface-secondary);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-primary);
-  }
-
   /* ===================== Table Rows ===================== */
   .admin-tr {
     transition: background-color var(--duration-fast) ease;
@@ -31,30 +23,6 @@
 
   .admin-tr:hover {
     background-color: oklch(0 0 0 / 0.04);
-  }
-
-  /* ===================== Translation Rows ===================== */
-  .admin-tr-translation {
-    background-color: oklch(0 0 0 / 0.02);
-  }
-
-  .admin-tr-translation:hover {
-    background-color: oklch(0 0 0 / 0.05);
-  }
-
-  .admin-translation-arrow {
-    display: inline-block;
-    margin-right: 0.375rem;
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-  }
-
-  .admin-tr-translation .admin-td-actions {
-    background-color: var(--color-gray-50);
-  }
-
-  .admin-tr-translation:hover .admin-td-actions {
-    background-color: var(--color-gray-100);
   }
 
   /* ===================== Primary Table Cell ===================== */
@@ -178,17 +146,6 @@
     background-color: oklch(0.60 0.19 25 / 0.10);
     color: var(--color-danger-600);
     border-color: oklch(0.60 0.19 25 / 0.20);
-  }
-
-  .admin-badge-lang {
-    display: inline-block;
-    border-radius: var(--radius-md);
-    padding: 0.125rem 0.375rem;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    background-color: var(--surface-inset);
-    color: var(--text-muted);
   }
 
   /* ===================== Search & Filters ===================== */
@@ -352,16 +309,6 @@
   .admin-status-tab.active {
     color: var(--color-brand-600);
     border-bottom-color: var(--color-brand-600);
-  }
-
-  .admin-status-tab.active-danger {
-    color: var(--color-danger-600);
-    border-bottom-color: var(--color-danger-600);
-  }
-
-  .admin-status-tab.active-danger .admin-status-tab-count {
-    background-color: oklch(0.60 0.19 25 / 0.12);
-    color: var(--color-danger-600);
   }
 
   .admin-status-tab-count {
@@ -556,16 +503,6 @@ html.dark {
     border-color: transparent;
   }
 
-  .admin-table-wrap {
-    background-color: var(--color-gray-800);
-    border-color: var(--color-gray-700);
-  }
-
-  .admin-badge-lang {
-    background-color: oklch(1 0 0 / 0.06);
-    color: var(--color-gray-400);
-  }
-
   .admin-status-tab.active {
     color: var(--color-brand-400);
     border-bottom-color: var(--color-brand-400);
@@ -574,33 +511,6 @@ html.dark {
   .admin-status-tab.active .admin-status-tab-count {
     background-color: oklch(0.65 0.24 var(--brand-hue) / 0.15);
     color: var(--color-brand-400);
-  }
-
-  .admin-status-tab.active-danger {
-    color: var(--color-danger-500);
-    border-bottom-color: var(--color-danger-500);
-  }
-
-  .admin-status-tab.active-danger .admin-status-tab-count {
-    background-color: oklch(0.60 0.19 25 / 0.15);
-    color: var(--color-danger-500);
-  }
-
-  /* Translation rows */
-  .admin-tr-translation {
-    background-color: oklch(1 0 0 / 0.02);
-  }
-
-  .admin-tr-translation:hover {
-    background-color: oklch(1 0 0 / 0.05);
-  }
-
-  .admin-tr-translation .admin-td-actions {
-    background-color: oklch(0.22 0.02 260);
-  }
-
-  .admin-tr-translation:hover .admin-td-actions {
-    background-color: oklch(0.25 0.02 260);
   }
 
   .admin-pagination-btn.active {
@@ -626,9 +536,9 @@ html.dark {
     border-color: oklch(0.60 0.16 150 / 0.25);
   }
 
-  /* Solid hovers (not transparent — sticky actions must be opaque) */
+  /* Solid row colors — LIGHTER than card bg (0.27), matching white-tint pattern */
   .admin-tr:hover {
-    background-color: oklch(0.24 0.02 260);
+    background-color: oklch(0.30 0.02 260);
   }
 
   .admin-action-btn:hover {
@@ -660,26 +570,27 @@ html.dark {
     border-left: 1px solid oklch(1 0 0 / 0.06);
   }
 
-  /* Odd rows hover */
+  /* Odd rows hover — action cell matches row */
   .admin-tr:hover .admin-td-actions {
-    background-color: oklch(0.24 0.02 260);
+    background-color: oklch(0.30 0.02 260);
   }
 
-  /* Even row striping — solid colors so sticky actions stay opaque */
+  /* Even row striping — solid, slightly lighter than card (≈ white 2% on 0.27) */
   .admin-tr:nth-child(even) {
-    background-color: oklch(0.23 0.02 260);
+    background-color: oklch(0.29 0.02 260);
   }
 
   .admin-tr:nth-child(even) .admin-td-actions {
-    background-color: oklch(0.23 0.02 260);
+    background-color: oklch(0.29 0.02 260);
   }
 
+  /* Even row hover — same as odd hover */
   .admin-tr:nth-child(even):hover {
-    background-color: oklch(0.24 0.02 260);
+    background-color: oklch(0.30 0.02 260);
   }
 
   .admin-tr:nth-child(even):hover .admin-td-actions {
-    background-color: oklch(0.24 0.02 260);
+    background-color: oklch(0.30 0.02 260);
   }
 
   /* Form inputs: lighter than cards (matched to flirtcam) */
