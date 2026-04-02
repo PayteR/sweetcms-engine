@@ -10,10 +10,10 @@ In a SweetCMS project:
 
 ```bash
 # Add engine as subtree (first time)
-git subtree add --prefix=src/engine https://github.com/payter/sweetcms-engine.git main --squash
+git subtree add --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash
 
 # Pull engine updates
-git subtree pull --prefix=src/engine https://github.com/payter/sweetcms-engine.git main --squash
+git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash
 ```
 
 ## Structure
